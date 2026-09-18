@@ -115,6 +115,12 @@ Aplikasi absensi berbasis tablet kiosk + face recognition & liveness, geofence G
 - Endpoint: GET /teacher/students, POST/GET /teacher/student-status. Full suite 62/62 lulus.
 - Cleanup: puluhan leave uji "TEST" & siswa TEST_* sisa pytest dibersihkan dari sekolah demo.
 
+## Update 2026-09-19 (iterasi 17 — perbaikan error kamera enroll wajah)
+- Laporan user: modal Enroll Wajah hanya menampilkan "Kamera tidak tersedia" (izin kamera pernah ditolak browser → tidak ada prompt ulang).
+- `CameraCapture.jsx`: pesan error kini spesifik per penyebab — izin ditolak (panduan aktifkan ulang via ikon gembok di address bar), kamera tidak ada, kamera dipakai aplikasi lain, konteks non-HTTPS; tombol **Coba Lagi** (re-request izin) + fallback **Unggah Foto** (file picker, resize ke ≤480px seperti capture kamera).
+- Helper `startCamera` + `cameraErrorKey` diekspor dan dipakai ulang di Kiosk.jsx; fallback `OverconstrainedError` → `video: true`.
+- Terverifikasi screenshot: alur unggah foto → preview → simpan → status "Terdaftar"; kiosk tetap berfungsi (stream kamera attach, tanpa overflow). Data uji enroll dibersihkan.
+
 ## Backlog Prioritas
 - P0: Kunci Tripay asli dari user + uji webhook; tablet React Native (kiosk native, embedding cache on-device)
 - P1: Absen siswa (v2), geofence penuh untuk absen via HP pribadi guru

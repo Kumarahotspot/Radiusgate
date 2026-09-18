@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import axios from "axios";
 import LangSwitch from "../components/LangSwitch";
-import { captureFrame } from "../components/CameraCapture";
+import { captureFrame, startCamera } from "../components/CameraCapture";
 import { ScanFace, Volume2, VolumeX, WifiOff, LogIn, LogOut, Unplug } from "lucide-react";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
@@ -76,9 +76,7 @@ export default function Kiosk() {
   // camera
   useEffect(() => {
     if (!token || !info) return;
-    navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" }, audio: false })
-      .then((s) => { streamRef.current = s; if (videoRef.current) videoRef.current.srcObject = s; })
-      .catch(() => setResult({ ok: false, message: t("kiosk_camera_error") }));
+    startCamera(videoRef, streamRef, (key) => setResult({ ok: false, message: t(key) }));
     return () => streamRef.current?.getTracks().forEach((tr) => tr.stop());
   }, [token, info, t]);
 
