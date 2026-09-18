@@ -6,7 +6,7 @@ import { MapPin, Plus, Trash2, Crosshair, Copy } from "lucide-react";
 
 export default function SettingsPage() {
   const { t } = useTranslation();
-  const [settings, setSettings] = useState({ work_start: "07:00", work_end: "15:00", late_tolerance_min: 10, early_checkin_min: 60, timezone: "Asia/Jakarta" });
+  const [settings, setSettings] = useState({ work_start: "07:00", work_end: "15:00", late_tolerance_min: 10, early_checkin_min: 60, timezone: "Asia/Jakarta", require_checkin: true });
   const [locations, setLocations] = useState([]);
   const [school, setSchool] = useState(null);
   const [loc, setLoc] = useState({ name: "", lat: "", lng: "", radius_m: 50 });
@@ -98,6 +98,12 @@ export default function SettingsPage() {
             </select>
           </div>
         </div>
+        <label className="mt-4 flex items-center gap-2 text-sm text-slate-700 max-w-3xl">
+          <input data-testid="require-checkin-toggle" type="checkbox" checked={settings.require_checkin !== false}
+            onChange={(e) => setSettings({ ...settings, require_checkin: e.target.checked })}
+            className="accent-teal-700 w-4 h-4" />
+          <span>{t("require_checkin")} <span className="text-xs text-slate-400">({t("require_checkin_hint")})</span></span>
+        </label>
         <button data-testid="save-settings-btn" className="mt-4 px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-teal-700 hover:bg-teal-800">{t("save")}</button>
       </form>
 

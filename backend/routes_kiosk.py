@@ -122,7 +122,7 @@ async def _record(school, teacher_id, teacher_name, att_type, ts_device, lat, ln
     dup = await db.attendance.find_one({dup_field: teacher_id, "date": date, "type": att_type})
     if dup:
         raise HTTPException(status_code=409, detail="already_recorded")
-    if att_type == "out":
+    if att_type == "out" and (settings or {}).get("require_checkin", True):
         in_rec = await db.attendance.find_one({dup_field: teacher_id, "date": date, "type": "in"})
         if not in_rec and settings:
             try:
