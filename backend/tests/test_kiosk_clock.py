@@ -206,6 +206,22 @@ def test_scenario4_standard_day_shift(admin_token, temp_teacher, mongo):
     assert j["overtime_minutes"] == 90, j
 
 
+def test_scenario5_out_requires_checkin(admin_token, temp_teacher, mongo):
+    """Absen pulang tanpa absen masuk -> 422 no_checkin; setelah absen masuk -> diterima."""
+    _set_settings(admin_token, "07:00", "15:00", 10, 60)
+
+    _clear_attendance(mongo, temp_teacher)
+    r = _attend("out", "2026-09-24T15:30:00")
+    assert r.status_code == 422, f"{r.status_code} {r.text}"
+    assert r.json().get("detail") == "no_checkin", r.text
+
+    r = _attend("in", "2026-09-24T07:05:00")
+    assert r.status_code == 200, r.text
+
+    r = _attend("out", "2026-09-24T15:30:00")
+    assert r.status_code == 200, r.text
+
+
 def test_susiyanto_record_ok(admin_token):
     """GET admin today should list Susiyanto's 23:36 check-in with status ok, late 0."""
     # Try /api/admin/today

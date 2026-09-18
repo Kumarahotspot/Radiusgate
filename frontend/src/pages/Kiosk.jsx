@@ -280,6 +280,7 @@ export default function Kiosk() {
           voiceMsg = nm ? `${t("kiosk_already")}, ${nm}` : t("kiosk_already");
         }
         else if (d === "no_enrolled") { msg = t("kiosk_no_enrolled"); voiceMsg = msg; }
+        else if (d === "no_checkin") { msg = t("kiosk_no_checkin"); voiceMsg = msg; }
         else if (d.startsWith("too_early")) {
           const p = d.split(":");
           const tm = `${p[1]}:${p[2]}`;

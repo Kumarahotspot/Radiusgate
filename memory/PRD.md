@@ -129,6 +129,12 @@ Aplikasi absensi berbasis tablet kiosk + face recognition & liveness, geofence G
 - Pola yang sama diterapkan ke halaman **Guru** (search nama/email/NIP/mapel) dan tabel **Absensi Hari Ini** di Dasbor (search nama/status/tipe di header kartu), masing-masing 10 entri/halaman + info rentang + prev/next.
 - i18n baru: `search_teachers`, `search_attendance` (ID/EN). Terverifikasi screenshot: search "budi" → 1 hasil, info halaman benar, tanpa overflow di 390px.
 
+## Update 2026-09-19 (iterasi 19 — absen pulang wajib ada absen masuk)
+- Bug dilaporkan user: absen pulang berhasil tanpa absen masuk (Siswa Demo 2 tercatat "Absen Pulang" 05:19 tanpa "Absen Masuk"). Backend memang tidak memvalidasi urutan.
+- Fix `_record` di routes_kiosk.py: att_type "out" ditolak 422 `no_checkin` jika tidak ada record "in" di tanggal sama; pengecualian shift malam (work_end ≤ work_start) → cek absen masuk tanggal kemarin. Berlaku untuk wajah, NIS, dan sync offline.
+- Kiosk.jsx: mapping error `no_checkin` → pesan + suara "Belum ada absen masuk hari ini. Silakan absen masuk dulu." (i18n ID/EN `kiosk_no_checkin`).
+- Tes: skenario5 baru di test_kiosk_clock.py (out tanpa in → 422; setelah in → 200; shift malam tetap jalan via regresi skenario3). test_student_kiosk_v2.py dibuat mandiri — fixture membuat siswa TEST-KIOSK-1 sendiri + cleanup via Mongo, karena user menghapus siswa demo nis 10001. **Full suite 63/63 lulus.**
+
 ## Backlog Prioritas
 - P0: Kunci Tripay asli dari user + uji webhook; tablet React Native (kiosk native, embedding cache on-device)
 - P1: Absen siswa (v2), geofence penuh untuk absen via HP pribadi guru

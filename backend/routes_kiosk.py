@@ -1,7 +1,7 @@
 import math
 import uuid
 import logging
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from zoneinfo import ZoneInfo
 from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel
@@ -122,6 +122,19 @@ async def _record(school, teacher_id, teacher_name, att_type, ts_device, lat, ln
     dup = await db.attendance.find_one({dup_field: teacher_id, "date": date, "type": att_type})
     if dup:
         raise HTTPException(status_code=409, detail="already_recorded")
+    if att_type == "out":
+        in_rec = await db.attendance.find_one({dup_field: teacher_id, "date": date, "type": "in"})
+        if not in_rec and settings:
+            try:
+                ws_h, ws_m = map(int, settings.get("work_start", "07:00").split(":"))
+                we_h, we_m = map(int, settings.get("work_end", "15:00").split(":"))
+                if we_h * 60 + we_m <= ws_h * 60 + ws_m:  # shift malam: absen masuk bisa kemarin
+                    prev = (datetime.strptime(date, "%Y-%m-%d") - timedelta(days=1)).date().isoformat()
+                    in_rec = await db.attendance.find_one({dup_field: teacher_id, "date": prev, "type": "in"})
+            except Exception:
+                pass
+        if not in_rec:
+            raise HTTPException(status_code=422, detail="no_checkin")
     if manual:
         status = "ok"
     else:

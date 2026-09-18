@@ -1,10 +1,17 @@
 """Tests for v2 features: student kiosk attend, offline sync, student PATCH, admin stats students_present."""
+import asyncio
 import os
 import uuid
 from datetime import datetime, timezone
 
 import pytest
 import requests
+from dotenv import load_dotenv
+from motor.motor_asyncio import AsyncIOMotorClient
+
+load_dotenv("/app/backend/.env")
+MONGO_URL = os.environ["MONGO_URL"]
+DB_NAME = os.environ["DB_NAME"]
 
 BASE_URL = os.environ.get("REACT_APP_BACKEND_URL", "http://localhost:8001").rstrip("/")
 API = f"{BASE_URL}/api"
@@ -51,28 +58,43 @@ def _cleanup_attendance(admin_token, student_ids):
             requests.delete(f"{API}/admin/attendance/{r['id']}", headers=h(admin_token))
 
 
-# Use specific NIS values from the demo range (10001-10120) to avoid collisions between tests.
-NIS_PRESENT = "10001"
-NIS_DUP = "10001"
+# Dedicated test student (created by fixture) so tests don't depend on deletable demo rows.
+NIS_TEST = "TEST-KIOSK-1"
 NIS_GEOFENCE = "10050"
 NIS_SAKIT = "10060"
 NIS_SYNC = "10080"
 NIS_PATCH = "10120"  # last one - unlikely to be used elsewhere
 
 
+@pytest.fixture(scope="module")
+def kiosk_student(admin_token):
+    """Create a dedicated test student; remove its attendance & row afterwards."""
+    s = _pick_student_by_nis(_fetch_students(admin_token), NIS_TEST)
+    if not s:
+        r = requests.post(f"{API}/admin/students",
+                          json={"name": "TEST_SISWA_KIOSK", "nis": NIS_TEST, "class_name": "TEST"},
+                          headers=h(admin_token), timeout=30)
+        assert r.status_code in (200, 201), r.text
+        s = _pick_student_by_nis(_fetch_students(admin_token), NIS_TEST)
+    assert s, "failed to create test student"
+    yield s
+    client = AsyncIOMotorClient(MONGO_URL)
+    mdb = client[DB_NAME]
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(mdb.attendance.delete_many({"student_id": s["id"]}))
+    loop.run_until_complete(mdb.students.delete_one({"id": s["id"]}))
+    client.close()
+
+
 class TestStudentKiosk:
     _present_id = None
     _sakit_id = None
 
-    def test_attend_valid_present(self, admin_token):
-        students = _fetch_students(admin_token)
-        s = _pick_student_by_nis(students, NIS_PRESENT)
-        assert s, f"demo student nis={NIS_PRESENT} not found"
-        # pre-cleanup in case previous run left data
-        _cleanup_attendance(admin_token, [s["id"]])
-        TestStudentKiosk._present_id = s["id"]
+    def test_attend_valid_present(self, admin_token, kiosk_student):
+        _cleanup_attendance(admin_token, [kiosk_student["id"]])
+        TestStudentKiosk._present_id = kiosk_student["id"]
         body = {
-            "nis": NIS_PRESENT,
+            "nis": kiosk_student["nis"],
             "status": "present",
             "lat": GEO_OK["lat"], "lng": GEO_OK["lng"],
             "ts_device": datetime.now(timezone.utc).isoformat(),
@@ -85,9 +107,9 @@ class TestStudentKiosk:
         assert "student_name" in data and data["student_name"]
         assert data["att_status"] == "present"
 
-    def test_attend_duplicate_same_day(self):
+    def test_attend_duplicate_same_day(self, kiosk_student):
         body = {
-            "nis": NIS_DUP,
+            "nis": kiosk_student["nis"],
             "status": "present",
             "lat": GEO_OK["lat"], "lng": GEO_OK["lng"],
             "ts_device": datetime.now(timezone.utc).isoformat(),
