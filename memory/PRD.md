@@ -109,6 +109,12 @@ Aplikasi absensi berbasis tablet kiosk + face recognition & liveness, geofence G
 - NIS manual tetap tersedia di bagian bawah kiosk (fallback siswa tanpa wajah / offline) dengan status Hadir/Sakit/Izin.
 - Terverifikasi: foto siswa → 200 person_type=student + record student_id; duplikat 409; full suite 62/62; UI kiosk terpadu OK di 390px.
 
+## Update 2026-09-19 (iterasi 16 — S/I siswa oleh wali kelas)
+- Kiosk NIS: tombol Sakit/Izin **dihapus** — kiosk hanya mencatat Hadir.
+- **Sakit/Izin siswa dicatat wali kelas** dari Portal Guru: kartu "Sakit/Izin Siswa" (pilih siswa, status, tanggal, catatan) → tercatat di absensi (att_status, recorded_by), anti-duplikat per hari, tanpa geofence (manual=True di _record).
+- Endpoint: GET /teacher/students, POST/GET /teacher/student-status. Full suite 62/62 lulus.
+- Cleanup: puluhan leave uji "TEST" & siswa TEST_* sisa pytest dibersihkan dari sekolah demo.
+
 ## Backlog Prioritas
 - P0: Kunci Tripay asli dari user + uji webhook; tablet React Native (kiosk native, embedding cache on-device)
 - P1: Absen siswa (v2), geofence penuh untuk absen via HP pribadi guru

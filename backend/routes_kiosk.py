@@ -112,7 +112,7 @@ def _late_overtime(settings, att_type, m):
 
 
 async def _record(school, teacher_id, teacher_name, att_type, ts_device, lat, lng, photo,
-                  client_uuid, offline, extra=None):
+                  client_uuid, offline, extra=None, manual=False):
     sid = school["id"]
     settings = await db.settings.find_one({"school_id": sid}, {"_id": 0})
     tz_name = (settings or {}).get("timezone", "Asia/Jakarta")
@@ -122,17 +122,20 @@ async def _record(school, teacher_id, teacher_name, att_type, ts_device, lat, ln
     dup = await db.attendance.find_one({dup_field: teacher_id, "date": date, "type": att_type})
     if dup:
         raise HTTPException(status_code=409, detail="already_recorded")
-    locations = await db.locations.find({"school_id": sid}, {"_id": 0}).to_list(100)
-    ok, nearest = _geofence_check(locations, lat, lng)
-    if not ok:
-        dist = int(haversine_m(lat, lng, nearest["lat"], nearest["lng"])) if nearest else None
-        if offline:
-            status = "rejected_geofence"
-        else:
-            raise HTTPException(status_code=422, detail=f"outside_geofence:{dist}")
-    else:
+    if manual:
         status = "ok"
-    if att_type == "in" and settings:
+    else:
+        locations = await db.locations.find({"school_id": sid}, {"_id": 0}).to_list(100)
+        ok, nearest = _geofence_check(locations, lat, lng)
+        if not ok:
+            dist = int(haversine_m(lat, lng, nearest["lat"], nearest["lng"])) if nearest else None
+            if offline:
+                status = "rejected_geofence"
+            else:
+                raise HTTPException(status_code=422, detail=f"outside_geofence:{dist}")
+        else:
+            status = "ok"
+    if att_type == "in" and settings and not manual:
         ws_h, ws_m = map(int, settings.get("work_start", "07:00").split(":"))
         earliest = ws_h * 60 + ws_m - int(settings.get("early_checkin_min", 60))
         if minutes < earliest:
