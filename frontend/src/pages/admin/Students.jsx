@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import api, { errMsg } from "../../api";
 import CameraCapture from "../../components/CameraCapture";
-import { Plus, Upload, Trash2, X, Pencil, ScanFace, CheckCircle2, Circle } from "lucide-react";
+import { Plus, Upload, Trash2, X, Pencil, ScanFace, CheckCircle2, Circle, Search, ChevronLeft, ChevronRight } from "lucide-react";
 
 export default function Students() {
   const { t } = useTranslation();
@@ -25,6 +25,14 @@ export default function Students() {
   };
 
   const [enrollFor, setEnrollFor] = useState(null);
+  const [query, setQuery] = useState("");
+  const [page, setPage] = useState(1);
+  const PAGE_SIZE = 10;
+  const q = query.trim().toLowerCase();
+  const filtered = students.filter((s) => !q || [s.name, s.nis, s.class].some((f) => (f || "").toLowerCase().includes(q)));
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const safePage = Math.min(page, totalPages);
+  const paged = filtered.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
 
   const enroll = async (photo) => {
     try {
@@ -97,8 +105,15 @@ export default function Students() {
         </button>
       </form>
 
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+        <input data-testid="student-search" value={query} onChange={(e) => { setQuery(e.target.value); setPage(1); }}
+          placeholder={t("search_students")}
+          className="w-full rounded-xl border border-slate-200 bg-white pl-9 pr-3 py-2.5 text-sm outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-600/15 transition" />
+      </div>
+
       <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
-        <div className="overflow-x-auto max-h-[480px] overflow-y-auto">
+        <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="sticky top-0 bg-slate-50">
               <tr className="text-left text-xs uppercase tracking-wide text-slate-500 border-b">
@@ -110,7 +125,7 @@ export default function Students() {
               </tr>
             </thead>
             <tbody>
-              {students.map((s) => (
+              {paged.map((s) => (
                 <tr key={s.id} className="border-b last:border-0 hover:bg-slate-50/60">
                   <td className="px-4 py-2.5 font-semibold text-slate-800">{s.name}</td>
                   <td className="px-4 py-2.5 font-mono text-xs">{s.nis}</td>
@@ -130,10 +145,24 @@ export default function Students() {
                   </td>
                 </tr>
               ))}
-              {students.length === 0 && <tr><td colSpan={5} className="px-4 py-8 text-center text-slate-400">{t("no_data")}</td></tr>}
+              {paged.length === 0 && <tr><td colSpan={5} className="px-4 py-8 text-center text-slate-400">{t("no_data")}</td></tr>}
             </tbody>
           </table>
         </div>
+        {filtered.length > 0 && (
+          <div className="flex items-center justify-between px-4 py-3 border-t bg-slate-50/60">
+            <p data-testid="student-page-info" className="text-xs text-slate-500">
+              {(safePage - 1) * PAGE_SIZE + 1}–{Math.min(safePage * PAGE_SIZE, filtered.length)} {t("of")} {filtered.length}
+            </p>
+            <div className="flex items-center gap-1">
+              <button data-testid="student-prev-page" disabled={safePage <= 1} onClick={() => setPage(safePage - 1)}
+                className="p-1.5 rounded-lg hover:bg-slate-200 disabled:opacity-30 transition-colors"><ChevronLeft className="w-4 h-4" /></button>
+              <span data-testid="student-page-num" className="text-xs font-bold text-slate-700 px-1">{safePage}/{totalPages}</span>
+              <button data-testid="student-next-page" disabled={safePage >= totalPages} onClick={() => setPage(safePage + 1)}
+                className="p-1.5 rounded-lg hover:bg-slate-200 disabled:opacity-30 transition-colors"><ChevronRight className="w-4 h-4" /></button>
+            </div>
+          </div>
+        )}
       </div>
 
       {enrollFor && <CameraCapture testid="enroll-student-camera" onDone={enroll} onClose={() => setEnrollFor(null)} />}
