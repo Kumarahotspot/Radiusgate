@@ -1,23 +1,49 @@
 import base64
 import io
+import threading
+
+import numpy as np
 from PIL import Image
 
+MODEL_NAME = "buffalo_s"
+MATCH_SIM_THRESHOLD = 0.45  # cosine similarity >= threshold = match (kalibrasi lapangan)
+MATCH_MARGIN = 0.05         # selisih minimum skor terbaik vs runner-up
 
-def _load(photo_b64: str) -> Image.Image:
+_MODEL = None
+_LOCK = threading.Lock()
+
+
+class NoFaceError(ValueError):
+    pass
+
+
+def _get_model():
+    global _MODEL
+    if _MODEL is None:
+        with _LOCK:
+            if _MODEL is None:
+                from insightface.app import FaceAnalysis
+                app = FaceAnalysis(name=MODEL_NAME, providers=["CPUExecutionProvider"])
+                app.prepare(ctx_id=-1, det_size=(640, 640))
+                _MODEL = app
+    return _MODEL
+
+
+def embed(photo_b64: str) -> list:
+    """Embedding ArcFace 512-d (ternormalisasi). Raise NoFaceError jika jumlah wajah != 1."""
     if "," in photo_b64:
         photo_b64 = photo_b64.split(",", 1)[1]
-    return Image.open(io.BytesIO(base64.b64decode(photo_b64))).convert("L")
+    img = Image.open(io.BytesIO(base64.b64decode(photo_b64))).convert("RGB")
+    arr = np.asarray(img)[:, :, ::-1]  # RGB -> BGR
+    faces = _get_model().get(arr)
+    if len(faces) == 0:
+        raise NoFaceError("no_face_detected")
+    if len(faces) > 1:
+        raise NoFaceError("multiple_faces")
+    v = np.asarray(faces[0].normed_embedding, dtype=np.float32)
+    v = v / max(np.linalg.norm(v), 1e-12)
+    return [float(x) for x in v]
 
 
-def ahash(photo_b64: str, size: int = 16) -> str:
-    img = _load(photo_b64).resize((size, size))
-    px = list(img.getdata())
-    avg = sum(px) / len(px)
-    return "".join("1" if p > avg else "0" for p in px)
-
-
-def hamming(a: str, b: str) -> int:
-    return sum(c1 != c2 for c1, c2 in zip(a, b))
-
-
-MATCH_THRESHOLD = 150  # of 256 bits; matcher simulasi pilot sangat longgar, ganti ArcFace utk produksi
+def cos_sim(a, b) -> float:
+    return float(np.asarray(a, dtype=np.float32) @ np.asarray(b, dtype=np.float32))

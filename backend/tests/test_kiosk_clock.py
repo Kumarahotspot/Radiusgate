@@ -18,7 +18,7 @@ from dotenv import load_dotenv
 
 sys.path.insert(0, "/app/backend")
 load_dotenv("/app/backend/.env")
-from faceutil import ahash  # noqa: E402
+from faceutil import embed  # noqa: E402
 
 pytestmark = pytest.mark.xdist_group(name="demo_school_settings")
 
@@ -34,23 +34,14 @@ DB_NAME = os.environ["DB_NAME"]
 LAT, LNG = -6.398118, 106.758963
 
 
-def _gen_photo() -> str:
-    """Generate a unique JPEG data-url so ahash is stable but distinct per run."""
-    img = Image.new("RGB", (64, 64), color=(0, 0, 0))
-    # add a unique pattern
-    px = img.load()
-    seed = uuid.uuid4().int
-    for i in range(64):
-        for j in range(64):
-            px[i, j] = ((i * 3 + seed) & 255, (j * 5) & 255, ((i + j) * 7) & 255)
-    buf = io.BytesIO()
-    img.save(buf, format="JPEG", quality=85)
-    b64 = base64.b64encode(buf.getvalue()).decode()
-    return f"data:image/jpeg;base64,{b64}"
+def _load_photo(name: str) -> str:
+    with open(f"/app/backend/tests/assets/{name}", "rb") as f:
+        return f"data:image/jpeg;base64,{base64.b64encode(f.read()).decode()}"
 
 
-PHOTO = _gen_photo()
-EMB = ahash(PHOTO)
+PHOTO = _load_photo("face_a.jpg")
+PHOTO_B = _load_photo("face_b.jpg")
+EMB = embed(PHOTO)
 
 
 @pytest.fixture(scope="module")

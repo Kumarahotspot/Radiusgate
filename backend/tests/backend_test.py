@@ -19,11 +19,18 @@ KIOSK_CODE = "KIOSK-DEMO-1"
 pytestmark = pytest.mark.xdist_group(name="demo_school_settings")
 
 
-# 1x1 red PNG (base64 data URL) for face enrollment/attend tests
-RED_PNG = (
-    "data:image/png;base64,"
-    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg=="
-)
+# Foto wajah asli untuk tes enroll/attend (matcher ArcFace butuh wajah nyata)
+import base64 as _b64
+
+
+def _load_photo(name: str) -> str:
+    with open(f"/app/backend/tests/assets/{name}", "rb") as f:
+        return f"data:image/jpeg;base64,{_b64.b64encode(f.read()).decode()}"
+
+
+FACE_A = _load_photo("face_a.jpg")
+FACE_B = _load_photo("face_b.jpg")  # wajah lain, tidak terdaftar
+FACE_E = _load_photo("face_e.jpg")  # wajah khusus Budi (beda dari wajah tes lain)
 
 
 def _login(creds):
@@ -281,7 +288,7 @@ class TestAdminTeachers:
         assert TestAdminTeachers.created_id
         r = requests.post(
             f"{API}/admin/teachers/{TestAdminTeachers.created_id}/enroll",
-            json={"photo": RED_PNG},
+            json={"photo": FACE_A},
             headers=h(admin_token),
         )
         assert r.status_code == 200
@@ -290,6 +297,20 @@ class TestAdminTeachers:
         lst = requests.get(f"{API}/admin/teachers", headers=h(admin_token)).json()
         row = next(t for t in lst if t["id"] == TestAdminTeachers.created_id)
         assert row["enrolled"] is True
+
+    def test_enroll_duplicate_face_rejected(self, admin_token):
+        # Budi mencoba enroll wajah yang sama dengan guru tes (FACE_A) -> 409
+        teachers = requests.get(f"{API}/admin/teachers", headers=h(admin_token)).json()
+        budi = next((t for t in teachers if "Budi" in t["name"]), None)
+        if not budi:
+            pytest.skip("Budi tidak ada")
+        r = requests.post(
+            f"{API}/admin/teachers/{budi['id']}/enroll",
+            json={"photo": FACE_A},
+            headers=h(admin_token),
+        )
+        assert r.status_code == 409, r.text
+        assert "face_already_enrolled" in r.text, r.text
 
     def test_delete_teacher(self, admin_token):
         assert TestAdminTeachers.created_id
@@ -405,11 +426,15 @@ class TestKiosk:
         r = requests.get(f"{API}/kiosk/info", headers={"X-Kiosk-Token": "BAD-CODE"})
         assert r.status_code == 401
 
-    def test_attend_face_not_recognized(self):
-        # ensure at least one teacher enrolled first via admin (Budi may not be enrolled)
-        # attempt attend with random photo - expect either no_enrolled or face_not_found or geofence
+    def test_attend_face_not_recognized(self, admin_token):
+        # pastikan ada wajah terdaftar (Budi = FACE_A), lalu absen dengan wajah lain
+        teachers = requests.get(f"{API}/admin/teachers", headers=h(admin_token)).json()
+        budi = next(t for t in teachers if "Budi" in t["name"])
+        r0 = requests.post(f"{API}/admin/teachers/{budi['id']}/enroll",
+                           json={"photo": FACE_E}, headers=h(admin_token))
+        assert r0.status_code == 200, r0.text
         body = {
-            "photo": RED_PNG,
+            "photo": FACE_B,
             "lat": -6.2,
             "lng": 106.816666,
             "type": "in",
@@ -417,22 +442,21 @@ class TestKiosk:
             "client_uuid": uuid.uuid4().hex,
         }
         r = requests.post(f"{API}/kiosk/attend", json=body, headers={"X-Kiosk-Token": KIOSK_CODE})
-        # 422 no_enrolled/face_not_found/geofence, 409 jika cocok & sudah absen, 200 jika cocok (matcher simulasi longgar)
-        assert r.status_code in (200, 409, 422), r.text
+        assert r.status_code == 422, r.text
+        assert r.json().get("detail") == "face_not_found", r.text
 
     def test_attend_outside_geofence_requires_enrolled(self, admin_token):
-        # Need an enrolled teacher to bypass "no_enrolled" and hit geofence check
-        # Enroll Budi first
+        # Budi dipaksa enroll FACE_A agar match deterministik, lalu absen dari luar geofence
         teachers = requests.get(f"{API}/admin/teachers", headers=h(admin_token)).json()
-        budi = next((t for t in teachers if "Budi" in t["name"]), None)
-        if budi and not budi["enrolled"]:
-            requests.post(
-                f"{API}/admin/teachers/{budi['id']}/enroll",
-                json={"photo": RED_PNG},
-                headers=h(admin_token),
-            )
+        budi = next(t for t in teachers if "Budi" in t["name"])
+        r0 = requests.post(
+            f"{API}/admin/teachers/{budi['id']}/enroll",
+            json={"photo": FACE_E},
+            headers=h(admin_token),
+        )
+        assert r0.status_code == 200, r0.text
         body = {
-            "photo": RED_PNG,
+            "photo": FACE_E,
             "lat": 0.0,  # far outside
             "lng": 0.0,
             "type": "in",
@@ -440,7 +464,5 @@ class TestKiosk:
             "client_uuid": uuid.uuid4().hex,
         }
         r = requests.post(f"{API}/kiosk/attend", json=body, headers={"X-Kiosk-Token": KIOSK_CODE})
-        # 422 face_not_found/outside_geofence/too_early; 409 jika matcher cocok & tanggal tsb sudah pernah tercatat
-        assert r.status_code in (409, 422), r.text
-        if r.status_code == 422:
-            assert any(x in r.text for x in ("outside_geofence", "face_not_found", "too_early"))
+        assert r.status_code == 422, r.text
+        assert "outside_geofence" in r.text, r.text

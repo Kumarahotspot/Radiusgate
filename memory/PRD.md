@@ -139,6 +139,13 @@ Aplikasi absensi berbasis tablet kiosk + face recognition & liveness, geofence G
 - Pengaturan → Jam Kerja: checkbox **"Absen pulang wajib ada absen masuk"** (default aktif). Field baru `require_checkin` (bool) di SettingsIn; `_record` hanya menegakkan aturan `no_checkin` bila setting aktif.
 - i18n: `require_checkin`, `require_checkin_hint` (ID/EN). Tes skenario6: OFF → out tanpa in diterima; ON → 422 no_checkin. Terverifikasi UI (toggle persist setelah reload, dikembalikan ON) + **full suite 64/64 lulus.**
 
+## Update 2026-09-19 (iterasi 21 — matcher wajah asli ArcFace/InsightFace)
+- `faceutil.py` diganti total: InsightFace **buffalo_s** (CPU/onnxruntime), embedding ArcFace 512-d ternormalisasi, cosine similarity; threshold 0.45 + margin best-vs-runner-up 0.05 (anti salah-cocok orang mirip). Inference via threadpool agar event loop FastAPI tidak terblokir. Simulasi ahash dihapus.
+- Error baru: `no_face_detected` (0 wajah), `multiple_faces` (>1 wajah), `face_already_enrolled:<nama>` (409 saat enroll — satu wajah hanya satu orang, dicek lintas guru+siswa). Frontend: mapping pesan/suara kiosk + errMsg i18n.
+- Migrasi `migrate_faces.py`: Susiyanto & Siswa Demo 2 sukses re-embed dari foto tersimpan; Budi di-reset (foto lama sintetis). Catatan: embedding Demo 2 lalu di-reset manual karena ternyata foto yang di-enroll user = wajah yang sama dengan guru Susiyanto (sim 0.781 → ambiguous). **User perlu enroll ulang Demo 2 dengan wajah berbeda** (kini sistem menolak wajah duplikat saat enroll).
+- Tes: 4 foto wajah generated terverifikasi saling beda (sim <0.40) di tests/assets/ (face_a/b/c/e); semua tes diupdate ke foto asli; tes baru `test_enroll_duplicate_face_rejected`. **Full suite 65/65 lulus.** Live curl: unknown→422 face_not_found, enroll→attend match sim 1.0, wajah lain→422, no-face→422.
+- requirements.txt: +insightface 0.7.3, onnxruntime 1.30.0, opencv-python-headless 5.0.0.93 (protobuf ter-upgrade; backend terverifikasi sehat).
+
 ## Backlog Prioritas
 - P0: Kunci Tripay asli dari user + uji webhook; tablet React Native (kiosk native, embedding cache on-device)
 - P1: Absen siswa (v2), geofence penuh untuk absen via HP pribadi guru

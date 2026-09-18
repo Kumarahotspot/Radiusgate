@@ -9,7 +9,8 @@ from pydantic import BaseModel, EmailStr
 from typing import List
 from db import db
 from auth import require_roles, hash_password
-from faceutil import ahash
+from faceutil import embed, cos_sim, NoFaceError, MATCH_SIM_THRESHOLD
+from starlette.concurrency import run_in_threadpool
 from pdfgen import build_report_pdf
 
 router = APIRouter(tags=["admin"])
@@ -138,16 +139,32 @@ class EnrollIn(BaseModel):
     photo: str
 
 
+async def _face_dup_check(school_id: str, emb, exclude_id: str):
+    """Tolak enroll jika wajah sudah terdaftar atas nama orang lain (guru/siswa) di sekolah."""
+    others = await db.teachers.find(
+        {"school_id": school_id, "id": {"$ne": exclude_id}, "embedding": {"$type": "array"}},
+        {"_id": 0, "name": 1, "embedding": 1}).to_list(2000)
+    others += await db.students.find(
+        {"school_id": school_id, "id": {"$ne": exclude_id}, "embedding": {"$type": "array"}},
+        {"_id": 0, "name": 1, "embedding": 1}).to_list(5000)
+    for o in others:
+        if cos_sim(emb, o["embedding"]) >= MATCH_SIM_THRESHOLD:
+            raise HTTPException(status_code=409, detail=f"face_already_enrolled:{o['name']}")
+
+
 @router.post("/admin/teachers/{tid}/enroll")
 async def enroll_face(tid: str, body: EnrollIn, user: dict = Depends(admin_dep)):
     t = await db.teachers.find_one({"id": tid, "school_id": user["school_id"]})
     if not t:
         raise HTTPException(status_code=404, detail="Guru tidak ditemukan")
     try:
-        emb = ahash(body.photo)
+        emb = await run_in_threadpool(embed, body.photo)
+    except NoFaceError as e:
+        raise HTTPException(status_code=422, detail=str(e))
     except Exception:
         raise HTTPException(status_code=400, detail="Foto tidak valid")
-    await db.teachers.update_one({"id": tid}, {"$set": {"embedding": emb, "photo": body.photo, "enrolled_at": now_iso()}})
+    await _face_dup_check(user["school_id"], emb, tid)
+    await db.teachers.update_one({"id": tid}, {"$set": {"embedding": emb, "embedding_model": "buffalo_s", "photo": body.photo, "enrolled_at": now_iso()}})
     return {"ok": True, "enrolled": True}
 
 
@@ -237,10 +254,13 @@ async def enroll_student_face(stid: str, body: EnrollIn, user: dict = Depends(ad
     if not st:
         raise HTTPException(status_code=404, detail="Siswa tidak ditemukan")
     try:
-        emb = ahash(body.photo)
+        emb = await run_in_threadpool(embed, body.photo)
+    except NoFaceError as e:
+        raise HTTPException(status_code=422, detail=str(e))
     except Exception:
         raise HTTPException(status_code=400, detail="Foto tidak valid")
-    await db.students.update_one({"id": stid}, {"$set": {"embedding": emb, "photo": body.photo, "enrolled_at": now_iso()}})
+    await _face_dup_check(user["school_id"], emb, stid)
+    await db.students.update_one({"id": stid}, {"$set": {"embedding": emb, "embedding_model": "buffalo_s", "photo": body.photo, "enrolled_at": now_iso()}})
     return {"ok": True, "enrolled": True}
 
 

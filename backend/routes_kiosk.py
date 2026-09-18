@@ -8,7 +8,8 @@ from pydantic import BaseModel
 from typing import List
 from pymongo.errors import DuplicateKeyError
 from db import db
-from faceutil import ahash, hamming, MATCH_THRESHOLD
+from faceutil import embed, cos_sim, NoFaceError, MATCH_SIM_THRESHOLD, MATCH_MARGIN
+from starlette.concurrency import run_in_threadpool
 
 logger = logging.getLogger(__name__)
 router = APIRouter(tags=["kiosk"])
@@ -192,22 +193,32 @@ async def attend(body: AttendIn, request: Request):
     if not teachers and not students:
         raise HTTPException(status_code=422, detail="no_enrolled")
     try:
-        cap = ahash(body.photo)
+        cap = await run_in_threadpool(embed, body.photo)
+    except NoFaceError as e:
+        raise HTTPException(status_code=422, detail=str(e))
     except Exception:
         raise HTTPException(status_code=400, detail="invalid_photo")
-    best, best_d, best_type = None, 10 ** 9, None
+    best, best_s, second_s, best_type = None, -1.0, -1.0, None
     for t in teachers:
-        d = hamming(cap, t["embedding"])
-        if d < best_d:
-            best, best_d, best_type = t, d, "teacher"
+        if not isinstance(t.get("embedding"), list):
+            continue
+        sc = cos_sim(cap, t["embedding"])
+        if sc > best_s:
+            second_s, best, best_s, best_type = best_s, t, sc, "teacher"
+        elif sc > second_s:
+            second_s = sc
     for s in students:
-        d = hamming(cap, s["embedding"])
-        if d < best_d:
-            best, best_d, best_type = s, d, "student"
-    if best is None or best_d > MATCH_THRESHOLD:
-        logger.warning("face match gagal: best_distance=%s threshold=%s", best_d, MATCH_THRESHOLD)
+        if not isinstance(s.get("embedding"), list):
+            continue
+        sc = cos_sim(cap, s["embedding"])
+        if sc > best_s:
+            second_s, best, best_s, best_type = best_s, s, sc, "student"
+        elif sc > second_s:
+            second_s = sc
+    if best is None or best_s < MATCH_SIM_THRESHOLD or (second_s >= 0 and best_s - second_s < MATCH_MARGIN):
+        logger.warning("face match gagal: best=%.3f second=%.3f", best_s, second_s)
         raise HTTPException(status_code=422, detail="face_not_found")
-    logger.info("face match: %s=%s distance=%s", best_type, best["name"], best_d)
+    logger.info("face match: %s=%s sim=%.3f", best_type, best["name"], best_s)
     ksettings = await db.settings.find_one({"school_id": school["id"]}, {"_id": 0, "timezone": 1})
     date, _, _ = _localize(body.ts_device, (ksettings or {}).get("timezone", "Asia/Jakarta"))
     dup_field = "teacher_id" if best_type == "teacher" else "student_id"
@@ -220,7 +231,7 @@ async def attend(body: AttendIn, request: Request):
                         body.lat, body.lng, body.photo, body.client_uuid, offline=False, extra=extra)
     return {"ok": True, "teacher_name": best["name"], "person_type": best_type, "status": doc["status"],
             "late_minutes": doc["late_minutes"], "overtime_minutes": doc["overtime_minutes"],
-            "match_distance": best_d}
+            "match_sim": round(best_s, 3)}
 
 
 class AttendStudentIn(BaseModel):

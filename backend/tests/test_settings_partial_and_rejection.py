@@ -22,7 +22,7 @@ from dotenv import load_dotenv
 
 sys.path.insert(0, "/app/backend")
 load_dotenv("/app/backend/.env")
-from faceutil import ahash  # noqa: E402
+from faceutil import embed  # noqa: E402
 
 BASE = "http://localhost:8001"
 KIOSK_TOKEN = "KIOSK-DEMO-1"
@@ -43,20 +43,13 @@ EXPECTED_FINAL = {
 }
 
 
-def _gen_photo() -> str:
-    img = Image.new("RGB", (64, 64), color=(0, 0, 0))
-    px = img.load()
-    seed = uuid.uuid4().int
-    for i in range(64):
-        for j in range(64):
-            px[i, j] = ((i * 11 + seed) & 255, (j * 17 + seed // 3) & 255, ((i + j) * 23 + seed // 5) & 255)
-    buf = io.BytesIO()
-    img.save(buf, format="JPEG", quality=85)
-    return f"data:image/jpeg;base64,{base64.b64encode(buf.getvalue()).decode()}"
+def _load_photo(name: str) -> str:
+    with open(f"/app/backend/tests/assets/{name}", "rb") as f:
+        return f"data:image/jpeg;base64,{base64.b64encode(f.read()).decode()}"
 
 
-PHOTO = _gen_photo()
-EMB = ahash(PHOTO)
+PHOTO = _load_photo("face_c.jpg")
+EMB = embed(PHOTO)
 
 
 @pytest.fixture(scope="module")
