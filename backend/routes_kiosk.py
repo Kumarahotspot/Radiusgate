@@ -2,6 +2,7 @@ import math
 import uuid
 import logging
 from datetime import datetime, timezone
+from zoneinfo import ZoneInfo
 from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel
 from typing import List
@@ -15,6 +16,20 @@ router = APIRouter(tags=["kiosk"])
 
 def now_iso():
     return datetime.now(timezone.utc).isoformat()
+
+
+def _localize(ts_iso: str, tz_name: str):
+    try:
+        tz = ZoneInfo(tz_name)
+    except Exception:
+        tz = ZoneInfo("Asia/Jakarta")
+    try:
+        dt = datetime.fromisoformat(str(ts_iso).replace("Z", "+00:00"))
+        # tanpa offset = dianggap sudah waktu lokal sekolah; dengan offset (UTC 'Z') = dikonversi
+        dt = dt.replace(tzinfo=tz) if dt.tzinfo is None else dt.astimezone(tz)
+    except Exception:
+        dt = datetime.now(timezone.utc).astimezone(tz)
+    return dt.date().isoformat(), dt.hour * 60 + dt.minute, dt.strftime("%H:%M")
 
 
 def haversine_m(lat1, lng1, lat2, lng2) -> float:
@@ -76,12 +91,11 @@ def _closest_on_clock(m: int, anchor: int) -> int:
     return min((m, m - 1440, m + 1440), key=lambda c: abs(c - anchor))
 
 
-def _late_overtime(settings, att_type, ts_iso):
+def _late_overtime(settings, att_type, m):
     late, overtime = 0, 0
     if not settings:
         return late, overtime
     try:
-        m = int(ts_iso[11:13]) * 60 + int(ts_iso[14:16])
         ws_h, ws_m = map(int, settings.get("work_start", "07:00").split(":"))
         we_h, we_m = map(int, settings.get("work_end", "15:00").split(":"))
         start, end = ws_h * 60 + ws_m, we_h * 60 + we_m
@@ -100,7 +114,9 @@ def _late_overtime(settings, att_type, ts_iso):
 async def _record(school, teacher_id, teacher_name, att_type, ts_device, lat, lng, photo,
                   client_uuid, offline, skip_face=False):
     sid = school["id"]
-    date = ts_device[:10]
+    settings = await db.settings.find_one({"school_id": sid}, {"_id": 0})
+    tz_name = (settings or {}).get("timezone", "Asia/Jakarta")
+    date, minutes, hhmm = _localize(ts_device, tz_name)
     dup = await db.attendance.find_one({"teacher_id": teacher_id, "date": date, "type": att_type})
     if dup:
         raise HTTPException(status_code=409, detail="already_recorded")
@@ -114,20 +130,19 @@ async def _record(school, teacher_id, teacher_name, att_type, ts_device, lat, ln
             raise HTTPException(status_code=422, detail=f"outside_geofence:{dist}")
     else:
         status = "ok"
-    settings = await db.settings.find_one({"school_id": sid}, {"_id": 0})
     if att_type == "in" and settings:
-        m_local = int(ts_device[11:13]) * 60 + int(ts_device[14:16])
         ws_h, ws_m = map(int, settings.get("work_start", "07:00").split(":"))
         earliest = ws_h * 60 + ws_m - int(settings.get("early_checkin_min", 60))
-        if m_local < earliest:
+        if minutes < earliest:
             eh, em = divmod(max(earliest, 0), 60)
             raise HTTPException(status_code=422, detail=f"too_early:{eh:02d}:{em:02d}")
-    late, overtime = _late_overtime(settings, att_type, ts_device)
+    late, overtime = _late_overtime(settings, att_type, minutes)
     if att_type == "in" and status == "ok" and late > 0:
         status = "late"
     doc = {
         "id": str(uuid.uuid4()), "school_id": sid, "teacher_id": teacher_id,
-        "teacher_name": teacher_name, "type": att_type, "date": date,
+        "teacher_name": teacher_name, "type": att_type, "date": date, "time_local": hhmm,
+        "tz": tz_name,
         "ts_server": now_iso(), "ts_device": ts_device, "lat": lat, "lng": lng,
         "photo": photo, "status": status, "late_minutes": late, "overtime_minutes": overtime,
         "offline": offline, "client_uuid": client_uuid,
@@ -160,7 +175,8 @@ async def attend(body: AttendIn, request: Request):
         logger.warning("face match gagal: best_distance=%s threshold=%s enrolled=%s", best_d, MATCH_THRESHOLD, len(teachers))
         raise HTTPException(status_code=422, detail="face_not_found")
     logger.info("face match: teacher=%s distance=%s", best["name"], best_d)
-    date = body.ts_device[:10]
+    ksettings = await db.settings.find_one({"school_id": school["id"]}, {"_id": 0, "timezone": 1})
+    date, _, _ = _localize(body.ts_device, (ksettings or {}).get("timezone", "Asia/Jakarta"))
     if await db.attendance.find_one({"teacher_id": best["id"], "date": date, "type": body.type}):
         raise HTTPException(status_code=409, detail=f"already_recorded:{best['name']}")
     doc = await _record(school, best["id"], best["name"], body.type, body.ts_device,

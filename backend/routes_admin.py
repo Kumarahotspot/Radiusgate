@@ -149,6 +149,7 @@ class SettingsIn(BaseModel):
     work_end: str
     late_tolerance_min: int = 10
     early_checkin_min: int = 60
+    timezone: str = "Asia/Jakarta"
 
 
 @router.get("/admin/settings")
@@ -310,7 +311,7 @@ async def report_attendance(date_from: str, date_to: str, teacher_id: str | None
         q["teacher_id"] = teacher_id
     rows = await db.attendance.find(q, {"_id": 0, "photo": 0}).sort([("date", 1), ("ts_server", 1)]).to_list(10000)
     for r in rows:
-        r["time"] = r.get("ts_device", r.get("ts_server", ""))[11:16]
+        r["time"] = r.get("time_local") or r.get("ts_device", r.get("ts_server", ""))[11:16]
     return rows
 
 

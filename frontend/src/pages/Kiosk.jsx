@@ -12,10 +12,7 @@ const T_KEY = "kiosk_token";
 const loadQueue = () => JSON.parse(localStorage.getItem(Q_KEY) || "[]");
 const saveQueue = (q) => localStorage.setItem(Q_KEY, JSON.stringify(q));
 
-const localIso = () => {
-  const n = new Date();
-  return new Date(n.getTime() - n.getTimezoneOffset() * 60000).toISOString().slice(0, 19);
-};
+const localIso = () => new Date().toISOString();
 
 export default function Kiosk() {
   const { t, i18n } = useTranslation();

@@ -103,7 +103,7 @@ export default function TeacherHome() {
                 <tr key={h.id} className="border-b last:border-0">
                   <td className="px-4 py-2.5">{h.date}</td>
                   <td className="px-4 py-2.5">{h.type === "in" ? t("check_in") : t("check_out")}</td>
-                  <td className="px-4 py-2.5">{(h.ts_device || h.ts_server || "").slice(11, 16)}</td>
+                  <td className="px-4 py-2.5">{h.time_local || (h.ts_device || "").slice(11, 16)}</td>
                   <td className="px-4 py-2.5">
                     <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${h.status === "late" ? "bg-amber-100 text-amber-700" : "bg-emerald-100 text-emerald-700"}`}>{h.status}</span>
                   </td>

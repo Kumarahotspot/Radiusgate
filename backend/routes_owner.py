@@ -69,7 +69,7 @@ async def create_school(body: SchoolIn, user: dict = Depends(owner_dep)):
         "kiosk_token": "KIOSK-" + uuid.uuid4().hex[:8].upper(), "created_at": now_iso(),
     }
     await db.schools.insert_one(school)
-    await db.settings.insert_one({"school_id": sid, "work_start": "07:00", "work_end": "15:00", "late_tolerance_min": 10, "early_checkin_min": 60})
+    await db.settings.insert_one({"school_id": sid, "work_start": "07:00", "work_end": "15:00", "late_tolerance_min": 10, "early_checkin_min": 60, "timezone": "Asia/Jakarta"})
     await db.users.insert_one({
         "id": str(uuid.uuid4()), "email": body.admin_email.lower(), "name": body.admin_name,
         "role": "school_admin", "password_hash": hash_password(body.admin_password),

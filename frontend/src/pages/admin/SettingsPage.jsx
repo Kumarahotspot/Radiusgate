@@ -6,7 +6,7 @@ import { MapPin, Plus, Trash2, Crosshair, Copy } from "lucide-react";
 
 export default function SettingsPage() {
   const { t } = useTranslation();
-  const [settings, setSettings] = useState({ work_start: "07:00", work_end: "15:00", late_tolerance_min: 10, early_checkin_min: 60 });
+  const [settings, setSettings] = useState({ work_start: "07:00", work_end: "15:00", late_tolerance_min: 10, early_checkin_min: 60, timezone: "Asia/Jakarta" });
   const [locations, setLocations] = useState([]);
   const [school, setSchool] = useState(null);
   const [loc, setLoc] = useState({ name: "", lat: "", lng: "", radius_m: 50 });
@@ -67,7 +67,7 @@ export default function SettingsPage() {
 
       <form onSubmit={saveSettings} data-testid="work-hours-form" className="bg-white rounded-2xl border border-slate-200 p-5">
         <p className="font-bold text-slate-800 mb-4">{t("work_hours")}</p>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 max-w-2xl">
+        <div className="grid grid-cols-2 sm:grid-cols-5 gap-4 max-w-3xl">
           <div>
             <label className="text-xs font-semibold text-slate-500">{t("work_start")}</label>
             <input data-testid="work-start" type="time" value={settings.work_start} onChange={(e) => setSettings({ ...settings, work_start: e.target.value })}
@@ -87,6 +87,15 @@ export default function SettingsPage() {
             <label className="text-xs font-semibold text-slate-500">{t("early_window")}</label>
             <input data-testid="work-early" type="number" value={settings.early_checkin_min ?? 60} onChange={(e) => setSettings({ ...settings, early_checkin_min: e.target.value })}
               className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-teal-600" />
+          </div>
+          <div>
+            <label className="text-xs font-semibold text-slate-500">{t("timezone")}</label>
+            <select data-testid="work-timezone" value={settings.timezone || "Asia/Jakarta"} onChange={(e) => setSettings({ ...settings, timezone: e.target.value })}
+              className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm bg-white outline-none focus:border-teal-600">
+              <option value="Asia/Jakarta">WIB (Jakarta)</option>
+              <option value="Asia/Makassar">WITA (Makassar)</option>
+              <option value="Asia/Jayapura">WIT (Jayapura)</option>
+            </select>
           </div>
         </div>
         <button data-testid="save-settings-btn" className="mt-4 px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-teal-700 hover:bg-teal-800">{t("save")}</button>

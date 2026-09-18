@@ -61,7 +61,7 @@ export default function AdminDashboard() {
                 <tr key={a.id} className="border-b last:border-0">
                   <td className="px-4 py-2.5 font-semibold text-slate-800">{a.teacher_name}</td>
                   <td className="px-4 py-2.5">{a.type === "in" ? t("check_in") : t("check_out")}</td>
-                  <td className="px-4 py-2.5">{(a.ts_device || a.ts_server || "").slice(11, 16)}</td>
+                  <td className="px-4 py-2.5">{a.time_local || (a.ts_device || "").slice(11, 16)}</td>
                   <td className="px-4 py-2.5">
                     <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${a.status === "late" ? "bg-amber-100 text-amber-700" : a.status === "ok" ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-600"}`}>
                       {a.status}{a.offline ? ` · ${t("offline_badge")}` : ""}

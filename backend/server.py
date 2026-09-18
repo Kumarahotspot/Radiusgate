@@ -67,7 +67,7 @@ async def seed():
         "id": sid, "name": "SMA Nusantara (Demo)", "address": "Jl. Pendidikan No. 1, Jakarta",
         "phone": "6281234567890", "admin_email": "admin@nusantara.sch.id",
         "rate_per_student": 8000, "kiosk_token": "KIOSK-DEMO-1", "created_at": now_iso()})
-    await db.settings.insert_one({"school_id": sid, "work_start": "07:00", "work_end": "15:00", "late_tolerance_min": 10, "early_checkin_min": 60})
+    await db.settings.insert_one({"school_id": sid, "work_start": "07:00", "work_end": "15:00", "late_tolerance_min": 10, "early_checkin_min": 60, "timezone": "Asia/Jakarta"})
     await db.locations.insert_one({
         "id": str(uuid.uuid4()), "school_id": sid, "name": "Gedung Utama",
         "lat": -6.2, "lng": 106.816666, "radius_m": 500})
