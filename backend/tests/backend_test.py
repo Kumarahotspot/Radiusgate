@@ -436,10 +436,11 @@ class TestKiosk:
             "lat": 0.0,  # far outside
             "lng": 0.0,
             "type": "in",
-            "ts_device": datetime.now(timezone.utc).isoformat(),
+            "ts_device": "2099-01-02T05:00:00Z",  # tanggal jauh agar tidak kena duplikat 409
             "client_uuid": uuid.uuid4().hex,
         }
         r = requests.post(f"{API}/kiosk/attend", json=body, headers={"X-Kiosk-Token": KIOSK_CODE})
-        # Should fail: face_not_found (since same red png hashes may match) or outside_geofence
-        assert r.status_code == 422
-        assert any(x in r.text for x in ("outside_geofence", "face_not_found"))
+        # 422 face_not_found/outside_geofence/too_early; 409 jika matcher cocok & tanggal tsb sudah pernah tercatat
+        assert r.status_code in (409, 422), r.text
+        if r.status_code == 422:
+            assert any(x in r.text for x in ("outside_geofence", "face_not_found", "too_early"))

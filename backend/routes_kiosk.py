@@ -219,6 +219,42 @@ async def attend_student(body: AttendStudentIn, request: Request):
             "att_status": att_status, "late_minutes": doc["late_minutes"]}
 
 
+class AttendStudentFaceIn(BaseModel):
+    photo: str
+    lat: float
+    lng: float
+    ts_device: str
+    client_uuid: str
+
+
+@router.post("/kiosk/attend-student-face")
+async def attend_student_face(body: AttendStudentFaceIn, request: Request):
+    school = await school_by_token(request)
+    students = await db.students.find(
+        {"school_id": school["id"], "embedding": {"$ne": None}},
+        {"_id": 0, "id": 1, "name": 1, "class": 1, "embedding": 1}).to_list(5000)
+    if not students:
+        raise HTTPException(status_code=422, detail="no_enrolled")
+    try:
+        cap = ahash(body.photo)
+    except Exception:
+        raise HTTPException(status_code=400, detail="invalid_photo")
+    best, best_d = None, 10 ** 9
+    for s in students:
+        d = hamming(cap, s["embedding"])
+        if d < best_d:
+            best, best_d = s, d
+    if best is None or best_d > MATCH_THRESHOLD:
+        logger.warning("student face match gagal: best_distance=%s enrolled=%s", best_d, len(students))
+        raise HTTPException(status_code=422, detail="face_not_found")
+    logger.info("student face match: student=%s distance=%s", best["name"], best_d)
+    doc = await _record(school, best["id"], best["name"], "in", body.ts_device,
+                        body.lat, body.lng, body.photo, body.client_uuid, offline=False,
+                        extra={"person_type": "student", "class": best.get("class", ""), "att_status": "present"})
+    return {"ok": True, "student_name": best["name"], "class": best.get("class", ""),
+            "status": doc["status"], "late_minutes": doc["late_minutes"], "match_distance": best_d}
+
+
 class SyncIn(BaseModel):
     records: List[dict]
 

@@ -213,7 +213,12 @@ class StudentIn(BaseModel):
 
 @router.get("/admin/students")
 async def list_students(user: dict = Depends(admin_dep)):
-    return await db.students.find({"school_id": user["school_id"]}, {"_id": 0}).to_list(5000)
+    students = await db.students.find({"school_id": user["school_id"]}, {"_id": 0, "embedding": 0, "photo": 0}).to_list(5000)
+    enrolled_ids = {s["id"] for s in await db.students.find(
+        {"school_id": user["school_id"], "embedding": {"$ne": None}}, {"_id": 0, "id": 1}).to_list(5000)}
+    for s in students:
+        s["enrolled"] = s["id"] in enrolled_ids
+    return students
 
 
 @router.post("/admin/students")
@@ -223,6 +228,19 @@ async def add_student(body: StudentIn, user: dict = Depends(admin_dep)):
     await db.students.insert_one(st)
     st.pop("_id", None)
     return st
+
+
+@router.post("/admin/students/{stid}/enroll")
+async def enroll_student_face(stid: str, body: EnrollIn, user: dict = Depends(admin_dep)):
+    st = await db.students.find_one({"id": stid, "school_id": user["school_id"]})
+    if not st:
+        raise HTTPException(status_code=404, detail="Siswa tidak ditemukan")
+    try:
+        emb = ahash(body.photo)
+    except Exception:
+        raise HTTPException(status_code=400, detail="Foto tidak valid")
+    await db.students.update_one({"id": stid}, {"$set": {"embedding": emb, "photo": body.photo, "enrolled_at": now_iso()}})
+    return {"ok": True, "enrolled": True}
 
 
 class StudentPatch(BaseModel):

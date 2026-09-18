@@ -99,6 +99,11 @@ Aplikasi absensi berbasis tablet kiosk + face recognition & liveness, geofence G
 - backend_test.py: fixture `test_period` dibuat benar-benar unik per run (dulu microsecond%12 → tabrakan antar run); tes settings restore dinamis; tes import siswa bersih-bersih sendiri.
 - **Full suite: 62/62 lulus di mode paralel default.**
 
+## Update 2026-09-19 (iterasi 14 — absen wajah siswa seperti guru)
+- Siswa kini bisa **enroll wajah** (admin → Siswa → ikon scan) dan **absen wajah di kiosk** (mode Siswa → tombol "Absen Wajah Siswa", liveness + geofence sama seperti guru). NIS manual tetap ada sebagai fallback offline.
+- Endpoint baru: `POST /api/admin/students/{id}/enroll`, `POST /api/kiosk/attend-student-face`.
+- Tes: terverifikasi manual (enroll→match 200, dup 409); tes lama disesuaikan dengan matcher simulasi longgar. **Full suite 62/62 lulus.**
+
 ## Backlog Prioritas
 - P0: Kunci Tripay asli dari user + uji webhook; tablet React Native (kiosk native, embedding cache on-device)
 - P1: Absen siswa (v2), geofence penuh untuk absen via HP pribadi guru

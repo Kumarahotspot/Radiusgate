@@ -2,7 +2,8 @@ import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import api, { errMsg } from "../../api";
-import { Plus, Upload, Trash2, X, Pencil } from "lucide-react";
+import CameraCapture from "../../components/CameraCapture";
+import { Plus, Upload, Trash2, X, Pencil, ScanFace, CheckCircle2, Circle } from "lucide-react";
 
 export default function Students() {
   const { t } = useTranslation();
@@ -21,6 +22,17 @@ export default function Students() {
       setEditFor(null);
       load();
     } catch (err) { toast.error(errMsg(err)); } finally { setBusy(false); }
+  };
+
+  const [enrollFor, setEnrollFor] = useState(null);
+
+  const enroll = async (photo) => {
+    try {
+      await api.post(`/admin/students/${enrollFor.id}/enroll`, { photo });
+      toast.success(t("enroll_success"));
+      setEnrollFor(null);
+      load();
+    } catch (err) { toast.error(errMsg(err)); }
   };
   const fileRef = useRef(null);
 
@@ -93,6 +105,7 @@ export default function Students() {
                 <th className="px-4 py-3">{t("name")}</th>
                 <th className="px-4 py-3">{t("nis")}</th>
                 <th className="px-4 py-3">{t("class")}</th>
+                <th className="px-4 py-3">{t("enroll_face")}</th>
                 <th className="px-4 py-3">{t("actions")}</th>
               </tr>
             </thead>
@@ -103,18 +116,27 @@ export default function Students() {
                   <td className="px-4 py-2.5 font-mono text-xs">{s.nis}</td>
                   <td className="px-4 py-2.5">{s.class}</td>
                   <td className="px-4 py-2.5">
+                    <span data-testid={`student-enroll-status-${s.id}`} className={`inline-flex items-center gap-1 text-xs font-bold ${s.enrolled ? "text-emerald-600" : "text-slate-400"}`}>
+                      {s.enrolled ? <CheckCircle2 className="w-4 h-4" /> : <Circle className="w-4 h-4" />}
+                      {s.enrolled ? t("enrolled") : t("not_enrolled")}
+                    </span>
+                  </td>
+                  <td className="px-4 py-2.5">
                     <div className="flex gap-1">
+                      <button data-testid={`enroll-student-${s.id}`} onClick={() => setEnrollFor(s)} className="p-1.5 text-teal-700 hover:bg-teal-50 rounded-lg" title={t("enroll_face")}><ScanFace className="w-4 h-4" /></button>
                       <button data-testid={`edit-student-${s.id}`} onClick={() => setEditFor({ ...s })} className="p-1.5 text-sky-600 hover:bg-sky-50 rounded-lg" title={t("edit")}><Pencil className="w-4 h-4" /></button>
                       <button data-testid={`delete-student-${s.id}`} onClick={() => del(s.id)} className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg" title={t("delete")}><Trash2 className="w-4 h-4" /></button>
                     </div>
                   </td>
                 </tr>
               ))}
-              {students.length === 0 && <tr><td colSpan={4} className="px-4 py-8 text-center text-slate-400">{t("no_data")}</td></tr>}
+              {students.length === 0 && <tr><td colSpan={5} className="px-4 py-8 text-center text-slate-400">{t("no_data")}</td></tr>}
             </tbody>
           </table>
         </div>
       </div>
+
+      {enrollFor && <CameraCapture testid="enroll-student-camera" onDone={enroll} onClose={() => setEnrollFor(null)} />}
 
       {editFor && (
         <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4" data-testid="edit-student-modal">

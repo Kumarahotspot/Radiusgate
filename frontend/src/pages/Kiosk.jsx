@@ -177,6 +177,66 @@ export default function Kiosk() {
     setTimeout(() => { setPhase("idle"); setResult(null); setOfflinePick(false); }, 3500);
   };
 
+  const startStudentFace = async () => {
+    if (busyRef.current || phase !== "idle") return;
+    busyRef.current = true;
+    setResult(null);
+    try {
+      setPhase("liveness");
+      speak(t("kiosk_liveness"));
+      const f1 = captureFrame(videoRef.current);
+      await new Promise((r) => setTimeout(r, 1600));
+      const f2 = captureFrame(videoRef.current);
+      const moved = await motionCheck(f1, f2);
+      if (!moved) {
+        setResult({ ok: false, message: t("kiosk_liveness_failed") });
+        speak(`${t("kiosk_failed")}. ${t("kiosk_liveness_failed")}`);
+        setPhase("result");
+        setTimeout(() => { setPhase("idle"); setResult(null); }, 3500);
+        return;
+      }
+      setPhase("gps");
+      let coords;
+      try { coords = await getGps(); } catch { coords = null; }
+      if (!coords) {
+        setResult({ ok: false, message: t("kiosk_gps_error") });
+        speak(`${t("kiosk_failed")}. ${t("kiosk_gps_error")}`);
+        setPhase("result");
+        setTimeout(() => { setPhase("idle"); setResult(null); }, 3000);
+        return;
+      }
+      if (!navigator.onLine) {
+        setResult({ ok: false, message: t("kiosk_offline_use_nis") });
+        speak(t("kiosk_offline_use_nis"));
+        setPhase("result");
+        setTimeout(() => { setPhase("idle"); setResult(null); }, 3500);
+        return;
+      }
+      setPhase("sending");
+      try {
+        const { data } = await axios.post(`${API}/kiosk/attend-student-face`, {
+          photo: f2, lat: coords.lat, lng: coords.lng,
+          ts_device: localIso(), client_uuid: crypto.randomUUID(),
+        }, { headers: { "X-Kiosk-Token": token }, timeout: 20000 });
+        setResult({ ok: true, name: data.student_name, message: data.status === "late" ? `${t("kiosk_success")} · +${data.late_minutes}m` : t("kiosk_success") });
+        speak(`${t("kiosk_success")}. ${data.student_name}`);
+      } catch (err) {
+        const d = err.response?.data?.detail || "";
+        let msg = t("kiosk_failed");
+        if (d === "face_not_found") msg = t("kiosk_face_not_found");
+        else if (d.startsWith("outside_geofence")) msg = t("kiosk_outside");
+        else if (d === "already_recorded") msg = t("kiosk_already");
+        else if (d === "no_enrolled") msg = t("kiosk_no_enrolled");
+        setResult({ ok: false, message: msg });
+        speak(`${t("kiosk_failed")}. ${msg}`);
+      }
+      setPhase("result");
+      setTimeout(() => { setPhase("idle"); setResult(null); }, 3500);
+    } finally {
+      busyRef.current = false;
+    }
+  };
+
   const startStudentAttend = async () => {
     if (busyRef.current || !nisInput.trim() || phase !== "idle") return;
     busyRef.current = true;
@@ -405,6 +465,11 @@ export default function Kiosk() {
           </>
         ) : (
           <div className="w-full max-w-md space-y-3" data-testid="kiosk-student-panel">
+            <button data-testid="kiosk-student-face-btn" onClick={startStudentFace} disabled={phase !== "idle"}
+              className="w-full bg-teal-600 hover:bg-teal-500 disabled:opacity-40 text-white font-extrabold text-xl rounded-3xl py-6 transition-all active:scale-[0.98] shadow-lg shadow-teal-900/40 flex items-center justify-center gap-2">
+              <ScanFace className="w-6 h-6" /> {t("kiosk_student_face")}
+            </button>
+            <p className="text-center text-slate-500 text-xs">{t("kiosk_or_nis")}</p>
             <input data-testid="kiosk-nis-input" value={nisInput} onChange={(e) => setNisInput(e.target.value)} inputMode="numeric"
               placeholder={t("kiosk_nis")}
               className="w-full text-center font-mono text-xl tracking-widest rounded-2xl bg-white/5 border border-white/10 px-4 py-4 text-white outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 transition" />
