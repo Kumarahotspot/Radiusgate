@@ -170,28 +170,39 @@ async def attend(body: AttendIn, request: Request):
     teachers = await db.teachers.find(
         {"school_id": school["id"], "active": True, "embedding": {"$ne": None}},
         {"_id": 0, "id": 1, "name": 1, "embedding": 1}).to_list(1000)
-    if not teachers:
+    students = await db.students.find(
+        {"school_id": school["id"], "embedding": {"$ne": None}},
+        {"_id": 0, "id": 1, "name": 1, "class": 1, "embedding": 1}).to_list(5000)
+    if not teachers and not students:
         raise HTTPException(status_code=422, detail="no_enrolled")
     try:
         cap = ahash(body.photo)
     except Exception:
         raise HTTPException(status_code=400, detail="invalid_photo")
-    best, best_d = None, 10 ** 9
+    best, best_d, best_type = None, 10 ** 9, None
     for t in teachers:
         d = hamming(cap, t["embedding"])
         if d < best_d:
-            best, best_d = t, d
+            best, best_d, best_type = t, d, "teacher"
+    for s in students:
+        d = hamming(cap, s["embedding"])
+        if d < best_d:
+            best, best_d, best_type = s, d, "student"
     if best is None or best_d > MATCH_THRESHOLD:
-        logger.warning("face match gagal: best_distance=%s threshold=%s enrolled=%s", best_d, MATCH_THRESHOLD, len(teachers))
+        logger.warning("face match gagal: best_distance=%s threshold=%s", best_d, MATCH_THRESHOLD)
         raise HTTPException(status_code=422, detail="face_not_found")
-    logger.info("face match: teacher=%s distance=%s", best["name"], best_d)
+    logger.info("face match: %s=%s distance=%s", best_type, best["name"], best_d)
     ksettings = await db.settings.find_one({"school_id": school["id"]}, {"_id": 0, "timezone": 1})
     date, _, _ = _localize(body.ts_device, (ksettings or {}).get("timezone", "Asia/Jakarta"))
-    if await db.attendance.find_one({"teacher_id": best["id"], "date": date, "type": body.type}):
+    dup_field = "teacher_id" if best_type == "teacher" else "student_id"
+    if await db.attendance.find_one({dup_field: best["id"], "date": date, "type": body.type}):
         raise HTTPException(status_code=409, detail=f"already_recorded:{best['name']}")
+    extra = None
+    if best_type == "student":
+        extra = {"person_type": "student", "class": best.get("class", ""), "att_status": "present"}
     doc = await _record(school, best["id"], best["name"], body.type, body.ts_device,
-                        body.lat, body.lng, body.photo, body.client_uuid, offline=False)
-    return {"ok": True, "teacher_name": best["name"], "status": doc["status"],
+                        body.lat, body.lng, body.photo, body.client_uuid, offline=False, extra=extra)
+    return {"ok": True, "teacher_name": best["name"], "person_type": best_type, "status": doc["status"],
             "late_minutes": doc["late_minutes"], "overtime_minutes": doc["overtime_minutes"],
             "match_distance": best_d}
 
@@ -217,42 +228,6 @@ async def attend_student(body: AttendStudentIn, request: Request):
                         extra={"person_type": "student", "class": student.get("class", ""), "att_status": att_status})
     return {"ok": True, "student_name": student["name"], "status": doc["status"],
             "att_status": att_status, "late_minutes": doc["late_minutes"]}
-
-
-class AttendStudentFaceIn(BaseModel):
-    photo: str
-    lat: float
-    lng: float
-    ts_device: str
-    client_uuid: str
-
-
-@router.post("/kiosk/attend-student-face")
-async def attend_student_face(body: AttendStudentFaceIn, request: Request):
-    school = await school_by_token(request)
-    students = await db.students.find(
-        {"school_id": school["id"], "embedding": {"$ne": None}},
-        {"_id": 0, "id": 1, "name": 1, "class": 1, "embedding": 1}).to_list(5000)
-    if not students:
-        raise HTTPException(status_code=422, detail="no_enrolled")
-    try:
-        cap = ahash(body.photo)
-    except Exception:
-        raise HTTPException(status_code=400, detail="invalid_photo")
-    best, best_d = None, 10 ** 9
-    for s in students:
-        d = hamming(cap, s["embedding"])
-        if d < best_d:
-            best, best_d = s, d
-    if best is None or best_d > MATCH_THRESHOLD:
-        logger.warning("student face match gagal: best_distance=%s enrolled=%s", best_d, len(students))
-        raise HTTPException(status_code=422, detail="face_not_found")
-    logger.info("student face match: student=%s distance=%s", best["name"], best_d)
-    doc = await _record(school, best["id"], best["name"], "in", body.ts_device,
-                        body.lat, body.lng, body.photo, body.client_uuid, offline=False,
-                        extra={"person_type": "student", "class": best.get("class", ""), "att_status": "present"})
-    return {"ok": True, "student_name": best["name"], "class": best.get("class", ""),
-            "status": doc["status"], "late_minutes": doc["late_minutes"], "match_distance": best_d}
 
 
 class SyncIn(BaseModel):
