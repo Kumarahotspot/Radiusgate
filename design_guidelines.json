@@ -1,0 +1,95 @@
+{
+  "app_name": "Absensi Sekolah (SaaS Multi-Tenant)",
+  "app_type": "saas_app_mobile_first_kiosk",
+  "theme_strategy": "Warm Educational Tech & Tactical Minimalist Hybrid (Clean, readable off-white light mode for high-density dashboards + deep graphite high-contrast kiosk mode with biometric overlay)",
+  "default_language": "id",
+  "supported_languages": ["id", "en"],
+  "typography": {
+    "font_files_format": ".js",
+    "headline_font": "Plus Jakarta Sans, sans-serif",
+    "body_font": "Inter, sans-serif",
+    "mono_font": "JetBrains Mono, monospace",
+    "anti_default_rules": "Do NOT use Inter for main section headings or metric callouts. Use Plus Jakarta Sans (bold/extra-bold, tight tracking -0.02em) for Headings and JetBrains Mono for codes, timestamps, coordinates, and invoices.",
+    "hierarchy": {
+      "h1_hero": "text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight leading-tight",
+      "h2_section": "text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-100",
+      "h3_subsection": "text-lg sm:text-xl font-semibold text-slate-800 dark:text-slate-200",
+      "h4_card_widget": "text-base sm:text-lg font-semibold text-slate-900 dark:text-slate-100",
+      "body_base": "text-sm sm:text-base leading-relaxed text-slate-600 dark:text-slate-300",
+      "caption_mono": "font-mono text-xs uppercase tracking-widest text-slate-500"
+    }
+  },
+  "colors": {
+    "palette_archetype": "ARCHETYPE 1 & 2 HYBRID: Warm Trust & Performance Tactical (Emerald Navy & Emerald Sage)",
+    "primary": "#0F766E",
+    "primary_hover": "#0D9488",
+    "primary_light": "#CCFBF1",
+    "primary_dark": "#115E59",
+    "accent_warning": "#EAB308",
+    "accent_danger": "#EF4444",
+    "accent_success": "#10B981",
+    "kiosk_dark_bg": "#0B1320",
+    "kiosk_surface": "#152238",
+    "dashboard_bg": "#F8FAFC",
+    "dashboard_card": "#FFFFFF",
+    "text_main": "#0F172A",
+    "text_muted": "#64748B",
+    "border_subtle": "#E2E8F0",
+    "forbidden_colors": ["#7351B7", "#1B93A4"],
+    "contrast_rules": "All normal text must meet WCAG AA >= 4.5:1. Never use pure transparent backgrounds on sticky headers, overlays, or dropdowns. Always use backdrop-blur with minimum 80% opacity fill."
+  },
+  "visual_enhancers": {
+    "glassmorphism": "backdrop-blur-md bg-white/90 dark:bg-slate-900/90 border border-slate-200/60 dark:border-slate-800/60 shadow-sm",
+    "kiosk_camera_view": "relative overflow-hidden rounded-3xl border-2 border-teal-500/50 shadow-[0_0_30px_rgba(15,118,110,0.2)] bg-black",
+    "face_recognition_overlay": "absolute inset-0 border-2 border-dashed border-teal-400/70 rounded-full animate-pulse flex items-center justify-center",
+    "geofence_status_badge": "inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold tracking-wide",
+    "invoice_badge": "inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium"
+  },
+  "layouts": {
+    "dashboard_grid": "grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6",
+    "kiosk_mobile_layout": "max-w-md mx-auto min-h-screen flex flex-col justify-between p-4 sm:p-6 bg-slate-950 text-white",
+    "sidebar_navigation": "fixed lg:static inset-y-0 left-0 z-40 w-64 bg-slate-900 text-slate-100 flex flex-col justify-between border-r border-slate-800"
+  },
+  "grids": {
+    "bento_dashboard": "grid grid-cols-1 md:grid-cols-8 lg:grid-cols-12 gap-6",
+    "bento_spans": {
+      "hero_stat": "col-span-full md:col-span-8 lg:col-span-8",
+      "side_feed": "col-span-full md:col-span-4 lg:col-span-4",
+      "quarter_card": "col-span-full md:col-span-4 lg:col-span-3",
+      "half_card": "col-span-full md:col-span-4 lg:col-span-6"
+    }
+  },
+  "motion": {
+    "hover_lift": "transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-md",
+    "face_scan_laser": "animate-[scan_2.5s_ease-in-out_infinite]",
+    "toast_sonner": "Use sonner for instant feedback on offline sync, face recognition match, and invoice generation",
+    "accessibility_motion": "Respect prefers-reduced-motion CSS media query across all animations."
+  },
+  "accessibility": {
+    "data_testid_requirement": "CRITICAL: Every interactive button, input, toggle, table row, dropdown, and tab MUST have a role-based kebab-case data-testid attribute (e.g. data-testid='kiosk-check-in-button', data-testid='tenant-school-select').",
+    "voice_feedback": "Provide web SpeechSynthesis voice feedback in Indonesian ('Absensi berhasil', 'Wajah tidak cocok', 'Liveness gagal', 'Diluar lokasi sekolah') with mute/unmute audio button."
+  },
+  "media": {
+    "image_urls": {
+      "kiosk_student_1": "https://images.pexels.com/photos/36005723/pexels-photo-36005723.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+      "kiosk_student_2": "https://images.pexels.com/photos/7548729/pexels-photo-7548729.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+      "school_banner": "https://images.unsplash.com/photo-1525829528215-ffae12a76ac8?crop=entropy&cs=srgb&fm=jpg&q=85",
+      "avatar_placeholder": "https://images.unsplash.com/photo-1515351029128-8a8d584ab6b6?crop=entropy&cs=srgb&fm=jpg&q=85"
+    }
+  },
+  "3d_libraries": {
+    "recommendation": "Use lightweight SVG dynamic radar / canvas liveness ring instead of heavy WebGL to guarantee fast load on mid-range school smartphones & tablet kiosks."
+  },
+  "UNIVERSAL GUIDELINES FOR MAIN AGENT": [
+    "You MUST write clean .js files using React components and standard Tailwind classes.",
+    "Do NOT use Inter for main titles or primary metrics. Use Plus Jakarta Sans.",
+    "Always support both ID (Bahasa Indonesia) and EN (English) via a clean header language toggle component.",
+    "Default language MUST be Bahasa Indonesia ('id').",
+    "Every page MUST contain clear layout headers, responsive mobile navigation, and active role switchers (Platform Owner, School Admin, Teacher, Kiosk Mode).",
+    "Kiosk Mode MUST be mobile-first optimized for vertical phone viewports (100vh height layout, touch friendly controls).",
+    "All forms and interactive inputs MUST use data-testid attributes.",
+    "Do NOT use full transparent backgrounds on menus, overlays, or popovers.",
+    "Include Tripay payment simulator dialog & automatic PDF/WhatsApp invoice trigger feedback in billing sections."
+  ],
+  "instructions_to_main_agent": "Read this design_guidelines.json configuration to apply exact theme tokens, font rules, layout structures, and test attributes across all SaaS views (Platform Owner, School Admin, Teacher Portal, Mobile Kiosk, and Billing/Tripay)."
+}

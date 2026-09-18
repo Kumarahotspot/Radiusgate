@@ -1,0 +1,153 @@
+import { useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
+import { toast } from "sonner";
+import api, { errMsg } from "../../api";
+import { Plus, Upload, Trash2, X } from "lucide-react";
+
+export default function Students() {
+  const { t } = useTranslation();
+  const [students, setStudents] = useState([]);
+  const [form, setForm] = useState({ name: "", nis: "", class_name: "" });
+  const [preview, setPreview] = useState(null);
+  const [busy, setBusy] = useState(false);
+  const fileRef = useRef(null);
+
+  const load = () => api.get("/admin/students").then((r) => setStudents(r.data));
+  useEffect(() => { load(); }, []);
+
+  const add = async (e) => {
+    e.preventDefault();
+    try {
+      await api.post("/admin/students", form);
+      setForm({ name: "", nis: "", class_name: "" });
+      toast.success(t("save"));
+      load();
+    } catch (err) { toast.error(errMsg(err)); }
+  };
+
+  const del = async (id) => {
+    if (!window.confirm(t("confirm_delete"))) return;
+    await api.delete(`/admin/students/${id}`);
+    load();
+  };
+
+  const pickFile = async (e) => {
+    const f = e.target.files?.[0];
+    if (!f) return;
+    const fd = new FormData();
+    fd.append("file", f);
+    setBusy(true);
+    try {
+      const { data } = await api.post("/admin/students/import/preview", fd, { headers: { "Content-Type": "multipart/form-data" } });
+      setPreview(data);
+    } catch (err) { toast.error(errMsg(err)); } finally { setBusy(false); e.target.value = ""; }
+  };
+
+  const commit = async () => {
+    setBusy(true);
+    try {
+      const { data } = await api.post("/admin/students/import/commit", { rows: preview.valid });
+      toast.success(`${t("commit_import")}: ${data.inserted}`);
+      setPreview(null);
+      load();
+    } catch (err) { toast.error(errMsg(err)); } finally { setBusy(false); }
+  };
+
+  return (
+    <div data-testid="students-page" className="space-y-6">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h2 className="text-lg font-bold text-slate-800">{t("students")} <span data-testid="student-total" className="text-teal-700">({students.length})</span></h2>
+        <button data-testid="import-btn" onClick={() => fileRef.current?.click()} disabled={busy}
+          className="flex items-center gap-1.5 bg-teal-700 hover:bg-teal-800 text-white text-xs font-bold px-4 py-2 rounded-xl transition-colors disabled:opacity-50">
+          <Upload className="w-4 h-4" /> {busy ? t("loading") : t("import_file")}
+        </button>
+        <input ref={fileRef} data-testid="import-file-input" type="file" accept=".csv,.xlsx,.xls" className="hidden" onChange={pickFile} />
+      </div>
+
+      <form onSubmit={add} data-testid="add-student-form" className="bg-white rounded-2xl border border-slate-200 p-4 flex flex-wrap items-end gap-3">
+        <In label={t("name")} testid="student-name" v={form.name} set={(v) => setForm({ ...form, name: v })} req grow />
+        <In label={t("nis")} testid="student-nis" v={form.nis} set={(v) => setForm({ ...form, nis: v })} />
+        <In label={t("class")} testid="student-class" v={form.class_name} set={(v) => setForm({ ...form, class_name: v })} />
+        <button data-testid="student-submit" className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-bold text-white bg-teal-700 hover:bg-teal-800">
+          <Plus className="w-4 h-4" /> {t("add_student")}
+        </button>
+      </form>
+
+      <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+        <div className="overflow-x-auto max-h-[480px] overflow-y-auto">
+          <table className="w-full text-sm">
+            <thead className="sticky top-0 bg-slate-50">
+              <tr className="text-left text-xs uppercase tracking-wide text-slate-500 border-b">
+                <th className="px-4 py-3">{t("name")}</th>
+                <th className="px-4 py-3">{t("nis")}</th>
+                <th className="px-4 py-3">{t("class")}</th>
+                <th className="px-4 py-3">{t("actions")}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {students.map((s) => (
+                <tr key={s.id} className="border-b last:border-0 hover:bg-slate-50/60">
+                  <td className="px-4 py-2.5 font-semibold text-slate-800">{s.name}</td>
+                  <td className="px-4 py-2.5 font-mono text-xs">{s.nis}</td>
+                  <td className="px-4 py-2.5">{s.class}</td>
+                  <td className="px-4 py-2.5">
+                    <button data-testid={`delete-student-${s.id}`} onClick={() => del(s.id)} className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg"><Trash2 className="w-4 h-4" /></button>
+                  </td>
+                </tr>
+              ))}
+              {students.length === 0 && <tr><td colSpan={4} className="px-4 py-8 text-center text-slate-400">{t("no_data")}</td></tr>}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {preview && (
+        <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4" data-testid="import-preview-modal">
+          <div className="bg-white rounded-2xl w-full max-w-2xl max-h-[85vh] flex flex-col overflow-hidden">
+            <div className="flex items-center justify-between px-5 py-4 border-b">
+              <p className="font-bold text-slate-800">{t("import_preview")}</p>
+              <button data-testid="import-preview-close" onClick={() => setPreview(null)} className="p-1 rounded-lg hover:bg-slate-100"><X className="w-4 h-4" /></button>
+            </div>
+            <div className="px-5 py-3 flex gap-4 text-sm border-b bg-slate-50">
+              <span data-testid="preview-valid-count" className="font-bold text-emerald-600">{t("valid_rows")}: {preview.valid.length}</span>
+              <span data-testid="preview-error-count" className="font-bold text-red-500">{t("error_rows")}: {preview.errors.length}</span>
+            </div>
+            <div className="overflow-auto flex-1 px-5 py-3">
+              {preview.errors.length > 0 && (
+                <div className="mb-3 text-xs text-red-600 space-y-0.5">
+                  {preview.errors.slice(0, 20).map((er, i) => <p key={i}>{t("row")} {er.row}: {er.message}</p>)}
+                </div>
+              )}
+              <table className="w-full text-sm">
+                <thead><tr className="text-left text-xs uppercase text-slate-500 border-b"><th className="py-2 pr-3">{t("name")}</th><th className="py-2 pr-3">{t("nis")}</th><th className="py-2">{t("class")}</th></tr></thead>
+                <tbody>
+                  {preview.valid.slice(0, 100).map((r, i) => (
+                    <tr key={i} className="border-b last:border-0"><td className="py-1.5 pr-3">{r.name}</td><td className="py-1.5 pr-3 font-mono text-xs">{r.nis}</td><td className="py-1.5">{r.class}</td></tr>
+                  ))}
+                </tbody>
+              </table>
+              {preview.valid.length > 100 && <p className="text-xs text-slate-400 mt-2">+{preview.valid.length - 100}...</p>}
+            </div>
+            <div className="px-5 py-4 border-t flex justify-end gap-2">
+              <button onClick={() => setPreview(null)} className="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 bg-slate-100 hover:bg-slate-200">{t("cancel")}</button>
+              <button data-testid="import-commit-btn" onClick={commit} disabled={busy || preview.valid.length === 0}
+                className="px-5 py-2 rounded-xl text-xs font-bold text-white bg-teal-700 hover:bg-teal-800 disabled:opacity-50">
+                {t("commit_import")} ({preview.valid.length})
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function In({ label, v, set, req, grow, testid }) {
+  return (
+    <div className={grow ? "flex-1 min-w-[180px]" : ""}>
+      <label className="text-xs font-semibold text-slate-500">{label}</label>
+      <input data-testid={testid} required={req} value={v} onChange={(e) => set(e.target.value)}
+        className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-600/15 transition" />
+    </div>
+  );
+}

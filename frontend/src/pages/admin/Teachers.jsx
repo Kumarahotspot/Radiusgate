@@ -1,0 +1,126 @@
+import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
+import { toast } from "sonner";
+import api, { errMsg } from "../../api";
+import CameraCapture from "../../components/CameraCapture";
+import { Plus, ScanFace, Trash2, CheckCircle2, Circle } from "lucide-react";
+
+export default function Teachers() {
+  const { t } = useTranslation();
+  const [teachers, setTeachers] = useState([]);
+  const [showForm, setShowForm] = useState(false);
+  const [enrollFor, setEnrollFor] = useState(null);
+  const [form, setForm] = useState({ name: "", email: "", password: "", nip: "", subject: "" });
+  const [busy, setBusy] = useState(false);
+
+  const load = () => api.get("/admin/teachers").then((r) => setTeachers(r.data));
+  useEffect(() => { load(); }, []);
+
+  const create = async (e) => {
+    e.preventDefault();
+    setBusy(true);
+    try {
+      await api.post("/admin/teachers", form);
+      toast.success(t("save"));
+      setShowForm(false);
+      setForm({ name: "", email: "", password: "", nip: "", subject: "" });
+      load();
+    } catch (err) { toast.error(errMsg(err)); } finally { setBusy(false); }
+  };
+
+  const enroll = async (photo) => {
+    try {
+      await api.post(`/admin/teachers/${enrollFor.id}/enroll`, { photo });
+      toast.success(t("enroll_success"));
+      setEnrollFor(null);
+      load();
+    } catch (err) { toast.error(errMsg(err)); }
+  };
+
+  const del = async (id) => {
+    if (!window.confirm(t("confirm_delete"))) return;
+    await api.delete(`/admin/teachers/${id}`);
+    load();
+  };
+
+  return (
+    <div data-testid="teachers-page" className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h2 className="text-lg font-bold text-slate-800">{t("teachers")}</h2>
+        <button data-testid="add-teacher-btn" onClick={() => setShowForm(!showForm)}
+          className="flex items-center gap-1.5 bg-teal-700 hover:bg-teal-800 text-white text-xs font-bold px-4 py-2 rounded-xl transition-colors">
+          <Plus className="w-4 h-4" /> {t("add_teacher")}
+        </button>
+      </div>
+
+      {showForm && (
+        <form onSubmit={create} data-testid="add-teacher-form" className="bg-white rounded-2xl border border-slate-200 p-5 grid sm:grid-cols-3 gap-4">
+          <In label={t("name")} testid="teacher-name" v={form.name} set={(v) => setForm({ ...form, name: v })} req />
+          <In label={t("email")} testid="teacher-email" type="email" v={form.email} set={(v) => setForm({ ...form, email: v })} req />
+          <In label={t("password")} testid="teacher-password" v={form.password} set={(v) => setForm({ ...form, password: v })} req />
+          <In label={t("nip")} testid="teacher-nip" v={form.nip} set={(v) => setForm({ ...form, nip: v })} />
+          <In label={t("subject")} testid="teacher-subject" v={form.subject} set={(v) => setForm({ ...form, subject: v })} />
+          <div className="flex items-end gap-2">
+            <button type="button" onClick={() => setShowForm(false)} className="px-4 py-2.5 rounded-xl text-xs font-bold text-slate-600 bg-slate-100 hover:bg-slate-200">{t("cancel")}</button>
+            <button data-testid="teacher-submit" disabled={busy} className="px-4 py-2.5 rounded-xl text-xs font-bold text-white bg-teal-700 hover:bg-teal-800 disabled:opacity-50">{t("save")}</button>
+          </div>
+        </form>
+      )}
+
+      <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="text-left text-xs uppercase tracking-wide text-slate-500 border-b bg-slate-50">
+                <th className="px-4 py-3">{t("name")}</th>
+                <th className="px-4 py-3">{t("email")}</th>
+                <th className="px-4 py-3">{t("nip")}</th>
+                <th className="px-4 py-3">{t("subject")}</th>
+                <th className="px-4 py-3">{t("enroll_face")}</th>
+                <th className="px-4 py-3">{t("actions")}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {teachers.map((tc) => (
+                <tr key={tc.id} data-testid={`teacher-row-${tc.id}`} className="border-b last:border-0 hover:bg-slate-50/60">
+                  <td className="px-4 py-3 font-semibold text-slate-800">{tc.name}</td>
+                  <td className="px-4 py-3 text-slate-600">{tc.email}</td>
+                  <td className="px-4 py-3 font-mono text-xs">{tc.nip}</td>
+                  <td className="px-4 py-3">{tc.subject}</td>
+                  <td className="px-4 py-3">
+                    <span data-testid={`enroll-status-${tc.id}`} className={`inline-flex items-center gap-1 text-xs font-bold ${tc.enrolled ? "text-emerald-600" : "text-slate-400"}`}>
+                      {tc.enrolled ? <CheckCircle2 className="w-4 h-4" /> : <Circle className="w-4 h-4" />}
+                      {tc.enrolled ? t("enrolled") : t("not_enrolled")}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3">
+                    <div className="flex gap-1">
+                      <button data-testid={`enroll-btn-${tc.id}`} onClick={() => setEnrollFor(tc)}
+                        className="flex items-center gap-1 text-xs font-bold text-teal-700 hover:bg-teal-50 px-2 py-1.5 rounded-lg transition-colors">
+                        <ScanFace className="w-4 h-4" /> {t("enroll_face")}
+                      </button>
+                      <button data-testid={`delete-teacher-${tc.id}`} onClick={() => del(tc.id)} className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg"><Trash2 className="w-4 h-4" /></button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+              {teachers.length === 0 && <tr><td colSpan={6} className="px-4 py-8 text-center text-slate-400">{t("no_data")}</td></tr>}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {enrollFor && <CameraCapture testid="enroll-camera" onDone={enroll} onClose={() => setEnrollFor(null)} />}
+    </div>
+  );
+}
+
+function In({ label, v, set, type = "text", req, testid }) {
+  return (
+    <div>
+      <label className="text-xs font-semibold text-slate-500">{label}</label>
+      <input data-testid={testid} type={type} required={req} value={v} onChange={(e) => set(e.target.value)}
+        className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-600/15 transition" />
+    </div>
+  );
+}
