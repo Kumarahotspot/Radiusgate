@@ -79,6 +79,9 @@ Aplikasi absensi berbasis tablet kiosk + face recognition & liveness, geofence G
 ## Update 2026-09-19 (iterasi 10 — reset password admin sekolah)
 - Modal Ubah Sekolah + field **Kata Sandi Admin** (opsional): mengisi = reset password akun admin sekolah tsb; mengubah Email Admin ikut menyinkronkan email login-nya (dengan cek duplikat). Terverifikasi: login password baru 200, lama 401, revert OK.
 
+## Update 2026-09-19 (iterasi 11 — tombol link login per sekolah)
+- Tabel Sekolah owner: tombol **Salin Link Login** (ikon rantai) — menyalin `…/login?email=<admin_email>`; halaman login membaca query `email` dan mengisi field email otomatis. Terverifikasi UI.
+
 ## Backlog Prioritas
 - P0: Kunci Tripay asli dari user + uji webhook; tablet React Native (kiosk native, embedding cache on-device)
 - P1: Absen siswa (v2), geofence penuh untuk absen via HP pribadi guru

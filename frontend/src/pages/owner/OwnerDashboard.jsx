@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import api, { errMsg } from "../../api";
-import { School, Users, GraduationCap, FileWarning, Plus, Trash2, Copy, Pencil } from "lucide-react";
+import { School, Users, GraduationCap, FileWarning, Plus, Trash2, Copy, Pencil, Link2 } from "lucide-react";
 
 const rupiah = (n) => `Rp ${Number(n || 0).toLocaleString("id-ID")}`;
 
@@ -144,6 +144,8 @@ export default function OwnerDashboard() {
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex gap-1">
+                      <button data-testid={`login-link-${s.kiosk_token}`} onClick={() => { navigator.clipboard.writeText(`${window.location.origin}/login?email=${encodeURIComponent(s.admin_email)}`); toast.success(t("login_link_copied")); }}
+                        className="p-1.5 text-sky-600 hover:bg-sky-50 rounded-lg" title={t("login_link")}><Link2 className="w-4 h-4" /></button>
                       <button data-testid={`edit-school-${s.kiosk_token}`} onClick={() => setEditFor({ ...s })} className="p-1.5 text-teal-700 hover:bg-teal-50 rounded-lg" title={t("edit")}><Pencil className="w-4 h-4" /></button>
                       <button data-testid={`delete-school-${s.kiosk_token}`} onClick={() => del(s.id)} className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg" title={t("delete")}><Trash2 className="w-4 h-4" /></button>
                     </div>

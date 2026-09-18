@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useAuth, homeFor } from "../context/AuthContext";
 import { errMsg } from "../api";
@@ -10,7 +10,8 @@ export default function Login() {
   const { t } = useTranslation();
   const { login } = useAuth();
   const nav = useNavigate();
-  const [email, setEmail] = useState("");
+  const [params] = useSearchParams();
+  const [email, setEmail] = useState(params.get("email") || "");
   const [password, setPassword] = useState("");
   const [error, setError] = useState(null);
   const [busy, setBusy] = useState(false);
