@@ -1,0 +1,20 @@
+{
+  "summary": "Verified data-level bugfix: teacher account guru@nusantara.sch.id / Guru123! restored for demo school. All backend + frontend checks pass; regression suites (test_kiosk_clock, test_settings_partial_and_rejection) still pass serially.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": [
+    "/app/backend/tests/test_bugfix_teacher_restore.py",
+    "/app/backend/tests/test_kiosk_clock.py",
+    "/app/backend/tests/test_settings_partial_and_rejection.py"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [],
+  "updated_files": ["/app/backend/tests/test_bugfix_teacher_restore.py"],
+  "success_rate": {"backend": "100% (4/4 new + 12/12 regression)", "frontend": "100%"},
+  "test_credentials": "teacher: guru@nusantara.sch.id / Guru123! ; admin: admin@nusantara.sch.id / Admin123!",
+  "seed_data_creation": "None (no data mutations performed as instructed)",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Bugfix verified. DB state preserved: teachers demo = Susiyanto + Budi Santoso (Budi face embedding null - expected). New regression test file at /app/backend/tests/test_bugfix_teacher_restore.py can be reused.",
+  "rca of the issue": "Sebelumnya user teacher & profil Budi Santoso ikut terhapus saat aksi hapus-semua-guru pada sekolah demo (by design: delete teacher juga hapus akun login). Fix: pemulihan data (user teacher + profil teacher untuk Budi Santoso di school KIOSK-DEMO-1). Verifikasi: login 200, /api/auth/me OK, /api/teacher/attendance & /leaves 200 (bukan 404), admin list memuat Budi & Susiyanto, UI /guru menampilkan 'Riwayat Absensi Saya' tanpa error."
+}

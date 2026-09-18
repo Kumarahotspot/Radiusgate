@@ -82,6 +82,9 @@ Aplikasi absensi berbasis tablet kiosk + face recognition & liveness, geofence G
 ## Update 2026-09-19 (iterasi 11 — tombol link login per sekolah)
 - Tabel Sekolah owner: tombol **Salin Link Login** (ikon rantai) — menyalin `…/login?email=<admin_email>`; halaman login membaca query `email` dan mengisi field email otomatis. Terverifikasi UI.
 
+## Update 2026-09-19 (iterasi 12 — pulihkan akun guru demo)
+- Akun `guru@nusantara.sch.id / Guru123!` (Budi Santoso) ikut terhapus saat hapus-semua-guru (by design: hapus guru = hapus akun login). Dipulihkan di level data. Terverifikasi testing agent: 4/4 baru + 12/12 regresi + UI portal guru (`test_bugfix_teacher_restore.py`).
+
 ## Backlog Prioritas
 - P0: Kunci Tripay asli dari user + uji webhook; tablet React Native (kiosk native, embedding cache on-device)
 - P1: Absen siswa (v2), geofence penuh untuk absen via HP pribadi guru
