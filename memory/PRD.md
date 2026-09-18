@@ -1,0 +1,50 @@
+# PRD — Absensi Sekolah (SaaS Multi-Tenant)
+
+## Problem Statement (asli)
+Aplikasi absensi berbasis tablet kiosk + face recognition & liveness, geofence GPS, dashboard web admin/guru & owner, offline-sync, billing per-siswa dengan Tripay, invoice PDF otomatis via email/WhatsApp, dwibahasa (ID/EN), feedback suara. v1 = pilot 1 sekolah, yang diabsen guru; siswa hanya basis billing.
+
+## Keputusan User
+- Versi web dulu (dibuka via HP); tablet React Native menyusul.
+- Face recognition: simulasi average-hash (bukan ArcFace) sampai model asli dipasang.
+- Tripay: modul siap, mode MOCK sampai API key disediakan user.
+- Invoice email: otomatis (saat generate) atau manual per-invoice; Resend managed.
+- Bahasa default: Indonesia.
+
+## Arsitektur
+- Frontend: React (JSX) + Tailwind + react-i18next, mobile-first. `/app/frontend/src/`
+- Backend: FastAPI modular (`server.py`, `db.py`, `auth.py`, `emailer.py`, `pdfgen.py`, `faceutil.py`, `routes_{auth,owner,admin,teacher,kiosk,billing}.py`)
+- DB: MongoDB multi-tenant (semua dokumen bawa `school_id`; isolasi per sekolah)
+- Auth: JWT bearer 7 hari, bcrypt, roles: owner / school_admin / teacher
+- Kiosk: `/kiosk` tanpa login, pairing via X-Kiosk-Token; liveness = deteksi gerakan 2 frame; GPS geofence haversine server-side; offline queue localStorage + auto-sync (dedupe client_uuid)
+- Billing: invoice = student_count × rate (default Rp 8.000); PDF ReportLab; email via Emergent managed Resend; WA via link wa.me; Tripay mock + endpoint webhook `/api/webhooks/tripay` siap production (verifikasi HMAC)
+
+## User Personas
+- Platform Owner (susyanto@gmail.com): kelola sekolah, generate & kirim invoice
+- Admin Sekolah: guru + enroll wajah, jam kerja, lokasi geofence, siswa, approval cuti, laporan, bayar tagihan
+- Guru: absen di kiosk, ajukan izin, lihat riwayat
+
+## Terimplementasi (2026-09-18, iterasi 1 — Fase 1–7 versi web)
+- Multi-tenant + auth 3 role + seed owner & sekolah demo (120 siswa)
+- CRUD guru + enrollment wajah (kamera, average-hash), jam kerja, lokasi + radius
+- Data siswa: manual + impor CSV/XLS dengan validasi & preview sebelum commit
+- Kiosk web: pairing kode, kamera, liveness gesture, geofence wajib (tolak di luar radius), feedback suara TTS ID/EN + mute, offline queue + auto-sync
+- Cuti/izin/sakit: ajuan guru → approve/tolak admin; telat & lembur dihitung dari jam kerja
+- Laporan + filter periode/guru + export Excel & PDF
+- Billing: generate invoice bulanan (idempotent per periode), PDF otomatis, kirim email (auto/manual) + WA link, halaman bayar publik, Tripay mock + webhook siap
+- i18n ID/EN di seluruh UI + suara
+- Test: 36/36 backend pytest lulus; frontend critical flows lulus (lihat /app/test_reports/iteration_1.json)
+
+## MOCK / Simulasi (perlu diganti untuk produksi)
+- Face recognition: average-hash (faceutil.py) → ganti ArcFace/InsightFace + embedding
+- Tripay: TRIPAY_MODE=mock → isi TRIPAY_API_KEY/PRIVATE_KEY/MERCHANT_CODE di backend/.env, set TRIPAY_MODE=real, pastikan merchant_ref=invoice.id
+- WhatsApp: link wa.me manual → upgrade ke Twilio template setelah disetujui Meta
+
+## Backlog Prioritas
+- P0: Kunci Tripay asli dari user + uji webhook; tablet React Native (kiosk native, embedding cache on-device)
+- P1: Absen siswa (v2), geofence penuh untuk absen via HP pribadi guru
+- P2: Gateway tambahan (Duitku/Midtrans), audio pre-recorded pengganti TTS, shadcn Calendar pengganti native date picker (catatan testing), absensi berbasis jadwal shift
+
+## Next Tasks
+1. Minta kunci Tripay (merchant code, API key, private key) dari user → aktifkan mode real
+2. Uji lapangan kiosk di HP dengan wajah asli (kalibrasi threshold)
+3. Build tablet app React Native + TS (Fase 2 native)
