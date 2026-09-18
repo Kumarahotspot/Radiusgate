@@ -125,6 +125,10 @@ Aplikasi absensi berbasis tablet kiosk + face recognition & liveness, geofence G
 - Halaman admin → Siswa: kotak **pencarian** (nama/NIS/kelas, case-insensitive, reset ke halaman 1) + **pagination 10 entri/halaman** dengan info rentang ("1–10 dari 120", "2/12") dan tombol prev/next; kontainer scroll tinggi-tetap dihapus (pagination menggantikannya).
 - i18n baru: `search_students`, `of` (ID/EN). Terverifikasi screenshot: 10 baris/halaman, next→2/12, search "demo 5" → 11 hasil terpaging.
 
+## Update 2026-09-19 (iterasi 18b — search + pagination di Guru & Dasbor)
+- Pola yang sama diterapkan ke halaman **Guru** (search nama/email/NIP/mapel) dan tabel **Absensi Hari Ini** di Dasbor (search nama/status/tipe di header kartu), masing-masing 10 entri/halaman + info rentang + prev/next.
+- i18n baru: `search_teachers`, `search_attendance` (ID/EN). Terverifikasi screenshot: search "budi" → 1 hasil, info halaman benar, tanpa overflow di 390px.
+
 ## Backlog Prioritas
 - P0: Kunci Tripay asli dari user + uji webhook; tablet React Native (kiosk native, embedding cache on-device)
 - P1: Absen siswa (v2), geofence penuh untuk absen via HP pribadi guru

@@ -2,12 +2,20 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import api from "../../api";
-import { Users, Clock, CalendarClock, GraduationCap, UserCheck, Trash2, BookOpen } from "lucide-react";
+import { Users, Clock, CalendarClock, GraduationCap, UserCheck, Trash2, BookOpen, Search, ChevronLeft, ChevronRight } from "lucide-react";
 
 export default function AdminDashboard() {
   const { t } = useTranslation();
   const [stats, setStats] = useState(null);
   const [today, setToday] = useState([]);
+  const [query, setQuery] = useState("");
+  const [page, setPage] = useState(1);
+  const PAGE_SIZE = 10;
+  const q = query.trim().toLowerCase();
+  const filtered = today.filter((a) => !q || [a.teacher_name, a.status, a.class, a.type === "in" ? t("check_in") : t("check_out")].some((f) => (f || "").toLowerCase().includes(q)));
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const safePage = Math.min(page, totalPages);
+  const paged = filtered.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
 
   const load = () => {
     api.get("/admin/stats").then((r) => setStats(r.data));
@@ -44,7 +52,15 @@ export default function AdminDashboard() {
       </div>
 
       <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
-        <p className="px-4 py-3 font-bold text-slate-800 border-b text-sm">{t("today_attendance")}</p>
+        <div className="flex flex-wrap items-center justify-between gap-2 px-4 py-3 border-b">
+          <p className="font-bold text-slate-800 text-sm">{t("today_attendance")}</p>
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+            <input data-testid="today-search" value={query} onChange={(e) => { setQuery(e.target.value); setPage(1); }}
+              placeholder={t("search_attendance")}
+              className="w-full sm:w-56 rounded-xl border border-slate-200 pl-9 pr-3 py-2 text-sm outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-600/15 transition" />
+          </div>
+        </div>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
@@ -58,7 +74,7 @@ export default function AdminDashboard() {
               </tr>
             </thead>
             <tbody>
-              {today.map((a) => (
+              {paged.map((a) => (
                 <tr key={a.id} className="border-b last:border-0">
                   <td className="px-4 py-2.5 font-semibold text-slate-800">
                     {a.teacher_name}
@@ -77,10 +93,24 @@ export default function AdminDashboard() {
                   </td>
                 </tr>
               ))}
-              {today.length === 0 && <tr><td colSpan={6} className="px-4 py-8 text-center text-slate-400">{t("no_data")}</td></tr>}
+              {paged.length === 0 && <tr><td colSpan={6} className="px-4 py-8 text-center text-slate-400">{t("no_data")}</td></tr>}
             </tbody>
           </table>
         </div>
+        {filtered.length > 0 && (
+          <div className="flex items-center justify-between px-4 py-3 border-t bg-slate-50/60">
+            <p data-testid="today-page-info" className="text-xs text-slate-500">
+              {(safePage - 1) * PAGE_SIZE + 1}–{Math.min(safePage * PAGE_SIZE, filtered.length)} {t("of")} {filtered.length}
+            </p>
+            <div className="flex items-center gap-1">
+              <button data-testid="today-prev-page" disabled={safePage <= 1} onClick={() => setPage(safePage - 1)}
+                className="p-1.5 rounded-lg hover:bg-slate-200 disabled:opacity-30 transition-colors"><ChevronLeft className="w-4 h-4" /></button>
+              <span data-testid="today-page-num" className="text-xs font-bold text-slate-700 px-1">{safePage}/{totalPages}</span>
+              <button data-testid="today-next-page" disabled={safePage >= totalPages} onClick={() => setPage(safePage + 1)}
+                className="p-1.5 rounded-lg hover:bg-slate-200 disabled:opacity-30 transition-colors"><ChevronRight className="w-4 h-4" /></button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
