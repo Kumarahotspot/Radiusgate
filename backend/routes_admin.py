@@ -1,6 +1,7 @@
 import io
 import uuid
 from datetime import datetime, timezone
+from zoneinfo import ZoneInfo
 import pandas as pd
 from fastapi import APIRouter, HTTPException, Depends, UploadFile, File
 from fastapi.responses import StreamingResponse, FileResponse
@@ -19,15 +20,20 @@ def now_iso():
     return datetime.now(timezone.utc).isoformat()
 
 
-def today_str():
-    return datetime.now(timezone.utc).isoformat()[:10]
+async def school_today(sid: str) -> str:
+    st = await db.settings.find_one({"school_id": sid}, {"_id": 0, "timezone": 1})
+    try:
+        tz = ZoneInfo((st or {}).get("timezone", "Asia/Jakarta"))
+    except Exception:
+        tz = ZoneInfo("Asia/Jakarta")
+    return datetime.now(timezone.utc).astimezone(tz).date().isoformat()
 
 
 # ---------- Dashboard ----------
 @router.get("/admin/stats")
 async def stats(user: dict = Depends(admin_dep)):
     sid = user["school_id"]
-    today = today_str()
+    today = await school_today(sid)
     today_att = await db.attendance.find({"school_id": sid, "date": today, "type": "in"}, {"_id": 0}).to_list(5000)
     return {
         "present_today": len({a["teacher_id"] for a in today_att}),
@@ -41,7 +47,7 @@ async def stats(user: dict = Depends(admin_dep)):
 @router.get("/admin/today")
 async def today_list(user: dict = Depends(admin_dep)):
     return await db.attendance.find(
-        {"school_id": user["school_id"], "date": today_str()}, {"_id": 0, "photo": 0}
+        {"school_id": user["school_id"], "date": await school_today(user["school_id"])}, {"_id": 0, "photo": 0}
     ).sort("ts_server", -1).to_list(500)
 
 
