@@ -72,6 +72,10 @@ def _geofence_check(locations, lat, lng):
     return False, best[1] if best else None
 
 
+def _closest_on_clock(m: int, anchor: int) -> int:
+    return min((m, m - 1440, m + 1440), key=lambda c: abs(c - anchor))
+
+
 def _late_overtime(settings, att_type, ts_iso):
     late, overtime = 0, 0
     if not settings:
@@ -83,13 +87,11 @@ def _late_overtime(settings, att_type, ts_iso):
         start, end = ws_h * 60 + ws_m, we_h * 60 + we_m
         if end <= start:  # shift malam, mis. 21:00 - 00:00
             end += 1440
-        if m < start and (start - m) > 720:  # lewat tengah malam untuk shift kemarin
-            m += 1440
         tol = int(settings.get("late_tolerance_min", 10))
         if att_type == "in":
-            late = max(0, m - (start + tol))
+            late = max(0, _closest_on_clock(m, start) - (start + tol))
         else:
-            overtime = max(0, m - end)
+            overtime = max(0, _closest_on_clock(m, end) - end)
     except Exception:
         pass
     return late, overtime
