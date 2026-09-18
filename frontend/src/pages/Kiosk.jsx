@@ -185,10 +185,10 @@ export default function Kiosk() {
       const f2 = captureFrame(videoRef.current);
       const moved = await motionCheck(f1, f2);
       if (!moved) {
-        setResult({ ok: false, message: `${t("kiosk_failed")}: liveness` });
-        speak(t("kiosk_failed"));
+        setResult({ ok: false, message: t("kiosk_liveness_failed") });
+        speak(`${t("kiosk_failed")}. ${t("kiosk_liveness_failed")}`);
         setPhase("result");
-        setTimeout(() => { setPhase("idle"); setResult(null); }, 3000);
+        setTimeout(() => { setPhase("idle"); setResult(null); }, 3500);
         return;
       }
       // 2. GPS
