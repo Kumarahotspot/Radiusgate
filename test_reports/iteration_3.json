@@ -1,0 +1,34 @@
+{
+  "summary": "Backend-only verification of anti-clobber SettingsIn fix + WIB rejection behavior at 00:13/00:31/01:45 using UTC 'Z' ts_device. Created /app/backend/tests/test_settings_partial_and_rejection.py (6 tests) and re-ran /app/backend/tests/test_kiosk_clock.py regression (6 tests). All 11 tests PASSED, 1 skipped (Susiyanto date-specific check). Final DB state verified: settings=01:00/00:00/30/30/Asia/Jakarta, 1 teacher (Susiyanto), 1 attendance (Susiyanto in 00:13 ok late=0). TEMP teachers cleaned up.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "PUT /api/admin/settings", "issue": "Empty-body {} returns 400 'Tidak ada perubahan' — acceptable, but could be treated as no-op 200 to match idempotent PUT semantics."}
+    ]
+  },
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": [
+    "/app/backend/tests/test_settings_partial_and_rejection.py",
+    "/app/backend/tests/test_kiosk_clock.py",
+    "/app/test_reports/pytest/pytest_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "routes_admin.SettingsIn is now correctly all-Optional and PUT does $set only sent fields — anti-clobber verified end-to-end (send only {late_tolerance_min:25}; work_start/work_end/early_checkin_min/timezone remain intact).",
+    "routes_kiosk._record early-check detail 'too_early:HH:MM:N' verified: at 00:13 WIB with earliest=00:30 → 'too_early:00:30:17' (sisa 17 min).",
+    "routes_kiosk._localize correctly converts UTC 'Z' → school tz (Asia/Jakarta): 17:13Z→00:13, 17:31Z→00:31, 18:45Z→01:45.",
+    "xdist parallel runner (pytest.ini addopts='-n auto --dist loadscope') races on shared demo school settings between the two test files — recommend keeping serial runs (-o addopts=\"\") when both files are executed together, or refactor to use a per-file school id. Both files individually pass under xdist.",
+    "SettingsIn does not validate work_start/work_end format ('HH:MM') at pydantic layer — a bad string would only fail downstream at split(':'); consider regex validator.",
+    "faceutil.ahash still uses deprecated Image.getdata (Pillow 14 removal 2027)."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_settings_partial_and_rejection.py (new)"
+  ],
+  "success_rate": {"backend": "100% (11/11 executed, 1 skipped by design)", "frontend": "not tested (per request)"},
+  "test_credentials": "admin@nusantara.sch.id / Admin123!  |  Kiosk: KIOSK-DEMO-1",
+  "seed_data_creation": "Two ephemeral TEMP teachers (module-scoped) inserted directly into Mongo with unique ahash embeddings; both deleted along with their attendance rows in fixture teardown. Susiyanto teacher & 00:13 attendance not touched.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Run both test files SERIALLY to avoid xdist races on shared settings: `pytest /app/backend/tests/test_kiosk_clock.py /app/backend/tests/test_settings_partial_and_rejection.py -v -o addopts=\"\"`. BASE=http://localhost:8001 (external URL blocked by Cloudflare for python requests). Expected final settings: 01:00/00:00/30/30/Asia/Jakarta.",
+  "rca of the issue": "Bug reproduction not needed here (already fixed upstream). Fix validated in two dimensions: (1) partial PUT — sending only {late_tolerance_min:25} keeps early_checkin_min=30 (previously it was clobbered to default 60 because SettingsIn had non-Optional defaults; now all fields Optional[None] and route does $set on model_dump excluding None); (2) rejection semantics — at 00:13 WIB with work_start=01:00 & early_checkin_min=30, earliest=00:30, so 00:13 → HTTP 422 detail 'too_early:00:30:17' (17 min remaining). 00:31 → status=ok late=0. 01:45 → status=late late=15 (tol=30)."
+}
