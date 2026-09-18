@@ -1,0 +1,20 @@
+{
+  "summary": "Backend-only verification of late/overtime clock-wrap bug fix in /app/backend/routes_kiosk.py _late_overtime + _closest_on_clock + early-checkin gate. Created /app/backend/tests/test_kiosk_clock.py with 6 pytest tests covering all requested scenarios using a TEMP teacher inserted directly into Mongo (school_id resolved by KIOSK-DEMO-1) and cleaned up afterwards. All 6 scenarios PASSED. Demo settings restored to 01:00/00:00/30/60. Final DB state verified: 1 teacher (Susiyanto), 1 attendance (23:36 in, status=ok, late=0).",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": ["/app/backend/tests/test_kiosk_clock.py", "/app/test_reports/pytest/kiosk_clock.xml"],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "faceutil.ahash() uses PIL Image.getdata() which is deprecated in Pillow 14 (2027) — swap to get_flattened_data before then.",
+    "routes_kiosk.attend has a duplicate-check for (teacher_id, date, type) both inline (line ~164) and inside _record — minor DRY smell; behaviour is correct because _record is also called by /kiosk/sync.",
+    "_late_overtime silently swallows all exceptions (except Exception: pass) — should at least log for debuggability."
+  ],
+  "updated_files": ["/app/backend/tests/test_kiosk_clock.py (new)"],
+  "success_rate": {"backend": "100% (6/6)", "frontend": "not tested (per request)"},
+  "test_credentials": "admin@nusantara.sch.id / Admin123!  |  Kiosk: KIOSK-DEMO-1",
+  "seed_data_creation": "Ephemeral TEMP teacher inserted directly into Mongo (id via uuid4, embedding=ahash(generated JPEG)) for each test module run; deleted along with its attendance rows in fixture teardown.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Reproducible pytest suite: pytest /app/backend/tests/test_kiosk_clock.py -v. Uses BASE=http://localhost:8001 (external URL blocked by Cloudflare for python requests). Scenarios 1-4 all match expected values exactly (ok/0, late/15, too_early:20:00, ok/0, late/120, ot/30, ok/0, late/35, ot/90). Susiyanto record intact at 23:36 status=ok. Settings restored to demo defaults.",
+  "rca of the issue": "Original bug: _late_overtime compared raw minutes-since-midnight; for shift 01:00-00:00 (overnight), a check-in at 23:36 (=1416 min) was compared against start+tol=90, giving late=1326. Fix uses _closest_on_clock(m, anchor) which picks min(|m - anchor|, |m-1440 - anchor|, |m+1440 - anchor|), so 23:36 wraps to -24 relative to start 01:00 (60), yielding late = max(0, -24 - 90) = 0. Symmetric handling for overtime with end += 1440 on overnight shifts. Verified end-to-end across 4 shift topologies."
+}
