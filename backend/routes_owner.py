@@ -32,6 +32,7 @@ class SchoolPatch(BaseModel):
     name: str | None = None
     address: str | None = None
     phone: str | None = None
+    admin_email: EmailStr | None = None
     rate_per_student: int | None = None
     student_count_manual: int | None = None
 

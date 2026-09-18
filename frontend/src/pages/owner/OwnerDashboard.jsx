@@ -21,6 +21,7 @@ export default function OwnerDashboard() {
     try {
       await api.patch(`/owner/schools/${editFor.id}`, {
         name: editFor.name, address: editFor.address, phone: editFor.phone,
+        admin_email: editFor.admin_email,
         rate_per_student: Number(editFor.rate_per_student),
         student_count_manual: editFor.student_count_manual === "" || editFor.student_count_manual == null ? null : Number(editFor.student_count_manual),
       });
@@ -159,6 +160,7 @@ export default function OwnerDashboard() {
             <Field label={t("school_name")} testid="edit-school-name" value={editFor.name} onChange={(v) => setEditFor({ ...editFor, name: v })} required />
             <Field label={t("rate")} testid="edit-school-rate" type="number" value={editFor.rate_per_student} onChange={(v) => setEditFor({ ...editFor, rate_per_student: v })} required />
             <div className="sm:col-span-2"><Field label={t("address")} testid="edit-school-address" value={editFor.address || ""} onChange={(v) => setEditFor({ ...editFor, address: v })} /></div>
+            <Field label={`${t("email")} Admin`} testid="edit-school-email" type="email" value={editFor.admin_email || ""} onChange={(v) => setEditFor({ ...editFor, admin_email: v })} required />
             <Field label={t("phone")} testid="edit-school-phone" value={editFor.phone || ""} onChange={(v) => setEditFor({ ...editFor, phone: v })} />
             <Field label={t("student_count_manual")} testid="edit-school-students" type="number" value={editFor.student_count_manual ?? ""} onChange={(v) => setEditFor({ ...editFor, student_count_manual: v })} />
             <div className="sm:col-span-2 flex justify-end gap-2">

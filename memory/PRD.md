@@ -73,6 +73,9 @@ Aplikasi absensi berbasis tablet kiosk + face recognition & liveness, geofence G
 - Endpoint tes per channel: `POST /api/owner/notif-settings/test`. Terverifikasi curl + UI.
 - STATUS: Wablas masih menunggu token asli dari user (mode link wa.me aktif sementara).
 
+## Update 2026-09-19 (iterasi 9 — field email admin di edit sekolah)
+- Modal Ubah Sekolah kini punya field **Email Admin** (tujuan pengiriman invoice), tersimpan via PATCH `admin_email`. Terverifikasi curl (set/revert) + UI.
+
 ## Backlog Prioritas
 - P0: Kunci Tripay asli dari user + uji webhook; tablet React Native (kiosk native, embedding cache on-device)
 - P1: Absen siswa (v2), geofence penuh untuk absen via HP pribadi guru
