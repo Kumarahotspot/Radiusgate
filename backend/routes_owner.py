@@ -33,6 +33,7 @@ class SchoolPatch(BaseModel):
     address: str | None = None
     phone: str | None = None
     admin_email: EmailStr | None = None
+    admin_password: str | None = None
     rate_per_student: int | None = None
     student_count_manual: int | None = None
 
@@ -87,10 +88,24 @@ async def create_school(body: SchoolIn, user: dict = Depends(owner_dep)):
 
 @router.patch("/owner/schools/{sid}")
 async def update_school(sid: str, body: SchoolPatch, user: dict = Depends(owner_dep)):
-    upd = {k: v for k, v in body.model_dump(exclude_unset=True).items()}
-    if not upd:
+    upd = {k: v for k, v in body.model_dump(exclude_unset=True).items() if k != "admin_password"}
+    admin = await db.users.find_one({"school_id": sid, "role": "school_admin"})
+    user_upd = {}
+    if body.admin_password:
+        user_upd["password_hash"] = hash_password(body.admin_password)
+    if body.admin_email:
+        new_email = body.admin_email.lower()
+        upd["admin_email"] = new_email
+        if admin and admin["email"] != new_email:
+            if await db.users.find_one({"email": new_email}):
+                raise HTTPException(status_code=400, detail="Email admin sudah dipakai akun lain")
+            user_upd["email"] = new_email
+    if not upd and not user_upd:
         raise HTTPException(status_code=400, detail="Tidak ada perubahan")
-    await db.schools.update_one({"id": sid}, {"$set": upd})
+    if upd:
+        await db.schools.update_one({"id": sid}, {"$set": upd})
+    if user_upd and admin:
+        await db.users.update_one({"id": admin["id"]}, {"$set": user_upd})
     return await db.schools.find_one({"id": sid}, {"_id": 0})
 
 

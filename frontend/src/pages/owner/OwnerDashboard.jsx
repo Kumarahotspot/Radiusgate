@@ -19,12 +19,14 @@ export default function OwnerDashboard() {
     e.preventDefault();
     setBusy(true);
     try {
-      await api.patch(`/owner/schools/${editFor.id}`, {
+      const payload = {
         name: editFor.name, address: editFor.address, phone: editFor.phone,
         admin_email: editFor.admin_email,
         rate_per_student: Number(editFor.rate_per_student),
         student_count_manual: editFor.student_count_manual === "" || editFor.student_count_manual == null ? null : Number(editFor.student_count_manual),
-      });
+      };
+      if (editFor.new_password) payload.admin_password = editFor.new_password;
+      await api.patch(`/owner/schools/${editFor.id}`, payload);
       toast.success(t("save"));
       setEditFor(null);
       load();
@@ -163,6 +165,12 @@ export default function OwnerDashboard() {
             <Field label={`${t("email")} Admin`} testid="edit-school-email" type="email" value={editFor.admin_email || ""} onChange={(v) => setEditFor({ ...editFor, admin_email: v })} required />
             <Field label={t("phone")} testid="edit-school-phone" value={editFor.phone || ""} onChange={(v) => setEditFor({ ...editFor, phone: v })} />
             <Field label={t("student_count_manual")} testid="edit-school-students" type="number" value={editFor.student_count_manual ?? ""} onChange={(v) => setEditFor({ ...editFor, student_count_manual: v })} />
+            <div>
+              <label className="text-xs font-semibold text-slate-500">{t("password")} Admin</label>
+              <input data-testid="edit-school-password" type="password" value={editFor.new_password || ""} placeholder={t("secret_keep")}
+                onChange={(e) => setEditFor({ ...editFor, new_password: e.target.value })}
+                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-600/15 transition" />
+            </div>
             <div className="sm:col-span-2 flex justify-end gap-2">
               <button type="button" data-testid="edit-cancel" onClick={() => setEditFor(null)} className="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 bg-slate-100 hover:bg-slate-200">{t("cancel")}</button>
               <button data-testid="edit-submit" disabled={busy} className="px-4 py-2 rounded-xl text-xs font-bold text-white bg-teal-700 hover:bg-teal-800 disabled:opacity-50">{busy ? t("loading") : t("save")}</button>
