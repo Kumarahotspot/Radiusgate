@@ -1,5 +1,6 @@
 import math
 import uuid
+import logging
 from datetime import datetime, timezone
 from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel
@@ -8,6 +9,7 @@ from pymongo.errors import DuplicateKeyError
 from db import db
 from faceutil import ahash, hamming, MATCH_THRESHOLD
 
+logger = logging.getLogger(__name__)
 router = APIRouter(tags=["kiosk"])
 
 
@@ -142,6 +144,7 @@ async def attend(body: AttendIn, request: Request):
         if d < best_d:
             best, best_d = t, d
     if best is None or best_d > MATCH_THRESHOLD:
+        logger.warning("face match gagal: best_distance=%s threshold=%s enrolled=%s", best_d, MATCH_THRESHOLD, len(teachers))
         raise HTTPException(status_code=422, detail="face_not_found")
     doc = await _record(school, best["id"], best["name"], body.type, body.ts_device,
                         body.lat, body.lng, body.photo, body.client_uuid, offline=False)

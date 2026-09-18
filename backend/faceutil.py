@@ -20,4 +20,4 @@ def hamming(a: str, b: str) -> int:
     return sum(c1 != c2 for c1, c2 in zip(a, b))
 
 
-MATCH_THRESHOLD = 90  # of 256 bits; lenient pilot matcher, diganti embedding ArcFace nanti
+MATCH_THRESHOLD = 150  # of 256 bits; matcher simulasi pilot sangat longgar, ganti ArcFace utk produksi
