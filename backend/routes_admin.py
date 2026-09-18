@@ -145,11 +145,11 @@ async def enroll_face(tid: str, body: EnrollIn, user: dict = Depends(admin_dep))
 
 # ---------- Settings & Locations ----------
 class SettingsIn(BaseModel):
-    work_start: str
-    work_end: str
-    late_tolerance_min: int = 10
-    early_checkin_min: int = 60
-    timezone: str = "Asia/Jakarta"
+    work_start: str | None = None
+    work_end: str | None = None
+    late_tolerance_min: int | None = None
+    early_checkin_min: int | None = None
+    timezone: str | None = None
 
 
 @router.get("/admin/settings")
@@ -162,8 +162,10 @@ async def get_settings(user: dict = Depends(admin_dep)):
 
 @router.put("/admin/settings")
 async def put_settings(body: SettingsIn, user: dict = Depends(admin_dep)):
-    await db.settings.update_one({"school_id": user["school_id"]},
-                                 {"$set": body.model_dump()}, upsert=True)
+    upd = {k: v for k, v in body.model_dump().items() if v is not None}
+    if not upd:
+        raise HTTPException(status_code=400, detail="Tidak ada perubahan")
+    await db.settings.update_one({"school_id": user["school_id"]}, {"$set": upd}, upsert=True)
     return {"ok": True}
 
 
