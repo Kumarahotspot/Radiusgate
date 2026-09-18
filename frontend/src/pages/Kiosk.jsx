@@ -223,13 +223,14 @@ export default function Kiosk() {
         }
         const d = err.response.data?.detail || "";
         let msg = t("kiosk_failed");
-        if (d.startsWith("outside_geofence")) msg = `${t("kiosk_outside")}${d.includes(":") ? ` (${d.split(":")[1]}m)` : ""}`;
-        else if (d === "face_not_found") msg = t("kiosk_face_not_found");
-        else if (d === "already_recorded") msg = t("kiosk_already");
-        else if (d === "no_enrolled") msg = t("kiosk_no_enrolled");
-        else if (!coords) msg = t("kiosk_gps_error");
+        let voiceMsg = msg;
+        if (d.startsWith("outside_geofence")) { msg = `${t("kiosk_outside")}${d.includes(":") ? ` (${d.split(":")[1]}m)` : ""}`; voiceMsg = t("kiosk_outside"); }
+        else if (d === "face_not_found") { msg = t("kiosk_face_not_found"); voiceMsg = t("kiosk_voice_not_registered"); }
+        else if (d === "already_recorded") { msg = t("kiosk_already"); voiceMsg = msg; }
+        else if (d === "no_enrolled") { msg = t("kiosk_no_enrolled"); voiceMsg = msg; }
+        else if (!coords) { msg = t("kiosk_gps_error"); voiceMsg = msg; }
         setResult({ ok: false, message: msg });
-        speak(`${t("kiosk_failed")}. ${msg}`);
+        speak(`${t("kiosk_failed")}. ${voiceMsg}`);
       }
       setPhase("result");
       setTimeout(() => { setPhase("idle"); setResult(null); }, 3500);
