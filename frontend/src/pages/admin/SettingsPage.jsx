@@ -6,7 +6,7 @@ import { MapPin, Plus, Trash2, Crosshair, Copy } from "lucide-react";
 
 export default function SettingsPage() {
   const { t } = useTranslation();
-  const [settings, setSettings] = useState({ work_start: "07:00", work_end: "15:00", late_tolerance_min: 10 });
+  const [settings, setSettings] = useState({ work_start: "07:00", work_end: "15:00", late_tolerance_min: 10, early_checkin_min: 60 });
   const [locations, setLocations] = useState([]);
   const [school, setSchool] = useState(null);
   const [loc, setLoc] = useState({ name: "", lat: "", lng: "", radius_m: 50 });
@@ -21,7 +21,7 @@ export default function SettingsPage() {
   const saveSettings = async (e) => {
     e.preventDefault();
     try {
-      await api.put("/admin/settings", { ...settings, late_tolerance_min: Number(settings.late_tolerance_min) });
+      await api.put("/admin/settings", { ...settings, late_tolerance_min: Number(settings.late_tolerance_min), early_checkin_min: Number(settings.early_checkin_min ?? 60) });
       toast.success(t("save"));
     } catch (err) { toast.error(errMsg(err)); }
   };
@@ -67,7 +67,7 @@ export default function SettingsPage() {
 
       <form onSubmit={saveSettings} data-testid="work-hours-form" className="bg-white rounded-2xl border border-slate-200 p-5">
         <p className="font-bold text-slate-800 mb-4">{t("work_hours")}</p>
-        <div className="grid grid-cols-3 gap-4 max-w-lg">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 max-w-2xl">
           <div>
             <label className="text-xs font-semibold text-slate-500">{t("work_start")}</label>
             <input data-testid="work-start" type="time" value={settings.work_start} onChange={(e) => setSettings({ ...settings, work_start: e.target.value })}
@@ -81,6 +81,11 @@ export default function SettingsPage() {
           <div>
             <label className="text-xs font-semibold text-slate-500">{t("tolerance")}</label>
             <input data-testid="work-tolerance" type="number" value={settings.late_tolerance_min} onChange={(e) => setSettings({ ...settings, late_tolerance_min: e.target.value })}
+              className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-teal-600" />
+          </div>
+          <div>
+            <label className="text-xs font-semibold text-slate-500">{t("early_window")}</label>
+            <input data-testid="work-early" type="number" value={settings.early_checkin_min ?? 60} onChange={(e) => setSettings({ ...settings, early_checkin_min: e.target.value })}
               className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-teal-600" />
           </div>
         </div>

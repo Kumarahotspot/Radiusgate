@@ -148,6 +148,7 @@ class SettingsIn(BaseModel):
     work_start: str
     work_end: str
     late_tolerance_min: int = 10
+    early_checkin_min: int = 60
 
 
 @router.get("/admin/settings")

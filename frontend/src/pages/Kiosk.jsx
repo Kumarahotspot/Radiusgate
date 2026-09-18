@@ -12,6 +12,11 @@ const T_KEY = "kiosk_token";
 const loadQueue = () => JSON.parse(localStorage.getItem(Q_KEY) || "[]");
 const saveQueue = (q) => localStorage.setItem(Q_KEY, JSON.stringify(q));
 
+const localIso = () => {
+  const n = new Date();
+  return new Date(n.getTime() - n.getTimezoneOffset() * 60000).toISOString().slice(0, 19);
+};
+
 export default function Kiosk() {
   const { t, i18n } = useTranslation();
   const [token, setToken] = useState(localStorage.getItem(T_KEY) || "");
@@ -160,7 +165,7 @@ export default function Kiosk() {
   const queueOffline = (teacherId, photo, coords) => {
     const rec = {
       client_uuid: crypto.randomUUID(), teacher_id: teacherId, type: attType,
-      ts_device: new Date().toISOString(), lat: coords?.lat || 0, lng: coords?.lng || 0, photo,
+      ts_device: localIso(), lat: coords?.lat || 0, lng: coords?.lng || 0, photo,
     };
     const q = [...loadQueue(), rec];
     saveQueue(q);
@@ -207,7 +212,7 @@ export default function Kiosk() {
       try {
         const { data } = await axios.post(`${API}/kiosk/attend`, {
           photo: f2, lat: coords?.lat ?? 0, lng: coords?.lng ?? 0,
-          type: attType, ts_device: new Date().toISOString(), client_uuid: crypto.randomUUID(),
+          type: attType, ts_device: localIso(), client_uuid: crypto.randomUUID(),
         }, { headers: { "X-Kiosk-Token": token }, timeout: 20000 });
         const greet = attType === "in" ? t("kiosk_welcome") : t("kiosk_goodbye");
         setResult({ ok: true, name: data.teacher_name, message: data.status === "late" ? `${t("kiosk_success")} · +${data.late_minutes}m` : t("kiosk_success"), late: data.status === "late" });
@@ -232,6 +237,11 @@ export default function Kiosk() {
           voiceMsg = nm ? `${t("kiosk_already")}, ${nm}` : t("kiosk_already");
         }
         else if (d === "no_enrolled") { msg = t("kiosk_no_enrolled"); voiceMsg = msg; }
+        else if (d.startsWith("too_early")) {
+          const tm = d.split(":").slice(1).join(":");
+          msg = t("kiosk_too_early", { time: tm });
+          voiceMsg = msg;
+        }
         else if (!coords) { msg = t("kiosk_gps_error"); voiceMsg = msg; }
         setResult({ ok: false, message: msg });
         speak(`${t("kiosk_failed")}. ${voiceMsg}`);

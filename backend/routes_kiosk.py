@@ -77,15 +77,19 @@ def _late_overtime(settings, att_type, ts_iso):
     if not settings:
         return late, overtime
     try:
-        hh, mm = int(ts_iso[11:13]), int(ts_iso[14:16])
-        minutes = hh * 60 + mm
+        m = int(ts_iso[11:13]) * 60 + int(ts_iso[14:16])
         ws_h, ws_m = map(int, settings.get("work_start", "07:00").split(":"))
         we_h, we_m = map(int, settings.get("work_end", "15:00").split(":"))
-        tol = settings.get("late_tolerance_min", 10)
+        start, end = ws_h * 60 + ws_m, we_h * 60 + we_m
+        if end <= start:  # shift malam, mis. 21:00 - 00:00
+            end += 1440
+        if m < start and (start - m) > 720:  # lewat tengah malam untuk shift kemarin
+            m += 1440
+        tol = int(settings.get("late_tolerance_min", 10))
         if att_type == "in":
-            late = max(0, minutes - (ws_h * 60 + ws_m + tol))
+            late = max(0, m - (start + tol))
         else:
-            overtime = max(0, minutes - (we_h * 60 + we_m))
+            overtime = max(0, m - end)
     except Exception:
         pass
     return late, overtime
@@ -109,6 +113,13 @@ async def _record(school, teacher_id, teacher_name, att_type, ts_device, lat, ln
     else:
         status = "ok"
     settings = await db.settings.find_one({"school_id": sid}, {"_id": 0})
+    if att_type == "in" and settings:
+        m_local = int(ts_device[11:13]) * 60 + int(ts_device[14:16])
+        ws_h, ws_m = map(int, settings.get("work_start", "07:00").split(":"))
+        earliest = ws_h * 60 + ws_m - int(settings.get("early_checkin_min", 60))
+        if m_local < earliest:
+            eh, em = divmod(max(earliest, 0), 60)
+            raise HTTPException(status_code=422, detail=f"too_early:{eh:02d}:{em:02d}")
     late, overtime = _late_overtime(settings, att_type, ts_device)
     if att_type == "in" and status == "ok" and late > 0:
         status = "late"
