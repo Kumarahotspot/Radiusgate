@@ -1,12 +1,12 @@
 import os
 import uuid
 from datetime import datetime, timezone
-from urllib.parse import quote
 from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel, EmailStr
 from db import db
 from auth import require_roles, hash_password
-from emailer import send_email, invoice_email_html
+from emailer import invoice_email_html
+from notif import send_email_unified, send_whatsapp
 
 router = APIRouter(tags=["owner"])
 owner_dep = require_roles("owner")
@@ -148,8 +148,8 @@ async def _send_invoice_email(inv: dict, school: dict) -> str:
     pay_url = f"{FRONTEND_URL}/pay/{inv['public_token']}"
     pdf_url = f"{FRONTEND_URL}/api/public/invoice/{inv['public_token']}/pdf"
     subject = f"Invoice {inv['invoice_no']} - {school['name']} - Periode {inv['period']}"
-    email_id = await send_email(to=school["admin_email"], subject=subject,
-                                html=invoice_email_html(school["name"], inv, pay_url, pdf_url))
+    email_id = await send_email_unified(to=school["admin_email"], subject=subject,
+                                        html=invoice_email_html(school["name"], inv, pay_url, pdf_url))
     await db.invoices.update_one({"id": inv["id"]}, {"$set": {"sent_at": now_iso()}})
     return email_id
 
@@ -162,10 +162,12 @@ async def send_invoice(iid: str, user: dict = Depends(owner_dep)):
     school = await db.schools.find_one({"id": inv["school_id"]}, {"_id": 0})
     email_id = await _send_invoice_email(inv, school)
     pay_url = f"{FRONTEND_URL}/pay/{inv['public_token']}"
-    pdf_url = f"{FRONTEND_URL}/api/public/invoice/{inv['public_token']}/pdf"
+    pdf_url = f"{FRONTEND_URL}/api/public/invoice/{inv['public_token']}/invoice.pdf"
     amount = f"Rp {inv['amount']:,}".replace(",", ".")
     msg = (f"Tagihan Absensi Sekolah - {school['name']}\n"
            f"No: {inv['invoice_no']}\nPeriode: {inv['period']}\n"
-           f"Total: {amount}\nBayar: {pay_url}\nPDF: {pdf_url}")
-    wa_link = f"https://wa.me/{school.get('phone', '')}?text={quote(msg)}" if school.get("phone") else None
-    return {"email_id": email_id, "wa_link": wa_link, "pay_url": pay_url}
+           f"Total: {amount}\nBayar: {pay_url}")
+    wa = None
+    if school.get("phone"):
+        wa = await send_whatsapp(school["phone"], msg, pdf_url)
+    return {"email_id": email_id, "wa": wa, "pay_url": pay_url}

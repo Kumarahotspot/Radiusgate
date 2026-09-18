@@ -66,6 +66,13 @@ Aplikasi absensi berbasis tablet kiosk + face recognition & liveness, geofence G
 - Tabel Sekolah owner menampilkan semua field: nama, alamat, WA, email admin, jumlah siswa (+label "manual"), guru, tarif, kode kiosk, aksi.
 - Terverifikasi: PATCH set/reset manual, invoice uji 350×8000 benar, UI desktop+mobile OK.
 
+## Update 2026-09-19 (iterasi 8 — modul notifikasi SMTP + Wablas)
+- Halaman Owner → **Notifikasi**: mode email (Resend managed bawaan / SMTP kustom: host, port, user, password, from, TLS) + provider WhatsApp (link wa.me manual / **Wablas otomatis**: base URL, token, secret key opsional). Secret disimpan di DB, di-mask saat GET, kosong = tidak diubah.
+- Modul `notif.py`: `send_email_unified` (Resend/SMTP), `send_whatsapp` (Wablas `/api/send-message` + `/api/send-document`, fallback link wa.me jika token kosong).
+- Kirim invoice kini otomatis WA via Wablas (teks + PDF terlampir, route alias `…/invoice.pdf` agar ekstensi valid) bila provider=wablas & token terisi; kalau tidak, tetap buka link wa.me.
+- Endpoint tes per channel: `POST /api/owner/notif-settings/test`. Terverifikasi curl + UI.
+- STATUS: Wablas masih menunggu token asli dari user (mode link wa.me aktif sementara).
+
 ## Backlog Prioritas
 - P0: Kunci Tripay asli dari user + uji webhook; tablet React Native (kiosk native, embedding cache on-device)
 - P1: Absen siswa (v2), geofence penuh untuk absen via HP pribadi guru

@@ -9,6 +9,7 @@ import Kiosk from "@/pages/Kiosk";
 import Pay from "@/pages/Pay";
 import OwnerDashboard from "@/pages/owner/OwnerDashboard";
 import OwnerInvoices from "@/pages/owner/OwnerInvoices";
+import NotifSettings from "@/pages/owner/NotifSettings";
 import AdminDashboard from "@/pages/admin/AdminDashboard";
 import Teachers from "@/pages/admin/Teachers";
 import Students from "@/pages/admin/Students";
@@ -45,6 +46,7 @@ function App() {
           <Route element={<Guard roles={["owner"]}><Layout /></Guard>}>
             <Route path="/owner" element={<OwnerDashboard />} />
             <Route path="/owner/invoices" element={<OwnerInvoices />} />
+            <Route path="/owner/settings" element={<NotifSettings />} />
           </Route>
           <Route element={<Guard roles={["school_admin"]}><Layout /></Guard>}>
             <Route path="/admin" element={<AdminDashboard />} />

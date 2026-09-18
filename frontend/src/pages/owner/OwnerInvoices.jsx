@@ -29,7 +29,8 @@ export default function OwnerInvoices() {
     try {
       const { data } = await api.post(`/owner/invoices/${inv.id}/send`);
       toast.success(`${t("send")} OK`);
-      if (data.wa_link) window.open(data.wa_link, "_blank");
+      if (data.wa?.mode === "wablas") toast.success("WhatsApp: terkirim via Wablas");
+      else if (data.wa?.wa_link) window.open(data.wa.wa_link, "_blank");
       load();
     } catch (e) { toast.error(errMsg(e)); }
   };

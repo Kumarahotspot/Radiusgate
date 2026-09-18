@@ -44,6 +44,11 @@ async def public_invoice_pdf(token: str):
     return FileResponse(path, media_type="application/pdf", filename=f"{inv['invoice_no']}.pdf")
 
 
+@router.get("/public/invoice/{token}/invoice.pdf")
+async def public_invoice_pdf_file(token: str):
+    return await public_invoice_pdf(token)
+
+
 @router.post("/public/invoice/{token}/pay")
 async def create_payment(token: str):
     inv = await _public_invoice(token)
