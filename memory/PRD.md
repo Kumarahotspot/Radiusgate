@@ -58,6 +58,9 @@ Aplikasi absensi berbasis tablet kiosk + face recognition & liveness, geofence G
 ## Update 2026-09-19 (iterasi 5 — bug fix dasbor kosong)
 - Bug: `/admin/today` & `/admin/stats` menghitung "hari ini" pakai tanggal UTC, sementara record absen memakai tanggal zona sekolah → tengah malam WIB dasbor tampak kosong padahal data ada. Fix: helper `school_today(sid)` (zona dari settings). Terverifikasi testing agent: backend+frontend 100%, regresi 12/12 lulus.
 
+## Update 2026-09-19 (iterasi 6 — CRUD sekolah lengkap)
+- Tabel Sekolah di portal Owner kini CRUD lengkap: Tambah, Lihat, **Ubah** (modal: nama, alamat, no. WA, tarif/siswa), Hapus. Backend `PATCH /api/owner/schools/{id}` sudah mendukung. Terverifikasi curl + UI (desktop & mobile).
+
 ## Backlog Prioritas
 - P0: Kunci Tripay asli dari user + uji webhook; tablet React Native (kiosk native, embedding cache on-device)
 - P1: Absen siswa (v2), geofence penuh untuk absen via HP pribadi guru

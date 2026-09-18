@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import api, { errMsg } from "../../api";
-import { School, Users, GraduationCap, FileWarning, Plus, Trash2, Copy } from "lucide-react";
+import { School, Users, GraduationCap, FileWarning, Plus, Trash2, Copy, Pencil } from "lucide-react";
 
 const rupiah = (n) => `Rp ${Number(n || 0).toLocaleString("id-ID")}`;
 
@@ -13,6 +13,21 @@ export default function OwnerDashboard() {
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ name: "", address: "", phone: "", admin_name: "", admin_email: "", admin_password: "", rate_per_student: 8000 });
   const [busy, setBusy] = useState(false);
+  const [editFor, setEditFor] = useState(null);
+
+  const saveEdit = async (e) => {
+    e.preventDefault();
+    setBusy(true);
+    try {
+      await api.patch(`/owner/schools/${editFor.id}`, {
+        name: editFor.name, address: editFor.address, phone: editFor.phone,
+        rate_per_student: Number(editFor.rate_per_student),
+      });
+      toast.success(t("save"));
+      setEditFor(null);
+      load();
+    } catch (err) { toast.error(errMsg(err)); } finally { setBusy(false); }
+  };
 
   const load = () => {
     api.get("/owner/overview").then((r) => setOv(r.data));
@@ -113,7 +128,10 @@ export default function OwnerDashboard() {
                     </button>
                   </td>
                   <td className="px-4 py-3">
-                    <button data-testid={`delete-school-${s.kiosk_token}`} onClick={() => del(s.id)} className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg"><Trash2 className="w-4 h-4" /></button>
+                    <div className="flex gap-1">
+                      <button data-testid={`edit-school-${s.kiosk_token}`} onClick={() => setEditFor({ ...s })} className="p-1.5 text-teal-700 hover:bg-teal-50 rounded-lg" title={t("edit")}><Pencil className="w-4 h-4" /></button>
+                      <button data-testid={`delete-school-${s.kiosk_token}`} onClick={() => del(s.id)} className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg" title={t("delete")}><Trash2 className="w-4 h-4" /></button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -122,6 +140,21 @@ export default function OwnerDashboard() {
           </table>
         </div>
       </div>
+      {editFor && (
+        <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4" data-testid="edit-school-modal">
+          <form onSubmit={saveEdit} data-testid="edit-school-form" className="bg-white rounded-2xl w-full max-w-lg p-5 grid sm:grid-cols-2 gap-4">
+            <p className="sm:col-span-2 font-bold text-slate-800">{t("edit_school")}</p>
+            <Field label={t("school_name")} testid="edit-school-name" value={editFor.name} onChange={(v) => setEditFor({ ...editFor, name: v })} required />
+            <Field label={t("rate")} testid="edit-school-rate" type="number" value={editFor.rate_per_student} onChange={(v) => setEditFor({ ...editFor, rate_per_student: v })} required />
+            <div className="sm:col-span-2"><Field label={t("address")} testid="edit-school-address" value={editFor.address || ""} onChange={(v) => setEditFor({ ...editFor, address: v })} /></div>
+            <div className="sm:col-span-2"><Field label={t("phone")} testid="edit-school-phone" value={editFor.phone || ""} onChange={(v) => setEditFor({ ...editFor, phone: v })} /></div>
+            <div className="sm:col-span-2 flex justify-end gap-2">
+              <button type="button" data-testid="edit-cancel" onClick={() => setEditFor(null)} className="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 bg-slate-100 hover:bg-slate-200">{t("cancel")}</button>
+              <button data-testid="edit-submit" disabled={busy} className="px-4 py-2 rounded-xl text-xs font-bold text-white bg-teal-700 hover:bg-teal-800 disabled:opacity-50">{busy ? t("loading") : t("save")}</button>
+            </div>
+          </form>
+        </div>
+      )}
     </div>
   );
 }
