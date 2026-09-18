@@ -1,17 +1,26 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { toast } from "sonner";
 import api from "../../api";
-import { Users, Clock, CalendarClock, GraduationCap, UserCheck } from "lucide-react";
+import { Users, Clock, CalendarClock, GraduationCap, UserCheck, Trash2 } from "lucide-react";
 
 export default function AdminDashboard() {
   const { t } = useTranslation();
   const [stats, setStats] = useState(null);
   const [today, setToday] = useState([]);
 
-  useEffect(() => {
+  const load = () => {
     api.get("/admin/stats").then((r) => setStats(r.data));
     api.get("/admin/today").then((r) => setToday(r.data));
-  }, []);
+  };
+  useEffect(() => { load(); }, []);
+
+  const delAttendance = async (id) => {
+    if (!window.confirm(t("confirm_delete"))) return;
+    await api.delete(`/admin/attendance/${id}`);
+    toast.success(t("delete"));
+    load();
+  };
 
   const cards = stats ? [
     { icon: UserCheck, label: t("present_today"), val: stats.present_today, testid: "stat-present" },
@@ -44,6 +53,7 @@ export default function AdminDashboard() {
                 <th className="px-4 py-2.5">{t("time")}</th>
                 <th className="px-4 py-2.5">{t("status")}</th>
                 <th className="px-4 py-2.5">GPS</th>
+                <th className="px-4 py-2.5">{t("actions")}</th>
               </tr>
             </thead>
             <tbody>
@@ -58,9 +68,12 @@ export default function AdminDashboard() {
                     </span>
                   </td>
                   <td className="px-4 py-2.5 text-xs text-slate-500 font-mono">{a.lat?.toFixed(5)}, {a.lng?.toFixed(5)}</td>
+                  <td className="px-4 py-2.5">
+                    <button data-testid={`delete-attendance-${a.id}`} onClick={() => delAttendance(a.id)} className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg"><Trash2 className="w-4 h-4" /></button>
+                  </td>
                 </tr>
               ))}
-              {today.length === 0 && <tr><td colSpan={5} className="px-4 py-8 text-center text-slate-400">{t("no_data")}</td></tr>}
+              {today.length === 0 && <tr><td colSpan={6} className="px-4 py-8 text-center text-slate-400">{t("no_data")}</td></tr>}
             </tbody>
           </table>
         </div>

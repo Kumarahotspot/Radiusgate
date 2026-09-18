@@ -45,6 +45,14 @@ async def today_list(user: dict = Depends(admin_dep)):
     ).sort("ts_server", -1).to_list(500)
 
 
+@router.delete("/admin/attendance/{aid}")
+async def delete_attendance(aid: str, user: dict = Depends(admin_dep)):
+    res = await db.attendance.delete_one({"id": aid, "school_id": user["school_id"]})
+    if res.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Data absensi tidak ditemukan")
+    return {"ok": True}
+
+
 # ---------- Teachers ----------
 class TeacherIn(BaseModel):
     name: str
