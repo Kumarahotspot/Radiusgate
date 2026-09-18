@@ -25,6 +25,7 @@ class SchoolIn(BaseModel):
     admin_email: EmailStr
     admin_password: str
     rate_per_student: int = 8000
+    student_count_manual: int | None = None
 
 
 class SchoolPatch(BaseModel):
@@ -32,6 +33,7 @@ class SchoolPatch(BaseModel):
     address: str | None = None
     phone: str | None = None
     rate_per_student: int | None = None
+    student_count_manual: int | None = None
 
 
 @router.get("/owner/overview")
@@ -53,7 +55,9 @@ async def overview(user: dict = Depends(owner_dep)):
 async def list_schools(user: dict = Depends(owner_dep)):
     schools = await db.schools.find({}, {"_id": 0}).to_list(1000)
     for s in schools:
-        s["student_count"] = await db.students.count_documents({"school_id": s["id"]})
+        manual = s.get("student_count_manual")
+        s["student_count_source"] = "manual" if manual else "data"
+        s["student_count"] = manual if manual else await db.students.count_documents({"school_id": s["id"]})
         s["teacher_count"] = await db.teachers.count_documents({"school_id": s["id"]})
     return schools
 
@@ -66,6 +70,7 @@ async def create_school(body: SchoolIn, user: dict = Depends(owner_dep)):
     school = {
         "id": sid, "name": body.name, "address": body.address, "phone": body.phone,
         "admin_email": body.admin_email.lower(), "rate_per_student": body.rate_per_student,
+        "student_count_manual": body.student_count_manual,
         "kiosk_token": "KIOSK-" + uuid.uuid4().hex[:8].upper(), "created_at": now_iso(),
     }
     await db.schools.insert_one(school)
@@ -81,7 +86,7 @@ async def create_school(body: SchoolIn, user: dict = Depends(owner_dep)):
 
 @router.patch("/owner/schools/{sid}")
 async def update_school(sid: str, body: SchoolPatch, user: dict = Depends(owner_dep)):
-    upd = {k: v for k, v in body.model_dump().items() if v is not None}
+    upd = {k: v for k, v in body.model_dump(exclude_unset=True).items()}
     if not upd:
         raise HTTPException(status_code=400, detail="Tidak ada perubahan")
     await db.schools.update_one({"id": sid}, {"$set": upd})
@@ -120,7 +125,7 @@ async def generate_invoices(body: GenerateIn, user: dict = Depends(owner_dep)):
         if await db.invoices.find_one({"school_id": s["id"], "period": body.period}):
             continue
         seq += 1
-        count = await db.students.count_documents({"school_id": s["id"]})
+        count = s.get("student_count_manual") or await db.students.count_documents({"school_id": s["id"]})
         inv = {
             "id": str(uuid.uuid4()),
             "invoice_no": f"INV-{body.period}-{seq:03d}",

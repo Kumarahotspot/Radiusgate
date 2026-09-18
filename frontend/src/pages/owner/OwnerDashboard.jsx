@@ -11,7 +11,7 @@ export default function OwnerDashboard() {
   const [ov, setOv] = useState(null);
   const [schools, setSchools] = useState([]);
   const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState({ name: "", address: "", phone: "", admin_name: "", admin_email: "", admin_password: "", rate_per_student: 8000 });
+  const [form, setForm] = useState({ name: "", address: "", phone: "", admin_name: "", admin_email: "", admin_password: "", rate_per_student: 8000, student_count_manual: "" });
   const [busy, setBusy] = useState(false);
   const [editFor, setEditFor] = useState(null);
 
@@ -22,6 +22,7 @@ export default function OwnerDashboard() {
       await api.patch(`/owner/schools/${editFor.id}`, {
         name: editFor.name, address: editFor.address, phone: editFor.phone,
         rate_per_student: Number(editFor.rate_per_student),
+        student_count_manual: editFor.student_count_manual === "" || editFor.student_count_manual == null ? null : Number(editFor.student_count_manual),
       });
       toast.success(t("save"));
       setEditFor(null);
@@ -39,10 +40,14 @@ export default function OwnerDashboard() {
     e.preventDefault();
     setBusy(true);
     try {
-      await api.post("/owner/schools", { ...form, rate_per_student: Number(form.rate_per_student) });
+      await api.post("/owner/schools", {
+        ...form,
+        rate_per_student: Number(form.rate_per_student),
+        student_count_manual: form.student_count_manual ? Number(form.student_count_manual) : null,
+      });
       toast.success(t("save"));
       setShowForm(false);
-      setForm({ name: "", address: "", phone: "", admin_name: "", admin_email: "", admin_password: "", rate_per_student: 8000 });
+      setForm({ name: "", address: "", phone: "", admin_name: "", admin_email: "", admin_password: "", rate_per_student: 8000, student_count_manual: "" });
       load();
     } catch (err) { toast.error(errMsg(err)); } finally { setBusy(false); }
   };
@@ -86,6 +91,7 @@ export default function OwnerDashboard() {
           <Field label={t("address")} testid="school-address" value={form.address} onChange={(v) => setForm({ ...form, address: v })} />
           <Field label={t("phone")} testid="school-phone" value={form.phone} onChange={(v) => setForm({ ...form, phone: v })} />
           <Field label={t("rate")} testid="school-rate" type="number" value={form.rate_per_student} onChange={(v) => setForm({ ...form, rate_per_student: v })} required />
+          <Field label={t("student_count_manual")} testid="school-students-manual" type="number" value={form.student_count_manual} onChange={(v) => setForm({ ...form, student_count_manual: v })} />
           <div className="sm:col-span-2 border-t pt-4">
             <p className="text-xs font-bold text-slate-500 uppercase tracking-wide mb-3">{t("admin_account")}</p>
             <div className="grid sm:grid-cols-3 gap-4">
@@ -107,6 +113,9 @@ export default function OwnerDashboard() {
             <thead>
               <tr className="text-left text-xs uppercase tracking-wide text-slate-500 border-b bg-slate-50">
                 <th className="px-4 py-3">{t("school_name")}</th>
+                <th className="px-4 py-3">{t("address")}</th>
+                <th className="px-4 py-3">WA</th>
+                <th className="px-4 py-3">{t("email")} Admin</th>
                 <th className="px-4 py-3">{t("student_count")}</th>
                 <th className="px-4 py-3">{t("teachers")}</th>
                 <th className="px-4 py-3">{t("rate")}</th>
@@ -118,7 +127,10 @@ export default function OwnerDashboard() {
               {schools.map((s) => (
                 <tr key={s.id} data-testid={`school-row-${s.kiosk_token}`} className="border-b last:border-0 hover:bg-slate-50/60">
                   <td className="px-4 py-3 font-semibold text-slate-800">{s.name}</td>
-                  <td className="px-4 py-3">{s.student_count}</td>
+                  <td className="px-4 py-3 text-xs text-slate-600 max-w-[180px] truncate">{s.address || "-"}</td>
+                  <td className="px-4 py-3 font-mono text-xs">{s.phone || "-"}</td>
+                  <td className="px-4 py-3 text-xs text-slate-600">{s.admin_email}</td>
+                  <td className="px-4 py-3">{s.student_count}{s.student_count_source === "manual" && <span className="text-[10px] text-slate-400 font-medium"> ({t("manual_badge")})</span>}</td>
                   <td className="px-4 py-3">{s.teacher_count}</td>
                   <td className="px-4 py-3">{rupiah(s.rate_per_student)}</td>
                   <td className="px-4 py-3">
@@ -135,7 +147,7 @@ export default function OwnerDashboard() {
                   </td>
                 </tr>
               ))}
-              {schools.length === 0 && <tr><td colSpan={6} className="px-4 py-8 text-center text-slate-400">{t("no_data")}</td></tr>}
+              {schools.length === 0 && <tr><td colSpan={9} className="px-4 py-8 text-center text-slate-400">{t("no_data")}</td></tr>}
             </tbody>
           </table>
         </div>
@@ -147,7 +159,8 @@ export default function OwnerDashboard() {
             <Field label={t("school_name")} testid="edit-school-name" value={editFor.name} onChange={(v) => setEditFor({ ...editFor, name: v })} required />
             <Field label={t("rate")} testid="edit-school-rate" type="number" value={editFor.rate_per_student} onChange={(v) => setEditFor({ ...editFor, rate_per_student: v })} required />
             <div className="sm:col-span-2"><Field label={t("address")} testid="edit-school-address" value={editFor.address || ""} onChange={(v) => setEditFor({ ...editFor, address: v })} /></div>
-            <div className="sm:col-span-2"><Field label={t("phone")} testid="edit-school-phone" value={editFor.phone || ""} onChange={(v) => setEditFor({ ...editFor, phone: v })} /></div>
+            <Field label={t("phone")} testid="edit-school-phone" value={editFor.phone || ""} onChange={(v) => setEditFor({ ...editFor, phone: v })} />
+            <Field label={t("student_count_manual")} testid="edit-school-students" type="number" value={editFor.student_count_manual ?? ""} onChange={(v) => setEditFor({ ...editFor, student_count_manual: v })} />
             <div className="sm:col-span-2 flex justify-end gap-2">
               <button type="button" data-testid="edit-cancel" onClick={() => setEditFor(null)} className="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 bg-slate-100 hover:bg-slate-200">{t("cancel")}</button>
               <button data-testid="edit-submit" disabled={busy} className="px-4 py-2 rounded-xl text-xs font-bold text-white bg-teal-700 hover:bg-teal-800 disabled:opacity-50">{busy ? t("loading") : t("save")}</button>

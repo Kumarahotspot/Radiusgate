@@ -61,6 +61,11 @@ Aplikasi absensi berbasis tablet kiosk + face recognition & liveness, geofence G
 ## Update 2026-09-19 (iterasi 6 — CRUD sekolah lengkap)
 - Tabel Sekolah di portal Owner kini CRUD lengkap: Tambah, Lihat, **Ubah** (modal: nama, alamat, no. WA, tarif/siswa), Hapus. Backend `PATCH /api/owner/schools/{id}` sudah mendukung. Terverifikasi curl + UI (desktop & mobile).
 
+## Update 2026-09-19 (iterasi 7 — jumlah siswa manual + tabel lengkap)
+- Sekolah punya field `student_count_manual` (opsional): jika diisi, jadi basis billing menggantikan hitungan data siswa; bisa dikosongkan untuk kembali ke hitungan data. Form buat & edit sekolah owner memilikinya.
+- Tabel Sekolah owner menampilkan semua field: nama, alamat, WA, email admin, jumlah siswa (+label "manual"), guru, tarif, kode kiosk, aksi.
+- Terverifikasi: PATCH set/reset manual, invoice uji 350×8000 benar, UI desktop+mobile OK.
+
 ## Backlog Prioritas
 - P0: Kunci Tripay asli dari user + uji webhook; tablet React Native (kiosk native, embedding cache on-device)
 - P1: Absen siswa (v2), geofence penuh untuk absen via HP pribadi guru
