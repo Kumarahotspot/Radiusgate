@@ -146,6 +146,10 @@ async def attend(body: AttendIn, request: Request):
     if best is None or best_d > MATCH_THRESHOLD:
         logger.warning("face match gagal: best_distance=%s threshold=%s enrolled=%s", best_d, MATCH_THRESHOLD, len(teachers))
         raise HTTPException(status_code=422, detail="face_not_found")
+    logger.info("face match: teacher=%s distance=%s", best["name"], best_d)
+    date = body.ts_device[:10]
+    if await db.attendance.find_one({"teacher_id": best["id"], "date": date, "type": body.type}):
+        raise HTTPException(status_code=409, detail=f"already_recorded:{best['name']}")
     doc = await _record(school, best["id"], best["name"], body.type, body.ts_device,
                         body.lat, body.lng, body.photo, body.client_uuid, offline=False)
     return {"ok": True, "teacher_name": best["name"], "status": doc["status"],
