@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import api, { errMsg } from "../../api";
 import CameraCapture from "../../components/CameraCapture";
-import { Plus, ScanFace, Trash2, CheckCircle2, Circle } from "lucide-react";
+import { Plus, ScanFace, Trash2, CheckCircle2, Circle, Pencil } from "lucide-react";
 
 export default function Teachers() {
   const { t } = useTranslation();
@@ -12,6 +12,20 @@ export default function Teachers() {
   const [enrollFor, setEnrollFor] = useState(null);
   const [form, setForm] = useState({ name: "", email: "", password: "", nip: "", subject: "" });
   const [busy, setBusy] = useState(false);
+  const [editFor, setEditFor] = useState(null);
+
+  const saveEdit = async (e) => {
+    e.preventDefault();
+    setBusy(true);
+    try {
+      await api.patch(`/admin/teachers/${editFor.id}`, {
+        name: editFor.name, nip: editFor.nip, subject: editFor.subject, active: !!editFor.active,
+      });
+      toast.success(t("save"));
+      setEditFor(null);
+      load();
+    } catch (err) { toast.error(errMsg(err)); } finally { setBusy(false); }
+  };
 
   const load = () => api.get("/admin/teachers").then((r) => setTeachers(r.data));
   useEffect(() => { load(); }, []);
@@ -99,7 +113,8 @@ export default function Teachers() {
                         className="flex items-center gap-1 text-xs font-bold text-teal-700 hover:bg-teal-50 px-2 py-1.5 rounded-lg transition-colors">
                         <ScanFace className="w-4 h-4" /> {t("enroll_face")}
                       </button>
-                      <button data-testid={`delete-teacher-${tc.id}`} onClick={() => del(tc.id)} className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg"><Trash2 className="w-4 h-4" /></button>
+                      <button data-testid={`edit-teacher-${tc.id}`} onClick={() => setEditFor({ ...tc })} className="p-1.5 text-sky-600 hover:bg-sky-50 rounded-lg" title={t("edit")}><Pencil className="w-4 h-4" /></button>
+                      <button data-testid={`delete-teacher-${tc.id}`} onClick={() => del(tc.id)} className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg" title={t("delete")}><Trash2 className="w-4 h-4" /></button>
                     </div>
                   </td>
                 </tr>
@@ -109,6 +124,25 @@ export default function Teachers() {
           </table>
         </div>
       </div>
+
+      {editFor && (
+        <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4" data-testid="edit-teacher-modal">
+          <form onSubmit={saveEdit} data-testid="edit-teacher-form" className="bg-white rounded-2xl w-full max-w-md p-5 grid sm:grid-cols-2 gap-4">
+            <p className="sm:col-span-2 font-bold text-slate-800">{t("edit_teacher")}</p>
+            <In label={t("name")} testid="edit-teacher-name" v={editFor.name} set={(v) => setEditFor({ ...editFor, name: v })} req />
+            <In label={t("nip")} testid="edit-teacher-nip" v={editFor.nip || ""} set={(v) => setEditFor({ ...editFor, nip: v })} />
+            <In label={t("subject")} testid="edit-teacher-subject" v={editFor.subject || ""} set={(v) => setEditFor({ ...editFor, subject: v })} />
+            <label className="flex items-center gap-2 text-sm text-slate-600 self-end pb-2.5">
+              <input data-testid="edit-teacher-active" type="checkbox" checked={!!editFor.active} onChange={(e) => setEditFor({ ...editFor, active: e.target.checked })} className="accent-teal-700 w-4 h-4" />
+              {t("active")}
+            </label>
+            <div className="sm:col-span-2 flex justify-end gap-2">
+              <button type="button" data-testid="edit-teacher-cancel" onClick={() => setEditFor(null)} className="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 bg-slate-100 hover:bg-slate-200">{t("cancel")}</button>
+              <button data-testid="edit-teacher-submit" disabled={busy} className="px-4 py-2 rounded-xl text-xs font-bold text-white bg-teal-700 hover:bg-teal-800 disabled:opacity-50">{busy ? t("loading") : t("save")}</button>
+            </div>
+          </form>
+        </div>
+      )}
 
       {enrollFor && <CameraCapture testid="enroll-camera" onDone={enroll} onClose={() => setEnrollFor(null)} />}
     </div>
