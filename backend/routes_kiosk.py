@@ -135,7 +135,8 @@ async def _record(school, teacher_id, teacher_name, att_type, ts_device, lat, ln
         earliest = ws_h * 60 + ws_m - int(settings.get("early_checkin_min", 60))
         if minutes < earliest:
             eh, em = divmod(max(earliest, 0), 60)
-            raise HTTPException(status_code=422, detail=f"too_early:{eh:02d}:{em:02d}")
+            sisa = earliest - minutes
+            raise HTTPException(status_code=422, detail=f"too_early:{eh:02d}:{em:02d}:{sisa}")
     late, overtime = _late_overtime(settings, att_type, minutes)
     if att_type == "in" and status == "ok" and late > 0:
         status = "late"

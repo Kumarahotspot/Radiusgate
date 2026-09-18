@@ -235,8 +235,10 @@ export default function Kiosk() {
         }
         else if (d === "no_enrolled") { msg = t("kiosk_no_enrolled"); voiceMsg = msg; }
         else if (d.startsWith("too_early")) {
-          const tm = d.split(":").slice(1).join(":");
-          msg = t("kiosk_too_early", { time: tm });
+          const p = d.split(":");
+          const tm = `${p[1]}:${p[2]}`;
+          const mins = p[3];
+          msg = mins ? t("kiosk_too_early_min", { time: tm, minutes: mins }) : t("kiosk_too_early", { time: tm });
           voiceMsg = msg;
         }
         else if (!coords) { msg = t("kiosk_gps_error"); voiceMsg = msg; }
