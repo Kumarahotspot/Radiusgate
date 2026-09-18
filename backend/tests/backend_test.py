@@ -134,8 +134,10 @@ class TestOwner:
 # ------------------------------- INVOICES -------------------------------
 @pytest.fixture(scope="session")
 def test_period():
-    # unique period per test run to avoid conflict with existing invoices
-    return f"2099-{(datetime.now().microsecond % 12) + 1:02d}"
+    # truly unique period per run (YYYY-MM-shaped); mod-12 microsecond collided across runs
+    import time
+    ts = int(time.time())
+    return f"{3000 + (ts % 900)}-{(ts % 12) + 1:02d}"
 
 
 class TestInvoices:

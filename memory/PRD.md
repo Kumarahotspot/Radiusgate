@@ -88,6 +88,17 @@ Aplikasi absensi berbasis tablet kiosk + face recognition & liveness, geofence G
 ## Update 2026-09-19 (iterasi 13 — CRUD guru lengkap)
 - Tabel Guru (admin) kini CRUD lengkap: Tambah, Lihat, **Ubah** (nama, NIP, mapel, status aktif — sinkron nama ke akun login), Hapus, Enroll Wajah. Terverifikasi curl + UI (desktop & mobile).
 
+## Update 2026-09-19 (iterasi 13b — v2 absensi siswa + CRUD siswa + infra tes)
+- **v2 absensi siswa di kiosk**: toggle Guru/Siswa; mode siswa = input NIS + status Hadir/Sakit/Izin; geofence tetap wajib; 1×/hari/siswa; sakit/izin tidak dihitung telat; offline-sync mendukung siswa. Record ber-label person_type=student; dasbor admin punya stat "Siswa Hadir" + badge Siswa di tabel harian.
+- **CRUD siswa lengkap**: PATCH /api/admin/students/{id} + modal Ubah di halaman Siswa.
+- Infra tes: pytest.ini `--dist loadscope` → `loadgroup` agar `xdist_group` men-serialkan suite stateful; tes usang di backend_test.py diperbaiki (restore settings dinamis, tidak hardcode); tes import siswa kini membersihkan datanya sendiri.
+- Terverifikasi testing agent iterasi 6: backend 10/10 tes v2 baru, full suite 62/62 serial, frontend kiosk mode siswa + modal edit siswa 100%.
+
+## Update 2026-09-19 (iterasi 13c — full suite hijau paralel)
+- pytest.ini: `--dist loadgroup` + `xdist_group(name="demo_school_settings")` di 3 file tes stateful → race paralel hilang.
+- backend_test.py: fixture `test_period` dibuat benar-benar unik per run (dulu microsecond%12 → tabrakan antar run); tes settings restore dinamis; tes import siswa bersih-bersih sendiri.
+- **Full suite: 62/62 lulus di mode paralel default.**
+
 ## Backlog Prioritas
 - P0: Kunci Tripay asli dari user + uji webhook; tablet React Native (kiosk native, embedding cache on-device)
 - P1: Absen siswa (v2), geofence penuh untuk absen via HP pribadi guru

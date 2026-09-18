@@ -1,1 +1,70 @@
-<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="0" skipped="1" tests="12" time="0.750" timestamp="2026-09-18T17:17:20.066390+00:00" hostname="agent-env-12ae5c39-0063-44a5-a4e6-2debeecb0b06"><testcase classname="tests.test_kiosk_clock" name="test_scenario1_early_checkin_before_next_day_shift" time="0.245" /><testcase classname="tests.test_kiosk_clock" name="test_scenario2_late_after_start" time="0.009" /><testcase classname="tests.test_kiosk_clock" name="test_scenario3_evening_shift_variants" time="0.024" /><testcase classname="tests.test_kiosk_clock" name="test_scenario4_standard_day_shift" time="0.019" /><testcase classname="tests.test_kiosk_clock" name="test_susiyanto_record_ok" time="0.003"><skipped type="pytest.skip" message="Susiyanto row not present in /admin/today (date mismatch is ok)">/app/backend/tests/test_kiosk_clock.py:219: Susiyanto row not present in /admin/today (date mismatch is ok)</skipped></testcase><testcase classname="tests.test_kiosk_clock" name="test_zzz_restore_settings" time="0.013" /><testcase classname="tests.test_settings_partial_and_rejection" name="test_partial_put_only_updates_sent_fields" time="0.244" /><testcase classname="tests.test_settings_partial_and_rejection" name="test_partial_put_empty_body_rejected" time="0.003" /><testcase classname="tests.test_settings_partial_and_rejection" name="test_too_early_00_13_wib" time="0.013" /><testcase classname="tests.test_settings_partial_and_rejection" name="test_ok_00_31_wib" time="0.009" /><testcase classname="tests.test_settings_partial_and_rejection" name="test_late_01_45_wib" time="0.010" /><testcase classname="tests.test_settings_partial_and_rejection" name="test_zzz_final_restore" time="0.015" /></testsuite></testsuites>
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="4" skipped="0" tests="62" time="11.406" timestamp="2026-09-18T19:03:48.495486+00:00" hostname="agent-env-12ae5c39-0063-44a5-a4e6-2debeecb0b06"><testcase classname="tests.backend_test.TestAuth" name="test_owner_login" time="0.767" /><testcase classname="tests.backend_test.TestInvoices" name="test_generate_invoices" time="0.776"><failure message="assert 0 &gt;= 1">self = &lt;backend_test.TestInvoices object at 0xf9f073c1c790&gt;
+owner_token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI1NDFhMzAyOC1kNjM1LTRkMzAtOGVkNC00MGY1N2IzNDZiZDYiLCJyb2xlIjoib3duZXIiLCJleHAiOjE3OTAzNjMwMjksInR5cGUiOiJhY2Nlc3MifQ.q2Z19zf8E1ey5cy7ndm-reLalO2jPEpUsaYQRb9B8Po'
+test_period = '2099-02'
+
+    def test_generate_invoices(self, owner_token, test_period):
+        r = requests.post(
+            f"{API}/owner/invoices/generate",
+            json={"period": test_period, "send_email": False},
+            headers=h(owner_token),
+        )
+        assert r.status_code == 200, r.text
+        data = r.json()
+&gt;       assert data["created"] &gt;= 1
+E       assert 0 &gt;= 1
+
+tests/backend_test.py:150: AssertionError</failure></testcase><testcase classname="tests.backend_test.TestAuth" name="test_admin_login" time="0.386" /><testcase classname="tests.backend_test.TestInvoices" name="test_list_invoices_by_period" time="0.348" /><testcase classname="tests.backend_test.TestInvoices" name="test_public_invoice_view" time="0.398" /><testcase classname="tests.backend_test.TestAuth" name="test_teacher_login" time="0.438" /><testcase classname="tests.backend_test.TestInvoices" name="test_invoice_pdf" time="0.413" /><testcase classname="tests.backend_test.TestAuth" name="test_invalid_password" time="0.369" /><testcase classname="tests.backend_test.TestInvoices" name="test_mock_pay" time="0.648" /><testcase classname="tests.backend_test.TestAuth" name="test_me_endpoint" time="0.487" /><testcase classname="tests.backend_test.TestAuth" name="test_me_no_token" time="0.156" /><testcase classname="tests.backend_test.TestInvoices" name="test_generate_idempotent" time="0.254" /><testcase classname="tests.test_settings_partial_and_rejection" name="test_partial_put_only_updates_sent_fields" time="0.245" /><testcase classname="tests.test_settings_partial_and_rejection" name="test_partial_put_empty_body_rejected" time="0.003" /><testcase classname="tests.test_settings_partial_and_rejection" name="test_too_early_00_13_wib" time="0.263" /><testcase classname="tests.test_kiosk_clock" name="test_scenario1_early_checkin_before_next_day_shift" time="0.261" /><testcase classname="tests.test_settings_partial_and_rejection" name="test_ok_00_31_wib" time="0.012" /><testcase classname="tests.test_kiosk_clock" name="test_scenario2_late_after_start" time="0.042" /><testcase classname="tests.test_settings_partial_and_rejection" name="test_late_01_45_wib" time="0.042" /><testcase classname="tests.test_kiosk_clock" name="test_scenario3_evening_shift_variants" time="0.011"><failure message="AssertionError: 200 {&quot;ok&quot;:true,&quot;teacher_name&quot;:&quot;TEST_TEMP_TEACHER&quot;,&quot;status&quot;:&quot;ok&quot;,&quot;late_minutes&quot;:0,&quot;overtime_minutes&quot;:0,&quot;match_distance&quot;:0}&#10;assert 200 == 422&#10; +  where 200 = &lt;Response [200]&gt;.status_code">admin_token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI2N2ExZWQ5YS1mNGRiLTRjNTUtOWQ5Yi1mZTIxN2VkNWYxOTAiLCJyb2xlIjoic2Nob29sX2FkbWluIiwiZXhwIjoxNzkwMzYzMDMyLCJ0eXBlIjoiYWNjZXNzIn0.JPfh0qxPgBQa0Vl4tenUwKU1KZQD3jFa1uklu4SzMtE'
+temp_teacher = 'a7edaf18-197f-4e2f-938f-fd3ffe446c0a'
+mongo = AsyncIOMotorDatabase(Database(MongoClient(host=['localhost:27017'], document_class=dict, tz_aware=False, connect=False, driver=DriverInfo(name='Motor', version='3.3.1', platform='asyncio')), 'test_database'))
+
+    def test_scenario3_evening_shift_variants(admin_token, temp_teacher, mongo):
+        """21:00/00:00/30/60"""
+        _set_settings(admin_token, "21:00", "00:00", 30, 60)
+    
+        # too early
+        _clear_attendance(mongo, temp_teacher)
+        r = _attend("in", "2026-09-21T19:30:00")
+&gt;       assert r.status_code == 422, f"{r.status_code} {r.text}"
+E       AssertionError: 200 {"ok":true,"teacher_name":"TEST_TEMP_TEACHER","status":"ok","late_minutes":0,"overtime_minutes":0,"match_distance":0}
+E       assert 200 == 422
+E        +  where 200 = &lt;Response [200]&gt;.status_code
+
+tests/test_kiosk_clock.py:162: AssertionError</failure></testcase><testcase classname="tests.test_settings_partial_and_rejection" name="test_zzz_final_restore" time="0.008" /><testcase classname="tests.test_kiosk_clock" name="test_scenario4_standard_day_shift" time="0.293" /><testcase classname="tests.test_student_kiosk_v2.TestStudentKiosk" name="test_attend_valid_present" time="0.283"><failure message="AssertionError: {&quot;detail&quot;:&quot;too_early:06:00:237&quot;}&#10;assert 422 == 200&#10; +  where 422 = &lt;Response [422]&gt;.status_code">self = &lt;test_student_kiosk_v2.TestStudentKiosk object at 0xf99494d7cc10&gt;
+admin_token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI2N2ExZWQ5YS1mNGRiLTRjNTUtOWQ5Yi1mZTIxN2VkNWYxOTAiLCJyb2xlIjoic2Nob29sX2FkbWluIiwiZXhwIjoxNzkwMzYzMDMyLCJ0eXBlIjoiYWNjZXNzIn0.JPfh0qxPgBQa0Vl4tenUwKU1KZQD3jFa1uklu4SzMtE'
+
+    def test_attend_valid_present(self, admin_token):
+        students = _fetch_students(admin_token)
+        s = _pick_student_by_nis(students, NIS_PRESENT)
+        assert s, f"demo student nis={NIS_PRESENT} not found"
+        # pre-cleanup in case previous run left data
+        _cleanup_attendance(admin_token, [s["id"]])
+        TestStudentKiosk._present_id = s["id"]
+        body = {
+            "nis": NIS_PRESENT,
+            "status": "present",
+            "lat": GEO_OK["lat"], "lng": GEO_OK["lng"],
+            "ts_device": datetime.now(timezone.utc).isoformat(),
+            "client_uuid": uuid.uuid4().hex,
+        }
+        r = requests.post(f"{API}/kiosk/attend-student", json=body, headers=KIOSK_HDR)
+&gt;       assert r.status_code == 200, r.text
+E       AssertionError: {"detail":"too_early:06:00:237"}
+E       assert 422 == 200
+E        +  where 422 = &lt;Response [422]&gt;.status_code
+
+tests/test_student_kiosk_v2.py:82: AssertionError</failure></testcase><testcase classname="tests.test_kiosk_clock" name="test_susiyanto_record_ok" time="0.005" /><testcase classname="tests.test_kiosk_clock" name="test_zzz_restore_settings" time="0.005" /><testcase classname="tests.backend_test.TestOwner" name="test_overview" time="0.203" /><testcase classname="tests.test_student_kiosk_v2.TestStudentKiosk" name="test_attend_duplicate_same_day" time="0.006"><failure message="assert 200 == 409&#10; +  where 200 = &lt;Response [200]&gt;.status_code">self = &lt;test_student_kiosk_v2.TestStudentKiosk object at 0xf99494d7cf10&gt;
+
+    def test_attend_duplicate_same_day(self):
+        body = {
+            "nis": NIS_DUP,
+            "status": "present",
+            "lat": GEO_OK["lat"], "lng": GEO_OK["lng"],
+            "ts_device": datetime.now(timezone.utc).isoformat(),
+            "client_uuid": uuid.uuid4().hex,
+        }
+        r = requests.post(f"{API}/kiosk/attend-student", json=body, headers=KIOSK_HDR)
+&gt;       assert r.status_code == 409
+E       assert 200 == 409
+E        +  where 200 = &lt;Response [200]&gt;.status_code
+
+tests/test_student_kiosk_v2.py:97: AssertionError</failure></testcase><testcase classname="tests.test_student_kiosk_v2.TestStudentKiosk" name="test_attend_invalid_nis" time="0.004" /><testcase classname="tests.test_student_kiosk_v2.TestStudentKiosk" name="test_attend_outside_geofence" time="0.060" /><testcase classname="tests.test_student_kiosk_v2.TestStudentKiosk" name="test_attend_sakit_no_late" time="0.012" /><testcase classname="tests.test_student_kiosk_v2.TestStudentKiosk" name="test_zzz_cleanup" time="0.008" /><testcase classname="tests.backend_test.TestOwner" name="test_list_schools" time="0.282" /><testcase classname="tests.backend_test.TestAdminStats" name="test_admin_stats" time="0.743" /><testcase classname="tests.backend_test.TestOwner" name="test_forbidden_for_non_owner" time="0.492" /><testcase classname="tests.backend_test.TestAdminStats" name="test_admin_settings_get" time="0.149" /><testcase classname="tests.backend_test.TestOwner" name="test_create_school" time="0.714" /><testcase classname="tests.backend_test.TestAdminStats" name="test_admin_settings_update" time="0.840" /><testcase classname="tests.backend_test.TestAdminTeachers" name="test_list_teachers" time="0.185" /><testcase classname="tests.backend_test.TestAdminStats" name="test_add_location" time="0.429" /><testcase classname="tests.backend_test.TestAdminTeachers" name="test_create_teacher" time="0.385" /><testcase classname="tests.backend_test.TestKiosk" name="test_info_valid_token" time="0.141" /><testcase classname="tests.backend_test.TestAdminTeachers" name="test_enroll_face" time="0.332" /><testcase classname="tests.backend_test.TestKiosk" name="test_info_invalid_token" time="0.127" /><testcase classname="tests.backend_test.TestKiosk" name="test_attend_face_not_recognized" time="0.207" /><testcase classname="tests.backend_test.TestAdminTeachers" name="test_delete_teacher" time="0.171" /><testcase classname="tests.backend_test.TestKiosk" name="test_attend_outside_geofence_requires_enrolled" time="0.936" /><testcase classname="tests.test_bugfix_teacher_restore" name="test_teacher_login_ok" time="0.936" /><testcase classname="tests.test_bugfix_teacher_restore" name="test_teacher_me_ok" time="0.711" /><testcase classname="tests.backend_test.TestLeaves" name="test_teacher_create_leave" time="0.615" /><testcase classname="tests.backend_test.TestLeaves" name="test_admin_approve" time="0.180" /><testcase classname="tests.test_bugfix_teacher_restore" name="test_teacher_attendance_and_leaves" time="0.644" /><testcase classname="tests.backend_test.TestLeaves" name="test_teacher_sees_approved" time="0.323" /><testcase classname="tests.backend_test.TestReports" name="test_report_json" time="0.200" /><testcase classname="tests.backend_test.TestReports" name="test_report_xlsx" time="0.185" /><testcase classname="tests.test_bugfix_teacher_restore" name="test_admin_sees_both_teachers" time="0.684" /><testcase classname="tests.backend_test.TestReports" name="test_report_pdf" time="0.268" /><testcase classname="tests.test_student_kiosk_v2.TestStudentPatch" name="test_patch_and_restore" time="0.269" /><testcase classname="tests.test_student_kiosk_v2.TestStudentPatch" name="test_patch_unknown_id" time="0.003" /><testcase classname="tests.test_student_kiosk_v2.TestStudentSync" name="test_sync_and_dedupe" time="0.020" /><testcase classname="tests.test_student_kiosk_v2.TestAdminStatsStudents" name="test_stats_has_students_present" time="0.005" /><testcase classname="tests.backend_test.TestAdminStudents" name="test_add_student" time="0.286" /><testcase classname="tests.backend_test.TestAdminStudents" name="test_import_preview_and_commit" time="0.664" /></testsuite></testsuites>

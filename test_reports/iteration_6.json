@@ -1,0 +1,40 @@
+{
+  "summary": "Iteration 6 - Verified v2 features: student kiosk attendance (attend-student + sync), student PATCH (edit modal + API), and admin stats students_present. All 10 new backend tests pass. Full pytest suite is 62/62 green when run serially (-n0). Under parallel default (`-n 2 --dist loadscope`) 4 tests fail due to state-races between settings-mutating tests and kiosk attend tests — this is a known limitation of --dist loadscope which does NOT honor xdist_group markers (loadgroup does). Frontend student kiosk flow works end-to-end; admin edit-student modal works and persists via PATCH. DB state preserved (teachers=2, students=120, attendance=1).",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "pytest infrastructure", "issue": "pytest.ini uses `--dist loadscope`, which ignores `xdist_group` markers. Cross-module state races (settings mutation vs. kiosk attend) surface as 4 flake failures. Serial run (-n0) is 62/62 green. Consider switching to `--dist loadgroup` to actually honor the xdist_group serialization."}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_student_kiosk_v2.py",
+    "/app/test_reports/pytest/pytest_results.xml",
+    "/app/test_reports/pytest/pytest_results_serial.xml"
+  ],
+  "action_items": [
+    "(Optional, low-priority) Switch pytest.ini from `--dist loadscope` to `--dist loadgroup` so the existing `xdist_group(name='demo_school_settings')` markers actually serialize the stateful demo-school tests across parallel workers. The 4 failing cases under the default parallel config all pass serially and represent race conditions, not real bugs.",
+    "(Optional) Cleanup: `TestStudentPatch.test_patch_and_restore` in new test file uses NIS 10120 (last demo student). Could collide if another stateful test on the same school ever touches 10120. Currently unique."
+  ],
+  "critical_code_review_comments": [
+    "routes_kiosk._record: duplicate check uses `type: att_type` scoped by teacher_id/student_id + date + type. Correct for 1x/day per person per direction. attend-student always uses type='in' → duplicate protection works as required.",
+    "routes_kiosk._record: for att_status='sakit'/'izin' late/overtime forced to 0 and status stays 'ok' — matches spec that Sakit/Izin tidak telat.",
+    "routes_admin.update_student: `exclude_unset=True` combined with `class_name`→`class` mapping is correct; unknown id → 404. Good.",
+    "routes_admin.stats: students_present filters person_type=='student' AND att_status=='present', so Sakit/Izin students are correctly excluded from the count. present_today set-comprehension explicitly excludes students. Good.",
+    "routes_kiosk.attend_student passes empty photo string; _record stores photo='' for student rows — acceptable (photo optional for students). Confirmed."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_student_kiosk_v2.py"
+  ],
+  "success_rate": {"backend": "100% serial (62/62); 58/62 parallel (4 known-flake races)", "frontend": "100%"},
+  "test_credentials": "admin: admin@nusantara.sch.id / Admin123! ; owner: susyanto@gmail.com / Owner123! ; teacher: guru@nusantara.sch.id / Guru123! ; kiosk: KIOSK-DEMO-1",
+  "seed_data_creation": "None kept. All attendance records created during backend + frontend tests were cleaned up via /api/admin/attendance/{id}. Verified: teachers=2, students=120, attendance=1 (original Susiyanto row untouched). Settings unchanged: 01:00/00:00/tol30/early30/Asia-Jakarta.",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "New backend test file /app/backend/tests/test_student_kiosk_v2.py covers attend-student happy/dup/invalid-nis/geofence/sakit paths, offline sync + dedupe for students, PATCH student happy/404, and stats students_present presence. It uses fixed NIS constants (10001, 10050, 10060, 10080, 10120) and cleans up its own attendance. Frontend kiosk /kiosk student mode (data-testid kiosk-mode-student → kiosk-student-panel with kiosk-nis-input, kiosk-att-present/sakit/izin, kiosk-student-submit, kiosk-result[-name/-msg]) verified with grant_permissions geolocation. Admin /admin/students edit modal (edit-student-<id> → edit-student-modal → edit-student-submit) verified. Known parallel-flake in default pytest run is unrelated to v2 changes.",
+  "rca of the issue": "N/A — no functional bug found. The only 'failure' under parallel default config is a pytest orchestration issue: --dist loadscope does not honor pytest.mark.xdist_group; only --dist loadgroup does. Because the demo-school-settings tests mutate shared server state (work_start, invoice generation, attendance records), running them on different xdist workers races. Mitigation: run with -n0 for a clean signal (documented in pytest.ini comment already), or switch dist to loadgroup."
+}
