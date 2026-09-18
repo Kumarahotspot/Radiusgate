@@ -36,7 +36,9 @@ async def stats(user: dict = Depends(admin_dep)):
     today = await school_today(sid)
     today_att = await db.attendance.find({"school_id": sid, "date": today, "type": "in"}, {"_id": 0}).to_list(5000)
     return {
-        "present_today": len({a["teacher_id"] for a in today_att}),
+        "present_today": len({a["teacher_id"] for a in today_att if a.get("person_type", "teacher") == "teacher"}),
+        "students_present": len({a.get("student_id") for a in today_att
+                                 if a.get("person_type") == "student" and a.get("att_status", "present") == "present"}),
         "late_today": len([a for a in today_att if a.get("status") == "late"]),
         "pending_leaves": await db.leaves.count_documents({"school_id": sid, "status": "pending"}),
         "total_teachers": await db.teachers.count_documents({"school_id": sid, "active": True}),
@@ -221,6 +223,25 @@ async def add_student(body: StudentIn, user: dict = Depends(admin_dep)):
     await db.students.insert_one(st)
     st.pop("_id", None)
     return st
+
+
+class StudentPatch(BaseModel):
+    name: str | None = None
+    nis: str | None = None
+    class_name: str | None = None
+
+
+@router.patch("/admin/students/{stid}")
+async def update_student(stid: str, body: StudentPatch, user: dict = Depends(admin_dep)):
+    upd = {k: v for k, v in body.model_dump(exclude_unset=True).items()}
+    if "class_name" in upd:
+        upd["class"] = upd.pop("class_name")
+    if not upd:
+        raise HTTPException(status_code=400, detail="Tidak ada perubahan")
+    res = await db.students.update_one({"id": stid, "school_id": user["school_id"]}, {"$set": upd})
+    if res.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Siswa tidak ditemukan")
+    return {"ok": True}
 
 
 @router.delete("/admin/students/{stid}")

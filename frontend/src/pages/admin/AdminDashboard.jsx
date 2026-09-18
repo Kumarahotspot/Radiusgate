@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import api from "../../api";
-import { Users, Clock, CalendarClock, GraduationCap, UserCheck, Trash2 } from "lucide-react";
+import { Users, Clock, CalendarClock, GraduationCap, UserCheck, Trash2, BookOpen } from "lucide-react";
 
 export default function AdminDashboard() {
   const { t } = useTranslation();
@@ -24,6 +24,7 @@ export default function AdminDashboard() {
 
   const cards = stats ? [
     { icon: UserCheck, label: t("present_today"), val: stats.present_today, testid: "stat-present" },
+    { icon: BookOpen, label: t("students_present"), val: stats.students_present ?? 0, testid: "stat-students-present" },
     { icon: Clock, label: t("late_today"), val: stats.late_today, testid: "stat-late" },
     { icon: CalendarClock, label: t("pending_leaves"), val: stats.pending_leaves, testid: "stat-leaves" },
     { icon: Users, label: t("total_teachers"), val: stats.total_teachers, testid: "stat-teachers" },
@@ -32,7 +33,7 @@ export default function AdminDashboard() {
 
   return (
     <div data-testid="admin-dashboard" className="space-y-6">
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
+      <div className="grid grid-cols-2 lg:grid-cols-6 gap-3">
         {cards.map((s) => (
           <div key={s.testid} data-testid={s.testid} className="bg-white rounded-2xl border border-slate-200 p-4">
             <s.icon className="w-5 h-5 text-teal-700 mb-2" />
@@ -59,7 +60,10 @@ export default function AdminDashboard() {
             <tbody>
               {today.map((a) => (
                 <tr key={a.id} className="border-b last:border-0">
-                  <td className="px-4 py-2.5 font-semibold text-slate-800">{a.teacher_name}</td>
+                  <td className="px-4 py-2.5 font-semibold text-slate-800">
+                    {a.teacher_name}
+                    {a.person_type === "student" && <span className="ml-1.5 text-[10px] font-bold text-sky-600 bg-sky-50 px-1.5 py-0.5 rounded-full">{t("mode_student")}{a.class ? ` · ${a.class}` : ""}</span>}
+                  </td>
                   <td className="px-4 py-2.5">{a.type === "in" ? t("check_in") : t("check_out")}</td>
                   <td className="px-4 py-2.5">{a.time_local || (a.ts_device || "").slice(11, 16)}</td>
                   <td className="px-4 py-2.5">

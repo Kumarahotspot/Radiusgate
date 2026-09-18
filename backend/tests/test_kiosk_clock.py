@@ -20,6 +20,8 @@ sys.path.insert(0, "/app/backend")
 load_dotenv("/app/backend/.env")
 from faceutil import ahash  # noqa: E402
 
+pytestmark = pytest.mark.xdist_group(name="demo_school_settings")
+
 BASE = "http://localhost:8001"
 KIOSK_TOKEN = "KIOSK-DEMO-1"
 ADMIN_EMAIL = "admin@nusantara.sch.id"
@@ -224,5 +226,5 @@ def test_susiyanto_record_ok(admin_token):
 
 
 def test_zzz_restore_settings(admin_token):
-    """Final: restore demo school settings to 01:00/00:00/30/60."""
-    _set_settings(admin_token, "01:00", "00:00", 30, 60)
+    """Final: restore demo school settings to 01:00/00:00/30/30."""
+    _set_settings(admin_token, "01:00", "00:00", 30, 30)

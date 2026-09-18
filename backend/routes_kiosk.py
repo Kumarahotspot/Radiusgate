@@ -112,12 +112,14 @@ def _late_overtime(settings, att_type, m):
 
 
 async def _record(school, teacher_id, teacher_name, att_type, ts_device, lat, lng, photo,
-                  client_uuid, offline, skip_face=False):
+                  client_uuid, offline, extra=None):
     sid = school["id"]
     settings = await db.settings.find_one({"school_id": sid}, {"_id": 0})
     tz_name = (settings or {}).get("timezone", "Asia/Jakarta")
     date, minutes, hhmm = _localize(ts_device, tz_name)
-    dup = await db.attendance.find_one({"teacher_id": teacher_id, "date": date, "type": att_type})
+    ptype = (extra or {}).get("person_type", "teacher")
+    dup_field = "student_id" if ptype == "student" else "teacher_id"
+    dup = await db.attendance.find_one({dup_field: teacher_id, "date": date, "type": att_type})
     if dup:
         raise HTTPException(status_code=409, detail="already_recorded")
     locations = await db.locations.find({"school_id": sid}, {"_id": 0}).to_list(100)
@@ -137,7 +139,10 @@ async def _record(school, teacher_id, teacher_name, att_type, ts_device, lat, ln
             eh, em = divmod(max(earliest, 0), 60)
             sisa = earliest - minutes
             raise HTTPException(status_code=422, detail=f"too_early:{eh:02d}:{em:02d}:{sisa}")
+    att_status = (extra or {}).get("att_status", "present")
     late, overtime = _late_overtime(settings, att_type, minutes)
+    if att_status in ("sakit", "izin"):
+        late, overtime = 0, 0
     if att_type == "in" and status == "ok" and late > 0:
         status = "late"
     doc = {
@@ -146,8 +151,12 @@ async def _record(school, teacher_id, teacher_name, att_type, ts_device, lat, ln
         "tz": tz_name,
         "ts_server": now_iso(), "ts_device": ts_device, "lat": lat, "lng": lng,
         "photo": photo, "status": status, "late_minutes": late, "overtime_minutes": overtime,
-        "offline": offline, "client_uuid": client_uuid,
+        "offline": offline, "client_uuid": client_uuid, "person_type": ptype,
     }
+    if ptype == "student":
+        doc["student_id"] = doc.pop("teacher_id")
+    if extra:
+        doc.update({k: v for k, v in extra.items() if k != "person_type"})
     try:
         await db.attendance.insert_one(doc)
     except DuplicateKeyError:
@@ -187,6 +196,29 @@ async def attend(body: AttendIn, request: Request):
             "match_distance": best_d}
 
 
+class AttendStudentIn(BaseModel):
+    nis: str
+    status: str = "present"  # present | sakit | izin
+    lat: float
+    lng: float
+    ts_device: str
+    client_uuid: str
+
+
+@router.post("/kiosk/attend-student")
+async def attend_student(body: AttendStudentIn, request: Request):
+    school = await school_by_token(request)
+    student = await db.students.find_one({"school_id": school["id"], "nis": body.nis.strip()})
+    if not student:
+        raise HTTPException(status_code=422, detail="student_not_found")
+    att_status = body.status if body.status in ("present", "sakit", "izin") else "present"
+    doc = await _record(school, student["id"], student["name"], "in", body.ts_device,
+                        body.lat, body.lng, "", body.client_uuid, offline=False,
+                        extra={"person_type": "student", "class": student.get("class", ""), "att_status": att_status})
+    return {"ok": True, "student_name": student["name"], "status": doc["status"],
+            "att_status": att_status, "late_minutes": doc["late_minutes"]}
+
+
 class SyncIn(BaseModel):
     records: List[dict]
 
@@ -197,6 +229,17 @@ async def sync(body: SyncIn, request: Request):
     results = []
     for r in body.records:
         try:
+            if r.get("person_type") == "student":
+                st = await db.students.find_one({"school_id": school["id"], "nis": str(r.get("nis", "")).strip()}, {"_id": 0})
+                if not st:
+                    results.append({"client_uuid": r.get("client_uuid"), "ok": False, "reason": "student_not_found"})
+                    continue
+                doc = await _record(school, st["id"], st["name"], "in", r["ts_device"], r["lat"], r["lng"],
+                                    "", r["client_uuid"], offline=True,
+                                    extra={"person_type": "student", "class": st.get("class", ""),
+                                           "att_status": r.get("status", "present")})
+                results.append({"client_uuid": r["client_uuid"], "ok": True, "status": doc["status"]})
+                continue
             t = await db.teachers.find_one({"id": r.get("teacher_id"), "school_id": school["id"]}, {"_id": 0})
             if not t:
                 results.append({"client_uuid": r.get("client_uuid"), "ok": False, "reason": "teacher_not_found"})

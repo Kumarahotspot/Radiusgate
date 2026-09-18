@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import api, { errMsg } from "../../api";
-import { Plus, Upload, Trash2, X } from "lucide-react";
+import { Plus, Upload, Trash2, X, Pencil } from "lucide-react";
 
 export default function Students() {
   const { t } = useTranslation();
@@ -10,6 +10,18 @@ export default function Students() {
   const [form, setForm] = useState({ name: "", nis: "", class_name: "" });
   const [preview, setPreview] = useState(null);
   const [busy, setBusy] = useState(false);
+  const [editFor, setEditFor] = useState(null);
+
+  const saveEdit = async (e) => {
+    e.preventDefault();
+    setBusy(true);
+    try {
+      await api.patch(`/admin/students/${editFor.id}`, { name: editFor.name, nis: editFor.nis, class_name: editFor.class });
+      toast.success(t("save"));
+      setEditFor(null);
+      load();
+    } catch (err) { toast.error(errMsg(err)); } finally { setBusy(false); }
+  };
   const fileRef = useRef(null);
 
   const load = () => api.get("/admin/students").then((r) => setStudents(r.data));
@@ -91,7 +103,10 @@ export default function Students() {
                   <td className="px-4 py-2.5 font-mono text-xs">{s.nis}</td>
                   <td className="px-4 py-2.5">{s.class}</td>
                   <td className="px-4 py-2.5">
-                    <button data-testid={`delete-student-${s.id}`} onClick={() => del(s.id)} className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg"><Trash2 className="w-4 h-4" /></button>
+                    <div className="flex gap-1">
+                      <button data-testid={`edit-student-${s.id}`} onClick={() => setEditFor({ ...s })} className="p-1.5 text-sky-600 hover:bg-sky-50 rounded-lg" title={t("edit")}><Pencil className="w-4 h-4" /></button>
+                      <button data-testid={`delete-student-${s.id}`} onClick={() => del(s.id)} className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg" title={t("delete")}><Trash2 className="w-4 h-4" /></button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -100,6 +115,21 @@ export default function Students() {
           </table>
         </div>
       </div>
+
+      {editFor && (
+        <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4" data-testid="edit-student-modal">
+          <form onSubmit={saveEdit} data-testid="edit-student-form" className="bg-white rounded-2xl w-full max-w-md p-5 space-y-4">
+            <p className="font-bold text-slate-800">{t("edit_student")}</p>
+            <In label={t("name")} testid="edit-student-name" v={editFor.name} set={(v) => setEditFor({ ...editFor, name: v })} req grow />
+            <In label={t("nis")} testid="edit-student-nis" v={editFor.nis || ""} set={(v) => setEditFor({ ...editFor, nis: v })} grow />
+            <In label={t("class")} testid="edit-student-class" v={editFor.class || ""} set={(v) => setEditFor({ ...editFor, class: v })} grow />
+            <div className="flex justify-end gap-2">
+              <button type="button" data-testid="edit-student-cancel" onClick={() => setEditFor(null)} className="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 bg-slate-100 hover:bg-slate-200">{t("cancel")}</button>
+              <button data-testid="edit-student-submit" disabled={busy} className="px-4 py-2 rounded-xl text-xs font-bold text-white bg-teal-700 hover:bg-teal-800 disabled:opacity-50">{busy ? t("loading") : t("save")}</button>
+            </div>
+          </form>
+        </div>
+      )}
 
       {preview && (
         <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4" data-testid="import-preview-modal">

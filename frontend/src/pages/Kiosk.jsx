@@ -24,6 +24,9 @@ export default function Kiosk() {
   const [phase, setPhase] = useState("idle"); // idle | liveness | gps | sending | result
   const [result, setResult] = useState(null); // {ok, message, name}
   const [attType, setAttType] = useState("in");
+  const [mode, setMode] = useState("teacher");
+  const [nisInput, setNisInput] = useState("");
+  const [attStatus, setAttStatus] = useState("present");
   const [muted, setMuted] = useState(localStorage.getItem("kiosk_mute") === "1");
   const [queue, setQueue] = useState(loadQueue());
   const [online, setOnline] = useState(navigator.onLine);
@@ -174,6 +177,53 @@ export default function Kiosk() {
     setTimeout(() => { setPhase("idle"); setResult(null); setOfflinePick(false); }, 3500);
   };
 
+  const startStudentAttend = async () => {
+    if (busyRef.current || !nisInput.trim() || phase !== "idle") return;
+    busyRef.current = true;
+    setResult(null);
+    try {
+      let coords = null;
+      try { coords = await getGps(); } catch { coords = null; }
+      if (!coords) {
+        setResult({ ok: false, message: t("kiosk_gps_error") });
+        speak(`${t("kiosk_failed")}. ${t("kiosk_gps_error")}`);
+        setPhase("result");
+        setTimeout(() => { setPhase("idle"); setResult(null); }, 3000);
+        return;
+      }
+      const payload = { nis: nisInput.trim(), status: attStatus, lat: coords.lat, lng: coords.lng, ts_device: localIso(), client_uuid: crypto.randomUUID() };
+      if (!navigator.onLine) {
+        const q = [...loadQueue(), { ...payload, person_type: "student" }];
+        saveQueue(q);
+        setQueue(q);
+        setResult({ ok: true, offline: true, message: t("kiosk_offline"), name: nisInput.trim() });
+        speak(`${t("kiosk_success")}. ${t("kiosk_offline")}`);
+        setNisInput("");
+        setPhase("result");
+        setTimeout(() => { setPhase("idle"); setResult(null); }, 3000);
+        return;
+      }
+      try {
+        const { data } = await axios.post(`${API}/kiosk/attend-student`, payload, { headers: { "X-Kiosk-Token": token }, timeout: 20000 });
+        setResult({ ok: true, name: data.student_name, message: data.status === "late" ? `${t("kiosk_success")} · +${data.late_minutes}m` : t("kiosk_success") });
+        speak(`${t("kiosk_success")}. ${data.student_name}`);
+        setNisInput("");
+      } catch (err) {
+        const d = err.response?.data?.detail || "";
+        let msg = t("kiosk_failed");
+        if (d === "student_not_found") msg = t("kiosk_student_not_found");
+        else if (d.startsWith("outside_geofence")) msg = t("kiosk_outside");
+        else if (d === "already_recorded") msg = t("kiosk_already");
+        setResult({ ok: false, message: msg });
+        speak(`${t("kiosk_failed")}. ${msg}`);
+      }
+      setPhase("result");
+      setTimeout(() => { setPhase("idle"); setResult(null); }, 3000);
+    } finally {
+      busyRef.current = false;
+    }
+  };
+
   const startAttend = async () => {
     if (busyRef.current || phase !== "idle") return;
     busyRef.current = true;
@@ -320,25 +370,58 @@ export default function Kiosk() {
           )}
         </div>
 
-        <div className="flex items-center gap-3 bg-white/5 rounded-full p-1.5" data-testid="kiosk-type-toggle">
-          <button data-testid="kiosk-type-in" onClick={() => setAttType("in")}
-            className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-bold transition-colors ${attType === "in" ? "bg-teal-600 text-white" : "text-slate-400"}`}>
-            <LogIn className="w-4 h-4" /> {t("check_in")}
+        <div className="flex items-center gap-3 bg-white/5 rounded-full p-1.5" data-testid="kiosk-mode-toggle">
+          <button data-testid="kiosk-mode-teacher" onClick={() => setMode("teacher")}
+            className={`px-6 py-2.5 rounded-full text-sm font-bold transition-colors ${mode === "teacher" ? "bg-teal-600 text-white" : "text-slate-400"}`}>
+            {t("mode_teacher")}
           </button>
-          <button data-testid="kiosk-type-out" onClick={() => setAttType("out")}
-            className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-bold transition-colors ${attType === "out" ? "bg-teal-600 text-white" : "text-slate-400"}`}>
-            <LogOut className="w-4 h-4" /> {t("check_out")}
+          <button data-testid="kiosk-mode-student" onClick={() => setMode("student")}
+            className={`px-6 py-2.5 rounded-full text-sm font-bold transition-colors ${mode === "student" ? "bg-teal-600 text-white" : "text-slate-400"}`}>
+            {t("mode_student")}
           </button>
         </div>
 
-        <button
-          data-testid="kiosk-attend-btn"
-          onClick={startAttend}
-          disabled={phase !== "idle"}
-          className="w-full max-w-md bg-teal-600 hover:bg-teal-500 disabled:opacity-40 text-white font-extrabold text-xl rounded-3xl py-6 transition-all active:scale-[0.98] shadow-lg shadow-teal-900/40"
-        >
-          {attType === "in" ? t("check_in") : t("check_out")}
-        </button>
+        {mode === "teacher" ? (
+          <>
+            <div className="flex items-center gap-3 bg-white/5 rounded-full p-1.5" data-testid="kiosk-type-toggle">
+              <button data-testid="kiosk-type-in" onClick={() => setAttType("in")}
+                className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-bold transition-colors ${attType === "in" ? "bg-teal-600 text-white" : "text-slate-400"}`}>
+                <LogIn className="w-4 h-4" /> {t("check_in")}
+              </button>
+              <button data-testid="kiosk-type-out" onClick={() => setAttType("out")}
+                className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-bold transition-colors ${attType === "out" ? "bg-teal-600 text-white" : "text-slate-400"}`}>
+                <LogOut className="w-4 h-4" /> {t("check_out")}
+              </button>
+            </div>
+
+            <button
+              data-testid="kiosk-attend-btn"
+              onClick={startAttend}
+              disabled={phase !== "idle"}
+              className="w-full max-w-md bg-teal-600 hover:bg-teal-500 disabled:opacity-40 text-white font-extrabold text-xl rounded-3xl py-6 transition-all active:scale-[0.98] shadow-lg shadow-teal-900/40"
+            >
+              {attType === "in" ? t("check_in") : t("check_out")}
+            </button>
+          </>
+        ) : (
+          <div className="w-full max-w-md space-y-3" data-testid="kiosk-student-panel">
+            <input data-testid="kiosk-nis-input" value={nisInput} onChange={(e) => setNisInput(e.target.value)} inputMode="numeric"
+              placeholder={t("kiosk_nis")}
+              className="w-full text-center font-mono text-xl tracking-widest rounded-2xl bg-white/5 border border-white/10 px-4 py-4 text-white outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 transition" />
+            <div className="grid grid-cols-3 gap-2">
+              {[["present", "att_present"], ["sakit", "sakit"], ["izin", "izin"]].map(([val, key]) => (
+                <button key={val} data-testid={`kiosk-att-${val}`} onClick={() => setAttStatus(val)}
+                  className={`py-2.5 rounded-xl text-sm font-bold transition-colors ${attStatus === val ? "bg-teal-600 text-white" : "bg-white/5 text-slate-400"}`}>
+                  {t(key)}
+                </button>
+              ))}
+            </div>
+            <button data-testid="kiosk-student-submit" onClick={startStudentAttend} disabled={phase !== "idle" || !nisInput.trim()}
+              className="w-full bg-teal-600 hover:bg-teal-500 disabled:opacity-40 text-white font-extrabold text-xl rounded-3xl py-5 transition-all active:scale-[0.98] shadow-lg shadow-teal-900/40">
+              {t("kiosk_nis_submit")}
+            </button>
+          </div>
+        )}
 
         {info.locations?.length > 0 && (
           <p className="text-slate-500 text-xs text-center">

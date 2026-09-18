@@ -14,6 +14,7 @@ import asyncio
 from datetime import datetime, timezone
 
 import pytest
+pytestmark = pytest.mark.xdist_group(name="demo_school_settings")
 import requests
 from PIL import Image
 from motor.motor_asyncio import AsyncIOMotorClient
