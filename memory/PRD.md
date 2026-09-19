@@ -364,3 +364,7 @@ Aplikasi absensi berbasis tablet kiosk + face recognition & liveness, geofence G
 - Teachers.jsx: komponen CheckGroup (checkbox multi-select, auto-merge pilihan lama agar tidak hilang) menggantikan input teks Mata Pelajaran & Kelas yang Diampu di form tambah + modal edit. Mapel baru bisa diketik via input "Mapel lain". Nilai tetap disimpan sebagai string koma.
 - Terverifikasi: checkbox muncul & tercentang sesuai data Budi (Matematika, X-1, X-2), pytest 79 passed / 1 skipped, mobile OK.
 - Catatan data: ada kelas "X1" (tanpa strip) dari rekaman siswa SUSIYANTO lama — perlu dirapikan manual di data siswa jika mau.
+
+## 2026-09-20 — Dropdown kelas di form Siswa + rapi data
+- Students.jsx: input kelas (tambah & edit) diganti komponen ClassSelect = dropdown dari daftar kelas yang ada + opsi "+ Kelas baru" (muncul input teks). i18n ID/EN.
+- Data: kelas "X1" -> "X-1" untuk 2 siswa + 4 rekaman absensi.
