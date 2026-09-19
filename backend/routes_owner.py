@@ -158,22 +158,19 @@ async def list_invoices(period: str | None = None, user: dict = Depends(owner_de
 PERIOD_RE = re.compile(r"^(19|20)\d{2}-(0[1-9]|1[0-2])$")
 
 
-@router.post("/owner/invoices/generate")
-async def generate_invoices(body: GenerateIn, user: dict = Depends(owner_dep)):
-    if not PERIOD_RE.fullmatch(body.period or ""):
-        raise HTTPException(status_code=422, detail="Format periode harus YYYY-MM (contoh: 2026-09)")
+async def generate_for_period(period: str, send_email: bool) -> dict:
     schools = await db.schools.find({}, {"_id": 0}).to_list(1000)
     created, sent = [], 0
-    seq = await db.invoices.count_documents({"period": body.period})
+    seq = await db.invoices.count_documents({"period": period})
     for s in schools:
-        if await db.invoices.find_one({"school_id": s["id"], "period": body.period}):
+        if await db.invoices.find_one({"school_id": s["id"], "period": period}):
             continue
         seq += 1
         count = s.get("student_count_manual") or await db.students.count_documents({"school_id": s["id"], "status": {"$ne": "lulus"}})
         inv = {
             "id": str(uuid.uuid4()),
-            "invoice_no": f"INV-{body.period}-{seq:03d}",
-            "school_id": s["id"], "period": body.period,
+            "invoice_no": f"INV-{period}-{seq:03d}",
+            "school_id": s["id"], "period": period,
             "student_count": count, "rate": s.get("rate_per_student", 8000),
             "amount": count * s.get("rate_per_student", 8000),
             "status": "unpaid", "public_token": uuid.uuid4().hex,
@@ -182,10 +179,17 @@ async def generate_invoices(body: GenerateIn, user: dict = Depends(owner_dep)):
         await db.invoices.insert_one(inv)
         inv.pop("_id", None)
         created.append(inv)
-        if body.send_email and s.get("admin_email"):
+        if send_email and s.get("admin_email"):
             await _send_invoice_email(inv, s)
             sent += 1
     return {"created": len(created), "sent": sent, "invoices": created}
+
+
+@router.post("/owner/invoices/generate")
+async def generate_invoices(body: GenerateIn, user: dict = Depends(owner_dep)):
+    if not PERIOD_RE.fullmatch(body.period or ""):
+        raise HTTPException(status_code=422, detail="Format periode harus YYYY-MM (contoh: 2026-09)")
+    return await generate_for_period(body.period, body.send_email)
 
 
 async def _send_invoice_email(inv: dict, school: dict) -> str:

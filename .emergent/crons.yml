@@ -1,0 +1,8 @@
+crons:
+  - name: monthly-invoices
+    description: "Generate dan email tagihan bulanan per siswa ke semua sekolah tiap tanggal 1 (07:00 WIB)"
+    cron: "0 0 1 * *"
+    endpoint: "{{BASE_URL}}/api/cron/monthly-invoices"
+    method: POST
+    # Cron endpoints must ack 2xx immediately; enqueue/background the actual work.
+    enabled: true

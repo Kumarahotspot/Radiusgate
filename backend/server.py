@@ -20,6 +20,7 @@ from routes_kiosk import router as kiosk_router  # noqa: E402
 from routes_billing import router as billing_router  # noqa: E402
 from routes_notif import router as notif_router  # noqa: E402
 from routes_public import router as public_router  # noqa: E402
+from routes_cron import router as cron_router  # noqa: E402
 
 app = FastAPI()
 app.add_middleware(
@@ -30,7 +31,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-for r in (auth_router, owner_router, admin_router, teacher_router, kiosk_router, billing_router, notif_router, public_router):
+for r in (auth_router, owner_router, admin_router, teacher_router, kiosk_router, billing_router, notif_router, public_router, cron_router):
     app.include_router(r, prefix="/api")
 
 logging.basicConfig(level=logging.INFO)

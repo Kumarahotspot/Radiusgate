@@ -271,3 +271,11 @@ Aplikasi absensi berbasis tablet kiosk + face recognition & liveness, geofence G
 - Helper `periodLabel(period, lang)` di i18n.js ("2026-09" -> "September 2026" / EN "September 2026").
 - Diterapkan di halaman Tagihan admin (Billing.jsx) dan Invoice owner (OwnerInvoices.jsx).
 - Terverifikasi screenshot: ID ("September 2026", "Juni 2026") & EN ("June 2026"), halaman owner ikut berubah.
+
+## 2026-09-19 — Invoice Bulanan Otomatis (Cron)
+- `.emergent/crons.yml`: cron `monthly-invoices` jalan tiap tanggal 1 jam 00:00 UTC (07:00 WIB) -> POST /api/cron/monthly-invoices.
+- `routes_cron.py` (baru): auth Bearer WEBHOOK_CRON_SECRET (constant-time), idempotensi via run_id di koleksi `cron_runs`, ack 2xx langsung + kerja di background task, hasil (created/sent/status) dicatat di cron_runs.
+- Refactor routes_owner: logika generate diekstrak ke `generate_for_period(period, send_email)` (dipakai endpoint owner + cron). Email invoice otomatis terkirim ke sekolah yang punya admin_email.
+- WEBHOOK_CRON_SECRET ditambahkan di backend/.env (jangan commit).
+- Insiden data: guru demo (Budi + user, Susiyanto) & siswa demo NIS 10001-10003 pernah terhapus (residu insiden lama, bukan tes aktif) -> sudah di-restore; suite hijau (78 passed, 1 skipped) dan data tetap utuh setelah suite jalan.
+- Terverifikasi: 401 tanpa/salah token, 200 + duplicate run_id, background done (created:0 utk periode berjalan karena sudah ada), generate_for_period('2026-08') create 3 lalu dedupe 0 lalu dibersihkan, crons.yml valid.
