@@ -8,7 +8,7 @@ import { Plus, Upload, Trash2, X, Pencil, ScanFace, CheckCircle2, Circle, Search
 export default function Students() {
   const { t } = useTranslation();
   const [students, setStudents] = useState([]);
-  const [form, setForm] = useState({ name: "", nis: "", class_name: "" });
+  const [form, setForm] = useState({ name: "", nis: "", nisn: "", gender: "", class_name: "" });
   const [preview, setPreview] = useState(null);
   const [busy, setBusy] = useState(false);
   const [editFor, setEditFor] = useState(null);
@@ -17,7 +17,7 @@ export default function Students() {
     e.preventDefault();
     setBusy(true);
     try {
-      await api.patch(`/admin/students/${editFor.id}`, { name: editFor.name, nis: editFor.nis, class_name: editFor.class });
+      await api.patch(`/admin/students/${editFor.id}`, { name: editFor.name, nis: editFor.nis, nisn: editFor.nisn, gender: editFor.gender, class_name: editFor.class });
       toast.success(t("save"));
       setEditFor(null);
       load();
@@ -29,7 +29,7 @@ export default function Students() {
   const [page, setPage] = useState(1);
   const PAGE_SIZE = 10;
   const q = query.trim().toLowerCase();
-  const filtered = students.filter((s) => !q || [s.name, s.nis, s.class].some((f) => (f || "").toLowerCase().includes(q)));
+  const filtered = students.filter((s) => !q || [s.name, s.nis, s.nisn, s.class].some((f) => (f || "").toLowerCase().includes(q)));
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const safePage = Math.min(page, totalPages);
   const paged = filtered.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
@@ -51,7 +51,7 @@ export default function Students() {
     e.preventDefault();
     try {
       await api.post("/admin/students", form);
-      setForm({ name: "", nis: "", class_name: "" });
+      setForm({ name: "", nis: "", nisn: "", gender: "", class_name: "" });
       toast.success(t("save"));
       load();
     } catch (err) { toast.error(errMsg(err)); }
@@ -99,6 +99,16 @@ export default function Students() {
       <form onSubmit={add} data-testid="add-student-form" className="bg-white rounded-2xl border border-slate-200 p-4 flex flex-wrap items-end gap-3">
         <In label={t("name")} testid="student-name" v={form.name} set={(v) => setForm({ ...form, name: v })} req grow />
         <In label={t("nis")} testid="student-nis" v={form.nis} set={(v) => setForm({ ...form, nis: v })} />
+        <In label={t("nisn")} testid="student-nisn" v={form.nisn} set={(v) => setForm({ ...form, nisn: v })} />
+        <div>
+          <label className="text-xs font-semibold text-slate-500">{t("gender")}</label>
+          <select data-testid="student-gender" value={form.gender} onChange={(e) => setForm({ ...form, gender: e.target.value })}
+            className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-600/15 transition bg-white">
+            <option value="">-</option>
+            <option value="L">{t("gender_l")}</option>
+            <option value="P">{t("gender_p")}</option>
+          </select>
+        </div>
         <In label={t("class")} testid="student-class" v={form.class_name} set={(v) => setForm({ ...form, class_name: v })} />
         <button data-testid="student-submit" className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-bold text-white bg-teal-700 hover:bg-teal-800">
           <Plus className="w-4 h-4" /> {t("add_student")}
@@ -119,6 +129,8 @@ export default function Students() {
               <tr className="text-left text-xs uppercase tracking-wide text-slate-500 border-b">
                 <th className="px-4 py-3">{t("name")}</th>
                 <th className="px-4 py-3">{t("nis")}</th>
+                <th className="px-4 py-3">{t("nisn")}</th>
+                <th className="px-4 py-3">{t("gender_short")}</th>
                 <th className="px-4 py-3">{t("class")}</th>
                 <th className="px-4 py-3">{t("enroll_face")}</th>
                 <th className="px-4 py-3">{t("actions")}</th>
@@ -129,6 +141,8 @@ export default function Students() {
                 <tr key={s.id} className="border-b last:border-0 hover:bg-slate-50/60">
                   <td className="px-4 py-2.5 font-semibold text-slate-800">{s.name}</td>
                   <td className="px-4 py-2.5 font-mono text-xs">{s.nis}</td>
+                  <td className="px-4 py-2.5 font-mono text-xs">{s.nisn || "-"}</td>
+                  <td className="px-4 py-2.5" data-testid={`student-gender-cell-${s.id}`}>{s.gender || "-"}</td>
                   <td className="px-4 py-2.5">{s.class}</td>
                   <td className="px-4 py-2.5">
                     <span data-testid={`student-enroll-status-${s.id}`} className={`inline-flex items-center gap-1 text-xs font-bold ${s.enrolled ? "text-emerald-600" : "text-slate-400"}`}>
@@ -145,7 +159,7 @@ export default function Students() {
                   </td>
                 </tr>
               ))}
-              {paged.length === 0 && <tr><td colSpan={5} className="px-4 py-8 text-center text-slate-400">{t("no_data")}</td></tr>}
+              {paged.length === 0 && <tr><td colSpan={7} className="px-4 py-8 text-center text-slate-400">{t("no_data")}</td></tr>}
             </tbody>
           </table>
         </div>
@@ -172,8 +186,22 @@ export default function Students() {
           <form onSubmit={saveEdit} data-testid="edit-student-form" className="bg-white rounded-2xl w-full max-w-md p-5 space-y-4">
             <p className="font-bold text-slate-800">{t("edit_student")}</p>
             <In label={t("name")} testid="edit-student-name" v={editFor.name} set={(v) => setEditFor({ ...editFor, name: v })} req grow />
-            <In label={t("nis")} testid="edit-student-nis" v={editFor.nis || ""} set={(v) => setEditFor({ ...editFor, nis: v })} grow />
-            <In label={t("class")} testid="edit-student-class" v={editFor.class || ""} set={(v) => setEditFor({ ...editFor, class: v })} grow />
+            <div className="grid grid-cols-2 gap-3">
+              <In label={t("nis")} testid="edit-student-nis" v={editFor.nis || ""} set={(v) => setEditFor({ ...editFor, nis: v })} grow />
+              <In label={t("nisn")} testid="edit-student-nisn" v={editFor.nisn || ""} set={(v) => setEditFor({ ...editFor, nisn: v })} grow />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-xs font-semibold text-slate-500">{t("gender")}</label>
+                <select data-testid="edit-student-gender" value={editFor.gender || ""} onChange={(e) => setEditFor({ ...editFor, gender: e.target.value })}
+                  className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-600/15 transition bg-white">
+                  <option value="">-</option>
+                  <option value="L">{t("gender_l")}</option>
+                  <option value="P">{t("gender_p")}</option>
+                </select>
+              </div>
+              <In label={t("class")} testid="edit-student-class" v={editFor.class || ""} set={(v) => setEditFor({ ...editFor, class: v })} grow />
+            </div>
             <div className="flex justify-end gap-2">
               <button type="button" data-testid="edit-student-cancel" onClick={() => setEditFor(null)} className="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 bg-slate-100 hover:bg-slate-200">{t("cancel")}</button>
               <button data-testid="edit-student-submit" disabled={busy} className="px-4 py-2 rounded-xl text-xs font-bold text-white bg-teal-700 hover:bg-teal-800 disabled:opacity-50">{busy ? t("loading") : t("save")}</button>
@@ -200,10 +228,10 @@ export default function Students() {
                 </div>
               )}
               <table className="w-full text-sm">
-                <thead><tr className="text-left text-xs uppercase text-slate-500 border-b"><th className="py-2 pr-3">{t("name")}</th><th className="py-2 pr-3">{t("nis")}</th><th className="py-2">{t("class")}</th></tr></thead>
+                <thead><tr className="text-left text-xs uppercase text-slate-500 border-b"><th className="py-2 pr-3">{t("name")}</th><th className="py-2 pr-3">{t("nis")}</th><th className="py-2 pr-3">{t("nisn")}</th><th className="py-2 pr-3">{t("gender_short")}</th><th className="py-2">{t("class")}</th></tr></thead>
                 <tbody>
                   {preview.valid.slice(0, 100).map((r, i) => (
-                    <tr key={i} className="border-b last:border-0"><td className="py-1.5 pr-3">{r.name}</td><td className="py-1.5 pr-3 font-mono text-xs">{r.nis}</td><td className="py-1.5">{r.class}</td></tr>
+                    <tr key={i} className="border-b last:border-0"><td className="py-1.5 pr-3">{r.name}</td><td className="py-1.5 pr-3 font-mono text-xs">{r.nis}</td><td className="py-1.5 pr-3 font-mono text-xs">{r.nisn || "-"}</td><td className="py-1.5 pr-3">{r.gender || "-"}</td><td className="py-1.5">{r.class}</td></tr>
                   ))}
                 </tbody>
               </table>

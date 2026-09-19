@@ -147,6 +147,12 @@ Aplikasi absensi berbasis tablet kiosk + face recognition & liveness, geofence G
 - Tes: 4 foto wajah generated terverifikasi saling beda (sim <0.40) di tests/assets/ (face_a/b/c/e); semua tes diupdate ke foto asli; tes baru `test_enroll_duplicate_face_rejected`. **Full suite 65/65 lulus.** Live curl: unknown→422 face_not_found, enroll→attend match sim 1.0, wajah lain→422, no-face→422.
 - requirements.txt: +insightface 0.7.3, onnxruntime 1.30.0, opencv-python-headless 5.0.0.93 (protobuf ter-upgrade; backend terverifikasi sehat).
 
+## Update 2026-09-19 (iterasi 22 — field NISN & Jenis Kelamin siswa)
+- DB siswa: field baru `nisn` (str) & `gender` ("L"/"P", dinormalisasi `_norm_gender` — menerima l/laki-laki/male, p/perempuan/female dll). Model: StudentIn + StudentPatch; mengalir ke tambah/edit/impor.
+- Frontend Siswa: input NISN + dropdown Jenis Kelamin di form tambah & modal edit; kolom NISN + L/P di tabel (colSpan 7) & preview impor; pencarian ikut mencari NISN.
+- Impor CSV/XLSX: kolom `nisn` terpisah dari `nis`; kolom gender dikenali (gender/jk/kelamin/jenis_kelamin/jenis kelamin/l-p). **Fix:** `pd.read_csv/read_excel(..., dtype=str)` agar leading zero NISN tidak hilang (sebelumnya 0099990001 → 99990001).
+- i18n: `nisn`, `gender`, `gender_short`, `gender_l`, `gender_p` (ID/EN). Terverifikasi: curl create/patch/impor (leading zero utuh, normalisasi gender OK) + screenshot UI (kolom & form tampil, tambah/hapus jalan). Suite tetap 65/65.
+
 ## Backlog Prioritas
 - P0: Kunci Tripay asli dari user + uji webhook; tablet React Native (kiosk native, embedding cache on-device)
 - P1: Absen siswa (v2), geofence penuh untuk absen via HP pribadi guru

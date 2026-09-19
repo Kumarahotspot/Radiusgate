@@ -226,7 +226,18 @@ async def delete_location(lid: str, user: dict = Depends(admin_dep)):
 class StudentIn(BaseModel):
     name: str
     nis: str = ""
+    nisn: str = ""
+    gender: str = ""
     class_name: str = ""
+
+
+def _norm_gender(v: str) -> str:
+    v = (v or "").strip().lower()
+    if v in ("l", "lk", "laki", "laki-laki", "male", "m"):
+        return "L"
+    if v in ("p", "pr", "perempuan", "female", "f", "w", "wanita"):
+        return "P"
+    return ""
 
 
 @router.get("/admin/students")
@@ -242,7 +253,8 @@ async def list_students(user: dict = Depends(admin_dep)):
 @router.post("/admin/students")
 async def add_student(body: StudentIn, user: dict = Depends(admin_dep)):
     st = {"id": str(uuid.uuid4()), "school_id": user["school_id"],
-          "name": body.name, "nis": body.nis, "class": body.class_name}
+          "name": body.name, "nis": body.nis, "nisn": body.nisn,
+          "gender": _norm_gender(body.gender), "class": body.class_name}
     await db.students.insert_one(st)
     st.pop("_id", None)
     return st
@@ -267,6 +279,8 @@ async def enroll_student_face(stid: str, body: EnrollIn, user: dict = Depends(ad
 class StudentPatch(BaseModel):
     name: str | None = None
     nis: str | None = None
+    nisn: str | None = None
+    gender: str | None = None
     class_name: str | None = None
 
 
@@ -294,9 +308,9 @@ async def import_preview(file: UploadFile = File(...), user: dict = Depends(admi
     content = await file.read()
     try:
         if file.filename.lower().endswith((".xlsx", ".xls")):
-            df = pd.read_excel(io.BytesIO(content))
+            df = pd.read_excel(io.BytesIO(content), dtype=str)
         else:
-            df = pd.read_csv(io.BytesIO(content))
+            df = pd.read_csv(io.BytesIO(content), dtype=str)
     except Exception:
         raise HTTPException(status_code=400, detail="File tidak bisa dibaca. Gunakan CSV atau XLSX.")
     df.columns = [str(c).strip().lower() for c in df.columns]
@@ -304,10 +318,14 @@ async def import_preview(file: UploadFile = File(...), user: dict = Depends(admi
     for c in df.columns:
         if c in ("name", "nama"):
             colmap["name"] = c
-        elif c in ("nis", "nisn"):
+        elif c == "nis":
             colmap["nis"] = c
+        elif c == "nisn":
+            colmap["nisn"] = c
         elif c in ("class", "kelas"):
             colmap["class"] = c
+        elif c in ("gender", "jk", "kelamin", "jenis_kelamin", "jenis kelamin", "l/p"):
+            colmap["gender"] = c
     if "name" not in colmap:
         raise HTTPException(status_code=400, detail="Kolom 'name'/'nama' wajib ada")
     valid, errors = [], []
@@ -322,7 +340,8 @@ async def import_preview(file: UploadFile = File(...), user: dict = Depends(admi
         if not nm:
             errors.append({"row": int(i) + 2, "message": "Nama kosong"})
             continue
-        valid.append({"name": nm, "nis": val("nis"), "class": val("class")})
+        valid.append({"name": nm, "nis": val("nis"), "nisn": val("nisn"),
+                      "gender": _norm_gender(val("gender")), "class": val("class")})
     return {"valid": valid, "errors": errors, "total": len(df)}
 
 
@@ -340,7 +359,8 @@ async def import_commit(body: CommitIn, user: dict = Depends(admin_dep)):
         if nis and nis in existing:
             continue
         docs.append({"id": str(uuid.uuid4()), "school_id": sid, "name": str(r.get("name", "")).strip(),
-                     "nis": nis, "class": str(r.get("class", "")).strip()})
+                     "nis": nis, "nisn": str(r.get("nisn", "")).strip(),
+                     "gender": _norm_gender(str(r.get("gender", ""))), "class": str(r.get("class", "")).strip()})
         if nis:
             existing.add(nis)
     if docs:
