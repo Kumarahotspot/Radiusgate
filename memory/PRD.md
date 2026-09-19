@@ -332,3 +332,8 @@ Aplikasi absensi berbasis tablet kiosk + face recognition & liveness, geofence G
 ## 2026-09-20 — Ubah sapaan voice kiosk
 - kiosk_welcome (ID): "Selamat bekerja" -> "Selamat beraktivitas" (dipakai saat absen masuk berhasil di Kiosk.jsx).
 - Tervalidasi user: aturan jam masuk 00:00 berfungsi (absen 00:05 diterima tepat waktu).
+
+## 2026-09-20 — Sapaan voice kiosk final
+- kiosk_success (ID): "Absen berhasil" -> "Presensi berhasil".
+- kiosk_welcome (ID): -> "Selamat beraktivitas dan jangan lupa berdoa".
+- Hasil suara absen masuk: "Presensi berhasil. [Nama]. Selamat beraktivitas dan jangan lupa berdoa." (pulang tetap "Hati-hati di jalan").
