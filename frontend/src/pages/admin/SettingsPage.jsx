@@ -4,6 +4,29 @@ import { toast } from "sonner";
 import api, { errMsg } from "../../api";
 import { MapPin, Plus, Trash2, Crosshair, Copy, Pencil, X, Check } from "lucide-react";
 
+const TEMPLATES = {
+  SD: {
+    classes: ["Kelas 1", "Kelas 2", "Kelas 3", "Kelas 4", "Kelas 5", "Kelas 6"],
+    majors: [],
+    subjects: ["PAI & Budi Pekerti", "Pendidikan Pancasila", "Bahasa Indonesia", "Matematika", "IPAS", "Seni Budaya & Prakarya", "PJOK", "Bahasa Inggris", "Muatan Lokal"],
+  },
+  SMP: {
+    classes: ["Kelas 7", "Kelas 8", "Kelas 9"],
+    majors: [],
+    subjects: ["PAI & Budi Pekerti", "Pendidikan Pancasila", "Bahasa Indonesia", "Matematika", "IPA", "IPS", "Bahasa Inggris", "Seni Budaya", "Prakarya", "PJOK", "Informatika", "BK"],
+  },
+  SMA: {
+    classes: ["Kelas X", "Kelas XI", "Kelas XII"],
+    majors: ["IPA", "IPS", "Bahasa"],
+    subjects: ["PAI & Budi Pekerti", "Pendidikan Pancasila", "Bahasa Indonesia", "Matematika", "Bahasa Inggris", "Fisika", "Kimia", "Biologi", "Sejarah", "Geografi", "Ekonomi", "Sosiologi", "Seni Budaya", "PJOK", "Informatika", "BK"],
+  },
+  SMK: {
+    classes: ["Kelas X", "Kelas XI", "Kelas XII"],
+    majors: ["TKJ", "RPL", "TKR", "TBSM", "AKL", "BDP"],
+    subjects: ["PAI & Budi Pekerti", "Pendidikan Pancasila", "Bahasa Indonesia", "Matematika", "Bahasa Inggris", "IPAS", "Seni Budaya", "PJOK", "Informatika", "Produk Kreatif & Kewirausahaan", "Mapel Produktif Jurusan", "BK"],
+  },
+};
+
 export default function SettingsPage() {
   const { t } = useTranslation();
   const [settings, setSettings] = useState({ work_start: "07:00", work_end: "15:00", late_tolerance_min: 10, early_checkin_min: 60, timezone: "Asia/Jakarta", require_checkin: true });
@@ -12,10 +35,12 @@ export default function SettingsPage() {
   const [loc, setLoc] = useState({ name: "", lat: "", lng: "", radius_m: 50 });
   const [masterClasses, setMasterClasses] = useState([]);
   const [masterSubjects, setMasterSubjects] = useState([]);
+  const [masterMajors, setMasterMajors] = useState([]);
 
   const loadMaster = () => api.get("/admin/meta/options").then((r) => {
     setMasterClasses(r.data.classes || []);
     setMasterSubjects(r.data.subjects || []);
+    setMasterMajors(r.data.majors || []);
   });
 
   const load = () => api.get("/admin/settings").then((r) => {
@@ -33,9 +58,9 @@ export default function SettingsPage() {
   };
 
   const addItem = (kind, v) => {
-    const list = kind === "class" ? masterClasses : masterSubjects;
+    const list = kind === "class" ? masterClasses : kind === "subject" ? masterSubjects : masterMajors;
     if (list.includes(v)) return;
-    saveList(kind === "class" ? "class_list" : "subject_list", [...list, v].sort());
+    saveList(kind === "class" ? "class_list" : kind === "subject" ? "subject_list" : "major_list", [...list, v].sort());
   };
 
   const deleteItem = async (kind, v) => {
@@ -54,6 +79,21 @@ export default function SettingsPage() {
     if (!toV || toV === fromV) return;
     try {
       await api.post("/admin/meta/rename", { kind, from_value: fromV, to_value: toV });
+      toast.success(t("save"));
+      loadMaster();
+    } catch (err) { toast.error(errMsg(err)); }
+  };
+
+  const applyTemplate = async () => {
+    const tp = TEMPLATES[settings.school_type];
+    if (!tp) return;
+    if (!window.confirm(t("template_confirm", { type: settings.school_type }))) return;
+    try {
+      await api.put("/admin/settings", {
+        class_list: [...new Set([...masterClasses, ...tp.classes])].sort(),
+        subject_list: [...new Set([...masterSubjects, ...tp.subjects])].sort(),
+        major_list: [...new Set([...masterMajors, ...tp.majors])].sort(),
+      });
       toast.success(t("save"));
       loadMaster();
     } catch (err) { toast.error(errMsg(err)); }
@@ -164,9 +204,33 @@ export default function SettingsPage() {
       <div className="bg-white rounded-2xl border border-slate-200 p-5" data-testid="master-data-card">
         <p className="font-bold text-slate-800 mb-1">{t("master_data")}</p>
         <p className="text-xs text-slate-400 mb-4">{t("master_hint")}</p>
-        <div className="grid sm:grid-cols-2 gap-4">
+        <div className="flex flex-wrap items-end gap-3 mb-4">
+          <div>
+            <label className="text-xs font-semibold text-slate-500">{t("school_type")}</label>
+            <select data-testid="school-type" value={settings.school_type || ""}
+              onChange={(e) => { const v = e.target.value; setSettings({ ...settings, school_type: v }); api.put("/admin/settings", { school_type: v || "" }).then(loadMaster).catch((err) => toast.error(errMsg(err))); }}
+              className="mt-1 w-full sm:w-40 rounded-xl border border-slate-200 px-3 py-2.5 text-sm bg-white outline-none focus:border-teal-600">
+              <option value="">—</option>
+              <option value="SD">SD</option>
+              <option value="SMP">SMP</option>
+              <option value="SMA">SMA</option>
+              <option value="SMK">SMK</option>
+            </select>
+          </div>
+          {settings.school_type && (
+            <button type="button" data-testid="apply-template-btn" onClick={applyTemplate}
+              className="px-4 py-2.5 rounded-xl text-xs font-bold text-teal-700 bg-teal-50 hover:bg-teal-100 transition-colors">
+              {t("use_template", { type: settings.school_type })}
+            </button>
+          )}
+        </div>
+        <div className={`grid gap-4 ${["SMA", "SMK"].includes(settings.school_type) ? "sm:grid-cols-3" : "sm:grid-cols-2"}`}>
           <MasterList title={t("master_classes")} testid="master-class" items={masterClasses}
             onAdd={(v) => addItem("class", v)} onDelete={(v) => deleteItem("class", v)} onRename={(f2, t2) => renameItem("class", f2, t2)} t={t} />
+          {["SMA", "SMK"].includes(settings.school_type) && (
+            <MasterList title={t("majors")} testid="master-major" items={masterMajors}
+              onAdd={(v) => addItem("major", v)} onDelete={(v) => deleteItem("major", v)} onRename={(f2, t2) => renameItem("major", f2, t2)} t={t} />
+          )}
           <MasterList title={t("master_subjects")} testid="master-subject" items={masterSubjects}
             onAdd={(v) => addItem("subject", v)} onDelete={(v) => deleteItem("subject", v)} onRename={(f2, t2) => renameItem("subject", f2, t2)} t={t} />
         </div>

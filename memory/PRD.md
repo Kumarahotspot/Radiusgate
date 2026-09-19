@@ -375,3 +375,10 @@ Aplikasi absensi berbasis tablet kiosk + face recognition & liveness, geofence G
 - SettingsPage: kartu "Data Master" dengan komponen MasterList (chip + rename inline + hapus + tambah) untuk Kelas & Mapel.
 - Students.jsx: dropdown kelas kini membaca /admin/meta/options (fallback derived).
 - Terverifikasi: rename kelas & mapel propagasi + bisa dikembalikan, hapus diblokir saat dipakai (X-1 dipakai 22 siswa), tambah/hapus OK, pytest 79 passed / 1 skipped, UI desktop+mobile OK.
+
+## 2026-09-20 — Data Master per Tipe Sekolah (SD/SMP/SMA/SMK)
+- Settings baru `school_type` + `major_list`. meta_options kini juga mengembalikan `majors`; meta rename/delete mendukung kind "major".
+- Pengaturan > Data Master: dropdown Tipe Sekolah; tombol "Gunakan Template {tipe}" mengisi otomatis kelas/mapel/jurusan standar nasional (DIGABUNG dengan daftar yang ada, tidak menimpa); bagian Daftar Jurusan tampil khusus SMA/SMK.
+- Template: SD (Kelas 1-6 + mapel umum SD), SMP (7-9), SMA (X-XII + IPA/IPS/Bahasa), SMK (X-XII + TKJ/RPL/TKR/TBSM/AKL/BDP + mapel umum & produktif).
+- Sekolah demo diset SMK (data riil user: kelas X TKJ/TAV/TB, mapel produktif TAV/Boga).
+- Terverifikasi: rename/hapus jurusan via API, template merge via UI, pytest 79 passed / 1 skipped, mobile OK.

@@ -70,6 +70,8 @@ def _split_csv(s) -> list:
 
 
 async def _derived_list(sid: str, kind: str) -> list:
+    if kind == "major":
+        return []
     if kind == "class":
         raw = await db.students.distinct("class", {"school_id": sid, "status": {"$ne": "lulus"}})
         return sorted(c for c in raw if c)
@@ -78,7 +80,7 @@ async def _derived_list(sid: str, kind: str) -> list:
 
 
 async def _effective_list(sid: str, kind: str) -> tuple[list, str]:
-    key = "class_list" if kind == "class" else "subject_list"
+    key = {"class": "class_list", "subject": "subject_list", "major": "major_list"}[kind]
     st = await db.settings.find_one({"school_id": sid}, {"_id": 0, key: 1}) or {}
     if st.get(key) is not None:
         return list(st[key]), key
@@ -90,7 +92,8 @@ async def meta_options(user: dict = Depends(admin_dep)):
     """Opsi checkbox form guru/siswa: daftar master jika diset, selain itu diturunkan dari data."""
     classes, _ = await _effective_list(user["school_id"], "class")
     subjects, _ = await _effective_list(user["school_id"], "subject")
-    return {"classes": classes, "subjects": subjects}
+    majors, _ = await _effective_list(user["school_id"], "major")
+    return {"classes": classes, "subjects": subjects, "majors": majors}
 
 
 class MetaRenameIn(BaseModel):
@@ -107,7 +110,7 @@ class MetaDeleteIn(BaseModel):
 @router.post("/admin/meta/rename")
 async def meta_rename(body: MetaRenameIn, user: dict = Depends(admin_dep)):
     """Ganti nama kelas/mapel, otomatis diterapkan ke siswa, absensi, dan guru."""
-    if body.kind not in ("class", "subject"):
+    if body.kind not in ("class", "subject", "major"):
         raise HTTPException(status_code=400, detail="kind tidak valid")
     fv, tv = body.from_value.strip(), body.to_value.strip()
     if not fv or not tv or fv == tv:
@@ -142,7 +145,7 @@ async def meta_rename(body: MetaRenameIn, user: dict = Depends(admin_dep)):
 @router.post("/admin/meta/delete")
 async def meta_delete(body: MetaDeleteIn, user: dict = Depends(admin_dep)):
     """Hapus kelas/mapel dari daftar master; ditolak jika masih dipakai data siswa/guru."""
-    if body.kind not in ("class", "subject"):
+    if body.kind not in ("class", "subject", "major"):
         raise HTTPException(status_code=400, detail="kind tidak valid")
     v = body.value.strip()
     sid = user["school_id"]
@@ -150,7 +153,7 @@ async def meta_delete(body: MetaDeleteIn, user: dict = Depends(admin_dep)):
         used = await db.students.count_documents({"school_id": sid, "class": v, "status": {"$ne": "lulus"}})
         if used:
             raise HTTPException(status_code=400, detail=f"class_in_use:{used}")
-    else:
+    elif body.kind == "subject":
         teachers = await db.teachers.find({"school_id": sid}, {"_id": 0, "subject": 1}).to_list(2000)
         if any(v in _split_csv(tch.get("subject")) for tch in teachers):
             raise HTTPException(status_code=400, detail="subject_in_use")
@@ -286,6 +289,8 @@ class SettingsIn(BaseModel):
     greeting_out: str | None = None
     class_list: list[str] | None = None
     subject_list: list[str] | None = None
+    major_list: list[str] | None = None
+    school_type: str | None = None
 
 
 @router.get("/admin/settings")
