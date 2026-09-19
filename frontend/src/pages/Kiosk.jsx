@@ -257,7 +257,8 @@ export default function Kiosk() {
           photo: f2, lat: coords?.lat ?? 0, lng: coords?.lng ?? 0,
           type: attType, ts_device: localIso(), client_uuid: crypto.randomUUID(),
         }, { headers: { "X-Kiosk-Token": token }, timeout: 20000 });
-        const greet = attType === "in" ? t("kiosk_welcome") : t("kiosk_goodbye");
+        const customGreet = (attType === "in" ? info?.settings?.greeting_in : info?.settings?.greeting_out) || "";
+        const greet = customGreet.trim() || (attType === "in" ? t("kiosk_welcome") : t("kiosk_goodbye"));
         const successWord = attType === "in" ? t("kiosk_success") : t("kiosk_success_out");
         setResult({ ok: true, name: data.teacher_name, message: data.status === "late" ? `${t("kiosk_success")} · +${data.late_minutes}m` : t("kiosk_success"), late: data.status === "late" });
         speak(`${successWord}. ${data.teacher_name}. ${greet}`);

@@ -185,6 +185,8 @@ class SettingsIn(BaseModel):
     early_checkin_min: int | None = None
     timezone: str | None = None
     require_checkin: bool | None = None
+    greeting_in: str | None = None
+    greeting_out: str | None = None
 
 
 @router.get("/admin/settings")

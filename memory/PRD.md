@@ -342,3 +342,8 @@ Aplikasi absensi berbasis tablet kiosk + face recognition & liveness, geofence G
 - Key baru kiosk_success_out (ID: "Presensi pulang berhasil" / EN: "Check-out recorded").
 - kiosk_goodbye (ID): -> "Sampai jumpa besok, hati-hati di jalan" (EN: "See you tomorrow, safe trip home").
 - Kiosk.jsx: suara absen pulang kini "Presensi pulang berhasil. [Nama]. Sampai jumpa besok, hati-hati di jalan."
+
+## 2026-09-20 — Sapaan voice kiosk kustom per sekolah
+- Settings baru `greeting_in` / `greeting_out` (SettingsIn + 2 input di halaman Pengaturan dengan placeholder = sapaan bawaan, ID/EN).
+- Kiosk.jsx: suara memakai sapaan kustom jika diisi, fallback ke bawaan jika kosong. Data mengalir via /kiosk/info (settings).
+- Terverifikasi: API simpan->kiosk/info membaca->kosongkan kembali ke bawaan; pytest 79 passed / 1 skipped; UI desktop+mobile OK.

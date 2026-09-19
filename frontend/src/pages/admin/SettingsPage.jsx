@@ -104,6 +104,19 @@ export default function SettingsPage() {
             className="accent-teal-700 w-4 h-4" />
           <span>{t("require_checkin")} <span className="text-xs text-slate-400">({t("require_checkin_hint")})</span></span>
         </label>
+        <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-3xl">
+          <div>
+            <label className="text-xs font-semibold text-slate-500">{t("greeting_in_setting")}</label>
+            <input data-testid="greeting-in" value={settings.greeting_in || ""} placeholder={t("kiosk_welcome")} onChange={(e) => setSettings({ ...settings, greeting_in: e.target.value })}
+              className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-teal-600" />
+          </div>
+          <div>
+            <label className="text-xs font-semibold text-slate-500">{t("greeting_out_setting")}</label>
+            <input data-testid="greeting-out" value={settings.greeting_out || ""} placeholder={t("kiosk_goodbye")} onChange={(e) => setSettings({ ...settings, greeting_out: e.target.value })}
+              className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-teal-600" />
+          </div>
+        </div>
+        <p className="mt-2 text-xs text-slate-400 max-w-3xl">{t("greeting_hint")}</p>
         <button data-testid="save-settings-btn" className="mt-4 px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-teal-700 hover:bg-teal-800">{t("save")}</button>
       </form>
 
