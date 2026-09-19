@@ -11,6 +11,8 @@ export default function Teachers() {
   const [showForm, setShowForm] = useState(false);
   const [enrollFor, setEnrollFor] = useState(null);
   const [form, setForm] = useState({ name: "", email: "", password: "", nip: "", subject: "", classes: "" });
+  const [subjectOther, setSubjectOther] = useState("");
+  const [opts, setOpts] = useState({ classes: [], subjects: [] });
   const [busy, setBusy] = useState(false);
   const [editFor, setEditFor] = useState(null);
   const [query, setQuery] = useState("");
@@ -27,7 +29,9 @@ export default function Teachers() {
     setBusy(true);
     try {
       await api.patch(`/admin/teachers/${editFor.id}`, {
-        name: editFor.name, nip: editFor.nip, subject: editFor.subject, active: !!editFor.active, classes: editFor.classes || "",
+        name: editFor.name, nip: editFor.nip,
+        subject: [editFor.subject, (editFor.subject_other || "").trim()].filter(Boolean).join(", "),
+        active: !!editFor.active, classes: editFor.classes || "",
       });
       toast.success(t("save"));
       setEditFor(null);
@@ -35,17 +39,22 @@ export default function Teachers() {
     } catch (err) { toast.error(errMsg(err)); } finally { setBusy(false); }
   };
 
-  const load = () => api.get("/admin/teachers").then((r) => setTeachers(r.data));
+  const load = () => {
+    api.get("/admin/teachers").then((r) => setTeachers(r.data));
+    api.get("/admin/meta/options").then((r) => setOpts(r.data));
+  };
   useEffect(() => { load(); }, []);
 
   const create = async (e) => {
     e.preventDefault();
     setBusy(true);
     try {
-      await api.post("/admin/teachers", form);
+      const subject = [form.subject, subjectOther.trim()].filter(Boolean).join(", ");
+      await api.post("/admin/teachers", { ...form, subject });
       toast.success(t("save"));
       setShowForm(false);
-      setForm({ name: "", email: "", password: "", nip: "", subject: "" });
+      setForm({ name: "", email: "", password: "", nip: "", subject: "", classes: "" });
+      setSubjectOther("");
       load();
     } catch (err) { toast.error(errMsg(err)); } finally { setBusy(false); }
   };
@@ -81,8 +90,14 @@ export default function Teachers() {
           <In label={t("email")} testid="teacher-email" type="email" v={form.email} set={(v) => setForm({ ...form, email: v })} req />
           <In label={t("password")} testid="teacher-password" v={form.password} set={(v) => setForm({ ...form, password: v })} req />
           <In label={t("nip")} testid="teacher-nip" v={form.nip} set={(v) => setForm({ ...form, nip: v })} />
-          <In label={t("subject")} testid="teacher-subject" v={form.subject} set={(v) => setForm({ ...form, subject: v })} />
-          <In label={t("teacher_classes")} testid="teacher-classes" v={form.classes} set={(v) => setForm({ ...form, classes: v })} ph="X-1, X-2" />
+          <div className="sm:col-span-3">
+            <CheckGroup label={t("subject")} testid="teacher-subject" options={opts.subjects} value={form.subject} onChange={(v) => setForm({ ...form, subject: v })} />
+            <input data-testid="teacher-subject-other" value={subjectOther} placeholder={t("subject_other")} onChange={(e) => setSubjectOther(e.target.value)}
+              className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-teal-600" />
+          </div>
+          <div className="sm:col-span-3">
+            <CheckGroup label={t("teacher_classes")} testid="teacher-classes" options={opts.classes} value={form.classes} onChange={(v) => setForm({ ...form, classes: v })} emptyHint={t("classes_empty_hint")} />
+          </div>
           <div className="flex items-end gap-2">
             <button type="button" onClick={() => setShowForm(false)} className="px-4 py-2.5 rounded-xl text-xs font-bold text-slate-600 bg-slate-100 hover:bg-slate-200">{t("cancel")}</button>
             <button data-testid="teacher-submit" disabled={busy} className="px-4 py-2.5 rounded-xl text-xs font-bold text-white bg-teal-700 hover:bg-teal-800 disabled:opacity-50">{t("save")}</button>
@@ -177,8 +192,14 @@ export default function Teachers() {
             <p className="sm:col-span-2 font-bold text-slate-800">{t("edit_teacher")}</p>
             <In label={t("name")} testid="edit-teacher-name" v={editFor.name} set={(v) => setEditFor({ ...editFor, name: v })} req />
             <In label={t("nip")} testid="edit-teacher-nip" v={editFor.nip || ""} set={(v) => setEditFor({ ...editFor, nip: v })} />
-            <In label={t("subject")} testid="edit-teacher-subject" v={editFor.subject || ""} set={(v) => setEditFor({ ...editFor, subject: v })} />
-            <In label={t("teacher_classes")} testid="edit-teacher-classes" v={editFor.classes || ""} set={(v) => setEditFor({ ...editFor, classes: v })} ph="X-1, X-2" />
+            <div className="sm:col-span-2">
+              <CheckGroup label={t("subject")} testid="edit-teacher-subject" options={opts.subjects} value={editFor.subject || ""} onChange={(v) => setEditFor({ ...editFor, subject: v })} />
+              <input data-testid="edit-teacher-subject-other" value={editFor.subject_other || ""} placeholder={t("subject_other")} onChange={(e) => setEditFor({ ...editFor, subject_other: e.target.value })}
+                className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-teal-600" />
+            </div>
+            <div className="sm:col-span-2">
+              <CheckGroup label={t("teacher_classes")} testid="edit-teacher-classes" options={opts.classes} value={editFor.classes || ""} onChange={(v) => setEditFor({ ...editFor, classes: v })} emptyHint={t("classes_empty_hint")} />
+            </div>
             <label className="flex items-center gap-2 text-sm text-slate-600 self-end pb-2.5">
               <input data-testid="edit-teacher-active" type="checkbox" checked={!!editFor.active} onChange={(e) => setEditFor({ ...editFor, active: e.target.checked })} className="accent-teal-700 w-4 h-4" />
               {t("active")}
@@ -195,6 +216,30 @@ export default function Teachers() {
     </div>
   );
 }
+
+function CheckGroup({ label, options, value, onChange, testid, emptyHint }) {
+  const sel = new Set((value || "").split(",").map((s) => s.trim()).filter(Boolean));
+  const toggle = (opt) => {
+    if (sel.has(opt)) sel.delete(opt); else sel.add(opt);
+    onChange([...sel].join(", "));
+  };
+  const all = [...new Set([...options, ...sel])].sort();
+  return (
+    <div>
+      <label className="text-xs font-semibold text-slate-500">{label}</label>
+      <div data-testid={testid} className="mt-1 max-h-32 overflow-y-auto rounded-xl border border-slate-200 p-3 grid grid-cols-2 sm:grid-cols-4 gap-2 bg-white">
+        {all.map((o) => (
+          <label key={o} className="flex items-center gap-2 text-sm text-slate-700 cursor-pointer">
+            <input type="checkbox" data-testid={`${testid}-${o}`} checked={sel.has(o)} onChange={() => toggle(o)} className="accent-teal-700 w-4 h-4" />
+            {o}
+          </label>
+        ))}
+        {all.length === 0 && <p className="col-span-full text-xs text-slate-400">{emptyHint || "—"}</p>}
+      </div>
+    </div>
+  );
+}
+
 
 function In({ label, v, set, type = "text", req, testid }) {
   return (

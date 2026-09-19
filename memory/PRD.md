@@ -358,3 +358,9 @@ Aplikasi absensi berbasis tablet kiosk + face recognition & liveness, geofence G
 ## 2026-09-20 — Perjelas tombol aksi guru + kolom kelas
 - Tabel Guru: tombol Ubah/Hapus kini berteks (bukan ikon saja); kolom baru "Kelas" menampilkan kelas yang diampu tiap guru; modal Ubah Guru punya input Kelas yang Diampu.
 - Menu guru dipisah jadi 3 tab: Presensi Saya (/guru), Izin Siswa (/guru/izin), Laporan Siswa (/guru/laporan).
+
+## 2026-09-20 — Checkbox Mapel & Kelas di form Guru
+- Endpoint GET /admin/meta/options (kelas dari data siswa, mapel dari guru yang ada) di routes_admin.py.
+- Teachers.jsx: komponen CheckGroup (checkbox multi-select, auto-merge pilihan lama agar tidak hilang) menggantikan input teks Mata Pelajaran & Kelas yang Diampu di form tambah + modal edit. Mapel baru bisa diketik via input "Mapel lain". Nilai tetap disimpan sebagai string koma.
+- Terverifikasi: checkbox muncul & tercentang sesuai data Budi (Matematika, X-1, X-2), pytest 79 passed / 1 skipped, mobile OK.
+- Catatan data: ada kelas "X1" (tanpa strip) dari rekaman siswa SUSIYANTO lama — perlu dirapikan manual di data siswa jika mau.

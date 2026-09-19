@@ -65,6 +65,21 @@ async def delete_attendance(aid: str, user: dict = Depends(admin_dep)):
 
 
 # ---------- Teachers ----------
+@router.get("/admin/meta/options")
+async def meta_options(user: dict = Depends(admin_dep)):
+    """Opsi checkbox untuk form guru: kelas (dari data siswa) & mapel (dari guru yang sudah ada)."""
+    classes = await db.students.distinct(
+        "class", {"school_id": user["school_id"], "status": {"$ne": "lulus"}})
+    subjects_raw = await db.teachers.distinct("subject", {"school_id": user["school_id"]})
+    subjects = set()
+    for s in subjects_raw:
+        for part in (s or "").split(","):
+            p = part.strip()
+            if p:
+                subjects.add(p)
+    return {"classes": sorted(c for c in classes if c), "subjects": sorted(subjects)}
+
+
 class TeacherIn(BaseModel):
     name: str
     email: EmailStr
