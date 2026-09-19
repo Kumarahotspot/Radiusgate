@@ -158,6 +158,10 @@ Aplikasi absensi berbasis tablet kiosk + face recognition & liveness, geofence G
 - Ekspor **XLSX**: kolom baru NISN & L/P, header "Guru"→"Nama". Ekspor **PDF**: kolom NISN & L/P dengan posisi kolom diatur ulang (muat A4). Tabel **Laporan** di UI: kolom NISN & L/P (colSpan 10).
 - Terverifikasi: XLSX terunduh & ter-parse berisi kolom NISN/L/P, PDF valid, header UI benar, tanpa overflow desktop/mobile, suite 65/65.
 
+## Update 2026-09-19 (iterasi 24 — ekspor daftar siswa)
+- Endpoint baru `GET /admin/students/export?format=xlsx|csv` (kolom: Nama, NIS, NISN, L/P, Kelas, Enroll Wajah). Tombol **Ekspor XLS** di header halaman Siswa (di samping Impor) mengunduh `siswa.xlsx` via blob.
+- i18n: `export_file` (ID/EN). Terverifikasi: curl xlsx (120 baris, kolom benar) & csv; screenshot UI (tombol tampil, download `siswa.xlsx` ter-trigger, tanpa overflow desktop/mobile).
+
 ## Backlog Prioritas
 - P0: Kunci Tripay asli dari user + uji webhook; tablet React Native (kiosk native, embedding cache on-device)
 - P1: Absen siswa (v2), geofence penuh untuk absen via HP pribadi guru

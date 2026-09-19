@@ -368,6 +368,28 @@ async def import_commit(body: CommitIn, user: dict = Depends(admin_dep)):
     return {"inserted": len(docs)}
 
 
+@router.get("/admin/students/export")
+async def export_students(format: str = "xlsx", user: dict = Depends(admin_dep)):
+    students = await list_students(user)
+    df = pd.DataFrame([{
+        "Nama": s.get("name", ""), "NIS": s.get("nis", ""), "NISN": s.get("nisn", ""),
+        "L/P": s.get("gender", ""), "Kelas": s.get("class", ""),
+        "Enroll Wajah": "Terdaftar" if s.get("enrolled") else "Belum",
+    } for s in students])
+    buf = io.BytesIO()
+    if format == "csv":
+        df.to_csv(buf, index=False)
+        buf.seek(0)
+        return StreamingResponse(buf, media_type="text/csv",
+                                 headers={"Content-Disposition": "attachment; filename=siswa.csv"})
+    df.to_excel(buf, index=False)
+    buf.seek(0)
+    return StreamingResponse(
+        buf,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": "attachment; filename=siswa.xlsx"})
+
+
 # ---------- Leaves ----------
 @router.get("/admin/leaves")
 async def list_leaves(user: dict = Depends(admin_dep)):

@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import api, { errMsg } from "../../api";
 import CameraCapture from "../../components/CameraCapture";
-import { Plus, Upload, Trash2, X, Pencil, ScanFace, CheckCircle2, Circle, Search, ChevronLeft, ChevronRight } from "lucide-react";
+import { Plus, Upload, Download, Trash2, X, Pencil, ScanFace, CheckCircle2, Circle, Search, ChevronLeft, ChevronRight } from "lucide-react";
 
 export default function Students() {
   const { t } = useTranslation();
@@ -75,6 +75,18 @@ export default function Students() {
     } catch (err) { toast.error(errMsg(err)); } finally { setBusy(false); e.target.value = ""; }
   };
 
+  const doExport = async () => {
+    try {
+      const res = await api.get("/admin/students/export", { params: { format: "xlsx" }, responseType: "blob" });
+      const url = URL.createObjectURL(new Blob([res.data]));
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "siswa.xlsx";
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (err) { toast.error(errMsg(err)); }
+  };
+
   const commit = async () => {
     setBusy(true);
     try {
@@ -89,10 +101,16 @@ export default function Students() {
     <div data-testid="students-page" className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h2 className="text-lg font-bold text-slate-800">{t("students")} <span data-testid="student-total" className="text-teal-700">({students.length})</span></h2>
-        <button data-testid="import-btn" onClick={() => fileRef.current?.click()} disabled={busy}
-          className="flex items-center gap-1.5 bg-teal-700 hover:bg-teal-800 text-white text-xs font-bold px-4 py-2 rounded-xl transition-colors disabled:opacity-50">
-          <Upload className="w-4 h-4" /> {busy ? t("loading") : t("import_file")}
-        </button>
+        <div className="flex items-center gap-2">
+          <button data-testid="export-btn" onClick={doExport}
+            className="flex items-center gap-1.5 bg-white border border-teal-700 text-teal-700 hover:bg-teal-50 text-xs font-bold px-4 py-2 rounded-xl transition-colors">
+            <Download className="w-4 h-4" /> {t("export_file")}
+          </button>
+          <button data-testid="import-btn" onClick={() => fileRef.current?.click()} disabled={busy}
+            className="flex items-center gap-1.5 bg-teal-700 hover:bg-teal-800 text-white text-xs font-bold px-4 py-2 rounded-xl transition-colors disabled:opacity-50">
+            <Upload className="w-4 h-4" /> {busy ? t("loading") : t("import_file")}
+          </button>
+        </div>
         <input ref={fileRef} data-testid="import-file-input" type="file" accept=".csv,.xlsx,.xls" className="hidden" onChange={pickFile} />
       </div>
 
