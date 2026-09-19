@@ -206,6 +206,10 @@ Aplikasi absensi berbasis tablet kiosk + face recognition & liveness, geofence G
 - Halaman Pengajuan Pilot: kolom **Status** berupa dropdown ber-badge warna (Baru=sky, Dihubungi=amber, Onboarding=teal, Ditolak=merah) — ubah langsung dari tabel, persist.
 - i18n: `updated_ok`, `lead_status_*` (ID/EN). Terverifikasi: curl (contacted tersimpan, bogus→422), UI (ubah→onboarding→reload tetap), suite 65/65.
 
+## Update 2026-09-19 (iterasi 34 — lead → sekolah 1 klik)
+- Lead berstatus **Onboarding** menampilkan tombol **"Jadikan Sekolah"** → modal form tambah sekolah yang pre-fill: nama sekolah, WA, PIC, email, perkiraan jumlah siswa (tarif default Rp 8.000, password admin diisi owner). Submit memakai endpoint `POST /owner/schools` yang sudah ada.
+- i18n: `convert_to_school` (ID/EN). Fix saat verifikasi: ikon `SchoolPlus` tidak ada di lucide-react terpasang → diganti `School`. Terverifikasi screenshot: tombol hanya muncul saat Onboarding, pre-fill benar (nama/email/PIC/WA/jumlah), modal tertutup normal.
+
 ## Backlog Prioritas
 - P0: Kunci Tripay asli dari user + uji webhook; tablet React Native (kiosk native, embedding cache on-device)
 - P1: Absen siswa (v2), geofence penuh untuk absen via HP pribadi guru
