@@ -185,6 +185,8 @@ class SettingsIn(BaseModel):
     early_checkin_min: int | None = None
     timezone: str | None = None
     require_checkin: bool | None = None
+    kiosk_open: str | None = None
+    kiosk_close: str | None = None
 
 
 @router.get("/admin/settings")
@@ -197,7 +199,9 @@ async def get_settings(user: dict = Depends(admin_dep)):
 
 @router.put("/admin/settings")
 async def put_settings(body: SettingsIn, user: dict = Depends(admin_dep)):
-    upd = {k: v for k, v in body.model_dump().items() if v is not None}
+    data = body.model_dump(exclude_unset=True)
+    # kiosk_open/kiosk_close boleh None eksplisit = cara mengosongkan batas jam kiosk
+    upd = {k: v for k, v in data.items() if v is not None or k in ("kiosk_open", "kiosk_close")}
     if not upd:
         raise HTTPException(status_code=400, detail="Tidak ada perubahan")
     await db.settings.update_one({"school_id": user["school_id"]}, {"$set": upd}, upsert=True)

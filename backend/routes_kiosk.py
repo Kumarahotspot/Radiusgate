@@ -154,6 +154,16 @@ async def _record(school, teacher_id, teacher_name, att_type, ts_device, lat, ln
                 raise HTTPException(status_code=422, detail=f"outside_geofence:{dist}")
         else:
             status = "ok"
+    if settings and not manual:
+        ko, kc = settings.get("kiosk_open"), settings.get("kiosk_close")
+        if ko and minutes < int(ko.split(":")[0]) * 60 + int(ko.split(":")[1]):
+            open_m = int(ko.split(":")[0]) * 60 + int(ko.split(":")[1])
+            raise HTTPException(status_code=422, detail=f"kiosk_not_open:{ko}:{open_m - minutes}")
+        if kc and minutes > int(kc.split(":")[0]) * 60 + int(kc.split(":")[1]):
+            if ko:
+                sisa = (1440 - minutes) + int(ko.split(":")[0]) * 60 + int(ko.split(":")[1])
+                raise HTTPException(status_code=422, detail=f"kiosk_closed:{kc}:{ko}:{sisa}")
+            raise HTTPException(status_code=422, detail=f"kiosk_closed:{kc}")
     if att_type == "in" and settings and not manual:
         ws_h, ws_m = map(int, settings.get("work_start", "07:00").split(":"))
         earliest = ws_h * 60 + ws_m - int(settings.get("early_checkin_min", 60))

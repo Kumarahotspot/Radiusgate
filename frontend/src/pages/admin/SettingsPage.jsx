@@ -6,7 +6,7 @@ import { MapPin, Plus, Trash2, Crosshair, Copy } from "lucide-react";
 
 export default function SettingsPage() {
   const { t } = useTranslation();
-  const [settings, setSettings] = useState({ work_start: "07:00", work_end: "15:00", late_tolerance_min: 10, early_checkin_min: 60, timezone: "Asia/Jakarta", require_checkin: true });
+  const [settings, setSettings] = useState({ work_start: "07:00", work_end: "15:00", late_tolerance_min: 10, early_checkin_min: 60, timezone: "Asia/Jakarta", require_checkin: true, kiosk_open: "", kiosk_close: "" });
   const [locations, setLocations] = useState([]);
   const [school, setSchool] = useState(null);
   const [loc, setLoc] = useState({ name: "", lat: "", lng: "", radius_m: 50 });
@@ -97,7 +97,18 @@ export default function SettingsPage() {
               <option value="Asia/Jayapura">WIT (Jayapura)</option>
             </select>
           </div>
+          <div>
+            <label className="text-xs font-semibold text-slate-500">{t("kiosk_open_setting")}</label>
+            <input data-testid="kiosk-open" type="time" value={settings.kiosk_open || ""} onChange={(e) => setSettings({ ...settings, kiosk_open: e.target.value || null })}
+              className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-teal-600" />
+          </div>
+          <div>
+            <label className="text-xs font-semibold text-slate-500">{t("kiosk_close_setting")}</label>
+            <input data-testid="kiosk-close" type="time" value={settings.kiosk_close || ""} onChange={(e) => setSettings({ ...settings, kiosk_close: e.target.value || null })}
+              className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-teal-600" />
+          </div>
         </div>
+        <p className="mt-2 text-xs text-slate-400 max-w-3xl">{t("kiosk_window_hint")}</p>
         <label className="mt-4 flex items-center gap-2 text-sm text-slate-700 max-w-3xl">
           <input data-testid="require-checkin-toggle" type="checkbox" checked={settings.require_checkin !== false}
             onChange={(e) => setSettings({ ...settings, require_checkin: e.target.checked })}

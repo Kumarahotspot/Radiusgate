@@ -298,3 +298,12 @@ Aplikasi absensi berbasis tablet kiosk + face recognition & liveness, geofence G
 - Tes regresi baru: test_scenario7_day_shift_night_checkin_marked_late di test_kiosk_clock.py.
 - Rekaman absen SUSIYANTO 2026-09-19 22:45 yang salah dikoreksi (status late, 935 menit).
 - Terverifikasi: pytest 79 passed / 1 skipped (semua skenario jam lama + baru hijau).
+
+## 2026-09-19 — Fitur: Jam Buka-Tutup Kiosk (opsi C)
+- Settings baru `kiosk_open` / `kiosk_close` (HH:MM, opsional; kosong/null = tidak dibatasi) di SettingsIn + UI Pengaturan (2 input time + hint, ID/EN).
+- _record (routes_kiosk.py): absen di luar window -> 422. Belum buka: `kiosk_not_open:HH:MM:{sisa_menit}`; sudah tutup: `kiosk_closed:HH:MM:{jam_buka}:{sisa_sampai_buka}`. Berlaku untuk in/out, face & NIS, offline sync aman (pakai ts_device asli).
+- Kiosk.jsx menampilkan pesan berbahasa + hitung mundur ("Absen mulai pukul 05:00 — 3 jam 15 menit lagi").
+- Fix terkait: put_settings kini memakai exclude_unset dan mengizinkan None eksplisit untuk kiosk_open/close (sebelumnya None dibuang -> window tidak bisa dikosongkan). Body kosong tetap 400.
+- settings_guard di kedua file tes diperluas mencakup kiosk_open/close (restore null jika memang tidak diset).
+- Tes baru: test_scenario8_kiosk_open_close_window (04:30 ditolak + detail, 22:45 ditolak + detail, 07:05 ok).
+- Terverifikasi: e2e curl (set/window reject/clear via null), pytest 80 passed / 1 skipped, UI Pengaturan desktop+mobile OK tanpa overflow.
