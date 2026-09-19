@@ -170,6 +170,12 @@ Aplikasi absensi berbasis tablet kiosk + face recognition & liveness, geofence G
 - Page-size selector (10/25/50/100) di atas tabel Siswa & Guru, dan di header kartu Absensi Hari Ini (Dasbor) — ganti konstanta 10 jadi state `pageSize`, reset ke halaman 1 saat diganti.
 - i18n: `show_entries` (ID "Tampilkan" / EN "Show").
 
+## Update 2026-09-19 (iterasi 27 — rebrand EduGateID)
+- Nama aplikasi: "Absensi Sekolah" → **EduGateID**, tagline **"Gerbang Absensi Digital Sekolah Masa Kini."** (EN: "The Modern Digital School Attendance Gateway.").
+- i18n: `app_name` diganti, key baru `app_tagline` (dipakai hero halaman Login; key `tagline` lama tidak dipakai lagi). Title index.html diganti.
+- Penyebutan nama lama di backend ikut diganti: header PDF laporan & invoice (pdfgen), EMAIL_FROM_NAME & default smtp_from_name (emailer/notif), pesan tes email/WA (routes_notif), pesan tagihan WA owner (routes_owner).
+- Terverifikasi screenshot login: nama + tagline + title baru tampil, nama lama hilang.
+
 ## Backlog Prioritas
 - P0: Kunci Tripay asli dari user + uji webhook; tablet React Native (kiosk native, embedding cache on-device)
 - P1: Absen siswa (v2), geofence penuh untuk absen via HP pribadi guru

@@ -42,7 +42,7 @@ export default function Login() {
           <p className="text-white font-extrabold text-lg">{t("app_name")}</p>
         </div>
         <div className="relative">
-          <h1 className="text-white text-4xl xl:text-5xl font-extrabold leading-tight">{t("tagline")}</h1>
+          <h1 className="text-white text-4xl xl:text-5xl font-extrabold leading-tight">{t("app_tagline")}</h1>
           <p className="text-teal-100/80 mt-4 text-base max-w-md">Face recognition · Liveness · GPS Geofence · Offline sync · Billing otomatis</p>
         </div>
         <p className="relative text-teal-200/60 text-xs">SaaS Multi-Tenant · v1 Pilot</p>

@@ -25,7 +25,7 @@ def build_invoice_pdf(inv: dict, school: dict) -> str:
     c.setFont("Helvetica-Bold", 20)
     c.drawString(20 * mm, h - 20 * mm, "INVOICE")
     c.setFont("Helvetica", 11)
-    c.drawRightString(w - 20 * mm, h - 20 * mm, "Absensi Sekolah")
+    c.drawRightString(w - 20 * mm, h - 20 * mm, "EduGateID")
 
     c.setFillColorRGB(0.1, 0.1, 0.1)
     c.setFont("Helvetica-Bold", 11)
@@ -61,7 +61,7 @@ def build_invoice_pdf(inv: dict, school: dict) -> str:
 
     c.setFont("Helvetica", 9)
     c.setFillColorRGB(0.45, 0.45, 0.45)
-    c.drawString(20 * mm, 25 * mm, "Pembayaran via Tripay (QRIS / VA / e-wallet). Invoice ini dibuat otomatis oleh sistem Absensi Sekolah.")
+    c.drawString(20 * mm, 25 * mm, "Pembayaran via Tripay (QRIS / VA / e-wallet). Invoice ini dibuat otomatis oleh sistem EduGateID.")
     c.save()
     return path
 
