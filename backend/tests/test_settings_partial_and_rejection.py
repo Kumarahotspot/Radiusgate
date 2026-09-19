@@ -89,6 +89,21 @@ def temp_teacher(mongo, school_id):
     loop.run_until_complete(mongo.attendance.delete_many({"teacher_id": tid}))
 
 
+SETTINGS_KEYS = ("work_start", "work_end", "late_tolerance_min", "early_checkin_min", "timezone", "require_checkin")
+
+
+@pytest.fixture(scope="module", autouse=True)
+def settings_guard(admin_token):
+    """Snapshot pengaturan asli sekolah demo dan kembalikan persis setelah modul selesai,
+    agar tes tidak pernah menimpa konfigurasi nyata admin."""
+    hdr = {"Authorization": f"Bearer {admin_token}"}
+    orig = requests.get(f"{BASE}/api/admin/settings", headers=hdr, timeout=10).json().get("settings") or {}
+    yield
+    keep = {k: v for k, v in orig.items() if k in SETTINGS_KEYS}
+    if keep:
+        requests.put(f"{BASE}/api/admin/settings", json=keep, headers=hdr, timeout=10)
+
+
 def _headers(tok):
     return {"Authorization": f"Bearer {tok}"}
 

@@ -91,6 +91,21 @@ def admin_token():
     return r.json().get("access_token") or r.json().get("token")
 
 
+SETTINGS_KEYS = ("work_start", "work_end", "late_tolerance_min", "early_checkin_min", "timezone", "require_checkin")
+
+
+@pytest.fixture(scope="module", autouse=True)
+def settings_guard(admin_token):
+    """Snapshot pengaturan asli sekolah demo dan kembalikan persis setelah modul selesai,
+    agar tes tidak pernah menimpa konfigurasi nyata admin."""
+    hdr = {"Authorization": f"Bearer {admin_token}"}
+    orig = requests.get(f"{BASE}/api/admin/settings", headers=hdr, timeout=10).json().get("settings") or {}
+    yield
+    keep = {k: v for k, v in orig.items() if k in SETTINGS_KEYS}
+    if keep:
+        requests.put(f"{BASE}/api/admin/settings", json=keep, headers=hdr, timeout=10)
+
+
 def _set_settings(admin_token, work_start, work_end, tol, early):
     r = requests.put(
         f"{BASE}/api/admin/settings",
@@ -251,6 +266,9 @@ def test_susiyanto_record_ok(admin_token):
             assert row.get("late_minutes") == 0, row
 
 
-def test_zzz_restore_settings(admin_token):
-    """Final: restore demo school settings to 01:00/00:00/30/30."""
-    _set_settings(admin_token, "01:00", "00:00", 30, 30)
+def test_zzz_settings_restored(admin_token, mongo):
+    """Guard fixture harus sudah mengembalikan pengaturan asli sekolah demo."""
+    loop = asyncio.get_event_loop()
+    school = loop.run_until_complete(mongo.schools.find_one({"kiosk_token": KIOSK_TOKEN}, {"_id": 0, "id": 1}))
+    doc = loop.run_until_complete(mongo.settings.find_one({"school_id": school["id"]}, {"_id": 0}))
+    assert doc, "settings sekolah demo hilang"

@@ -285,3 +285,9 @@ Aplikasi absensi berbasis tablet kiosk + face recognition & liveness, geofence G
 - Logika: invoice unpaid berumur >=10 hari -> kirim pengingat email (+ WA via Wablas jika nomor sekolah ada); diulang tiap 7 hari, maks 3x. Dilacak via `last_reminder_at` + `reminder_count` di dokumen invoice.
 - Hardening: kegagalan kirim 1 sekolah (mis. email undeliverable) kini dicatat (send_failed di cron_runs) dan TIDAK menghentikan sekolah lain — berlaku juga di generate_for_period (endpoint owner + cron bulanan).
 - Terverifikasi: run1 reminded=1 send_failed=1 (email demo fake ditolak Resend, tapi tetap tercatat), run2 skip (anti-spam), pytest 78 passed / 1 skipped.
+
+## 2026-09-19 — Fix: Pengaturan Jam Kerja Tertimpa Tes (regresi berulang)
+- Akar masalah: test_kiosk_clock.py diakhiri `test_zzz_restore_settings` yang me-restore ke nilai DEBUG hardcoded (01:00/00:00/30/30), dan test_settings_partial_and_rejection.py memaksa EXPECTED_FINAL yang sama -> tiap suite jalan, jam kerja asli sekolah demo tertimpa.
+- Fix: kedua file tes kini pakai fixture autouse `settings_guard` (snapshot pengaturan asli via API di awal modul, restore persis di akhir). Tes penutup hardcoded dihapus/diganti.
+- Pengaturan demo dipulihkan ke 07:00/15:00, toleransi 10, early 60, WIB, require_checkin=true.
+- Bukti regresi: snapshot settings SEBELUM == SESUDAH suite penuh (78 passed / 1 skipped).
