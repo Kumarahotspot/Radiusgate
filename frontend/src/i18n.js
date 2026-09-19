@@ -283,7 +283,7 @@ const id = {
   upload_photo: "Unggah Foto",
   kiosk_gps_error: "GPS tidak tersedia. Izinkan akses lokasi.",
   kiosk_gps_getting: "Mengambil lokasi GPS...",
-  kiosk_welcome: "Selamat bekerja",
+  kiosk_welcome: "Selamat beraktivitas",
   kiosk_goodbye: "Hati-hati di jalan",
   kiosk_unpair: "Lepas Perangkat",
   pay_now: "Bayar Sekarang",

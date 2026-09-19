@@ -328,3 +328,7 @@ Aplikasi absensi berbasis tablet kiosk + face recognition & liveness, geofence G
 - Tes: scenario7 diubah jadi expect 422 past_work_end; test_student_kiosk_v2.py diberi fixture wide_hours (jam kerja dilebarkan sementara lalu dikembalikan) agar kebal waktu real-time.
 - Rekaman uji malam SUSIYANTO dibersihkan dari DB.
 - Terverifikasi: e2e 4 kasus (23:55 ditolak, 12:00 late 290, 05:30 too_early, izin 23:55 diterima), pytest 79 passed / 1 skipped, settings demo utuh.
+
+## 2026-09-20 — Ubah sapaan voice kiosk
+- kiosk_welcome (ID): "Selamat bekerja" -> "Selamat beraktivitas" (dipakai saat absen masuk berhasil di Kiosk.jsx).
+- Tervalidasi user: aturan jam masuk 00:00 berfungsi (absen 00:05 diterima tepat waktu).
