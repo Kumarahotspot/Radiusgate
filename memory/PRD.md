@@ -201,6 +201,11 @@ Aplikasi absensi berbasis tablet kiosk + face recognition & liveness, geofence G
 - `GET /api/owner/leads` + halaman baru **Portal Owner → Pengajuan Pilot** (`/owner/leads`, menu ikon Inbox): tabel tanggal, sekolah, penanggung jawab, email, WA, jumlah siswa, pesan.
 - i18n: `leads`, `contact_person`, `message` (ID/EN). Terverifikasi: curl POST lead → tersimpan & muncul di GET owner/leads, email notif terkirim ke owner, screenshot halaman Leads, suite 65/65.
 
+## Update 2026-09-19 (iterasi 33 — pipeline status lead)
+- Lead baru otomatis berstatus `new`. Endpoint `PATCH /api/owner/leads/{id}` (hanya new/contacted/onboarding/rejected, invalid → 422, 404 bila tak ada).
+- Halaman Pengajuan Pilot: kolom **Status** berupa dropdown ber-badge warna (Baru=sky, Dihubungi=amber, Onboarding=teal, Ditolak=merah) — ubah langsung dari tabel, persist.
+- i18n: `updated_ok`, `lead_status_*` (ID/EN). Terverifikasi: curl (contacted tersimpan, bogus→422), UI (ubah→onboarding→reload tetap), suite 65/65.
+
 ## Backlog Prioritas
 - P0: Kunci Tripay asli dari user + uji webhook; tablet React Native (kiosk native, embedding cache on-device)
 - P1: Absen siswa (v2), geofence penuh untuk absen via HP pribadi guru

@@ -22,6 +22,23 @@ async def list_leads(user: dict = Depends(owner_dep)):
     return await db.leads.find({}, {"_id": 0}).sort("created_at", -1).to_list(500)
 
 
+class LeadPatch(BaseModel):
+    status: str
+
+
+LEAD_STATUSES = {"new", "contacted", "onboarding", "rejected"}
+
+
+@router.patch("/owner/leads/{lead_id}")
+async def patch_lead(lead_id: str, body: LeadPatch, user: dict = Depends(owner_dep)):
+    if body.status not in LEAD_STATUSES:
+        raise HTTPException(status_code=422, detail="invalid_status")
+    res = await db.leads.update_one({"id": lead_id}, {"$set": {"status": body.status}})
+    if res.matched_count == 0:
+        raise HTTPException(status_code=404, detail="not_found")
+    return {"ok": True}
+
+
 class SchoolIn(BaseModel):
     name: str
     address: str = ""

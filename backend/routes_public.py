@@ -27,6 +27,7 @@ async def create_lead(body: LeadIn):
     doc = body.model_dump()
     doc["id"] = str(uuid.uuid4())
     doc["created_at"] = datetime.now(timezone.utc).isoformat()
+    doc["status"] = "new"
     await db.leads.insert_one(doc)
     owner = await db.users.find_one({"role": "owner"}, {"_id": 0, "email": 1})
     if owner:
