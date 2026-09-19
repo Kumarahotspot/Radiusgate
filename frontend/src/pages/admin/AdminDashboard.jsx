@@ -10,12 +10,12 @@ export default function AdminDashboard() {
   const [today, setToday] = useState([]);
   const [query, setQuery] = useState("");
   const [page, setPage] = useState(1);
-  const PAGE_SIZE = 10;
+  const [pageSize, setPageSize] = useState(10);
   const q = query.trim().toLowerCase();
   const filtered = today.filter((a) => !q || [a.teacher_name, a.status, a.class, a.type === "in" ? t("check_in") : t("check_out")].some((f) => (f || "").toLowerCase().includes(q)));
-  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
   const safePage = Math.min(page, totalPages);
-  const paged = filtered.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
+  const paged = filtered.slice((safePage - 1) * pageSize, safePage * pageSize);
 
   const load = () => {
     api.get("/admin/stats").then((r) => setStats(r.data));
@@ -54,11 +54,20 @@ export default function AdminDashboard() {
       <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
         <div className="flex flex-wrap items-center justify-between gap-2 px-4 py-3 border-b">
           <p className="font-bold text-slate-800 text-sm">{t("today_attendance")}</p>
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-            <input data-testid="today-search" value={query} onChange={(e) => { setQuery(e.target.value); setPage(1); }}
-              placeholder={t("search_attendance")}
-              className="w-full sm:w-56 rounded-xl border border-slate-200 pl-9 pr-3 py-2 text-sm outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-600/15 transition" />
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="flex items-center gap-1.5">
+              <span className="text-xs font-semibold text-slate-500">{t("show_entries")}</span>
+              <select data-testid="today-page-size" value={pageSize} onChange={(e) => { setPageSize(Number(e.target.value)); setPage(1); }}
+                className="rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-sm outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-600/15 transition">
+                {[10, 25, 50, 100].map((n) => <option key={n} value={n}>{n}</option>)}
+              </select>
+            </div>
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+              <input data-testid="today-search" value={query} onChange={(e) => { setQuery(e.target.value); setPage(1); }}
+                placeholder={t("search_attendance")}
+                className="w-full sm:w-56 rounded-xl border border-slate-200 pl-9 pr-3 py-2 text-sm outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-600/15 transition" />
+            </div>
           </div>
         </div>
         <div className="overflow-x-auto">
@@ -100,7 +109,7 @@ export default function AdminDashboard() {
         {filtered.length > 0 && (
           <div className="flex items-center justify-between px-4 py-3 border-t bg-slate-50/60">
             <p data-testid="today-page-info" className="text-xs text-slate-500">
-              {(safePage - 1) * PAGE_SIZE + 1}–{Math.min(safePage * PAGE_SIZE, filtered.length)} {t("of")} {filtered.length}
+              {(safePage - 1) * pageSize + 1}–{Math.min(safePage * pageSize, filtered.length)} {t("of")} {filtered.length}
             </p>
             <div className="flex items-center gap-1">
               <button data-testid="today-prev-page" disabled={safePage <= 1} onClick={() => setPage(safePage - 1)}

@@ -28,12 +28,12 @@ export default function Students() {
   const [query, setQuery] = useState("");
   const [page, setPage] = useState(1);
   const [selected, setSelected] = useState(new Set());
-  const PAGE_SIZE = 10;
+  const [pageSize, setPageSize] = useState(10);
   const q = query.trim().toLowerCase();
   const filtered = students.filter((s) => !q || [s.name, s.nis, s.nisn, s.class].some((f) => (f || "").toLowerCase().includes(q)));
-  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
   const safePage = Math.min(page, totalPages);
-  const paged = filtered.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
+  const paged = filtered.slice((safePage - 1) * pageSize, safePage * pageSize);
 
   const enroll = async (photo) => {
     try {
@@ -170,6 +170,14 @@ export default function Students() {
           className="w-full rounded-xl border border-slate-200 bg-white pl-9 pr-3 py-2.5 text-sm outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-600/15 transition" />
       </div>
 
+      <div className="flex items-center gap-2">
+        <span className="text-xs font-semibold text-slate-500">{t("show_entries")}</span>
+        <select data-testid="student-page-size" value={pageSize} onChange={(e) => { setPageSize(Number(e.target.value)); setPage(1); }}
+          className="rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-sm outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-600/15 transition">
+          {[10, 25, 50, 100].map((n) => <option key={n} value={n}>{n}</option>)}
+        </select>
+      </div>
+
       <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
@@ -222,7 +230,7 @@ export default function Students() {
         {filtered.length > 0 && (
           <div className="flex items-center justify-between px-4 py-3 border-t bg-slate-50/60">
             <p data-testid="student-page-info" className="text-xs text-slate-500">
-              {(safePage - 1) * PAGE_SIZE + 1}–{Math.min(safePage * PAGE_SIZE, filtered.length)} {t("of")} {filtered.length}
+              {(safePage - 1) * pageSize + 1}–{Math.min(safePage * pageSize, filtered.length)} {t("of")} {filtered.length}
             </p>
             <div className="flex items-center gap-1">
               <button data-testid="student-prev-page" disabled={safePage <= 1} onClick={() => setPage(safePage - 1)}

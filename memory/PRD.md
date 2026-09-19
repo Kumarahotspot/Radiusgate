@@ -166,6 +166,10 @@ Aplikasi absensi berbasis tablet kiosk + face recognition & liveness, geofence G
 - Endpoint `POST /admin/students/bulk-delete` {ids:[]} (scoped school_id, maks 1000). UI Siswa: checkbox per baris + select-all (per halaman), baris terpilih di-highlight, tombol merah **Hapus Terpilih (N)** muncul di header saat ada seleksi, dengan konfirmasi.
 - i18n: `delete_selected`, `confirm_delete_many`, `deleted_ok` (ID/EN). Terverifikasi: curl (buat 3 → bulk-delete 3 → bersih), screenshot e2e (buat 2 via UI flow → select-all → hapus → "Belum ada data"), tanpa overflow, suite 65/65.
 
+## Update 2026-09-19 (iterasi 26 — dropdown "Tampilkan N entri")
+- Page-size selector (10/25/50/100) di atas tabel Siswa & Guru, dan di header kartu Absensi Hari Ini (Dasbor) — ganti konstanta 10 jadi state `pageSize`, reset ke halaman 1 saat diganti.
+- i18n: `show_entries` (ID "Tampilkan" / EN "Show").
+
 ## Backlog Prioritas
 - P0: Kunci Tripay asli dari user + uji webhook; tablet React Native (kiosk native, embedding cache on-device)
 - P1: Absen siswa (v2), geofence penuh untuk absen via HP pribadi guru
