@@ -5,6 +5,7 @@ import { Toaster } from "sonner";
 import { AuthProvider, useAuth, homeFor } from "@/context/AuthContext";
 import Layout from "@/components/Layout";
 import Login from "@/pages/Login";
+import Landing from "@/pages/Landing";
 import Kiosk from "@/pages/Kiosk";
 import Pay from "@/pages/Pay";
 import OwnerDashboard from "@/pages/owner/OwnerDashboard";
@@ -27,19 +28,13 @@ function Guard({ roles, children }) {
   return children;
 }
 
-function Home() {
-  const { user, loading } = useAuth();
-  if (loading) return <div className="min-h-screen" />;
-  return <Navigate to={user ? homeFor(user.role) : "/login"} replace />;
-}
-
 function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
         <Toaster richColors position="top-center" />
         <Routes>
-          <Route path="/" element={<Home />} />
+          <Route path="/" element={<Landing />} />
           <Route path="/login" element={<Login />} />
           <Route path="/kiosk" element={<Kiosk />} />
           <Route path="/pay/:token" element={<Pay />} />

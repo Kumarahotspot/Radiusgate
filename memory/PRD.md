@@ -190,6 +190,12 @@ Aplikasi absensi berbasis tablet kiosk + face recognition & liveness, geofence G
 - Diproses transparan via **cv2.floodFill dari 4 sudut** (latar putih luar → alpha 0; huruf E putih di dalam tetap opaque — 52K piksel putih utuh), crop + 512px, menimpa `frontend/public/logo.png` & `backend/assets/logo.png`. File kandidat logo-c1..c4 dibersihkan.
 - Semua titik pemasangan otomatis memakai logo baru (path sama). Terverifikasi: PDF invoice render OK, screenshot login & kiosk.
 
+## Update 2026-09-19 (iterasi 31 — landing page publik)
+- Route `/` kini **landing page publik** (`pages/Landing.jsx`, menggantikan redirect Home): navbar glass sticky, hero (tagline, CTA, stat, mockup kiosk CSS dengan animasi scanline), bento grid 8 fitur, cara kerja 3 langkah, section harga teal dengan **kalkulator slider interaktif** (tarif asli Rp 8.000/siswa/bulan), form kontak pilot, footer PT. Pusaka Kreasi Mandiri. Font Plus Jakarta Sans (Google Fonts di index.html). Desain mengikuti `/app/design_guidelines.json`.
+- Backend baru `routes_public.py`: `POST /api/public/leads` (tanpa auth) menyimpan pengajuan pilot ke koleksi `leads`.
+- Terverifikasi: screenshot desktop+mobile (tanpa overflow), curl leads 200 + tersimpan di Mongo, suite 65/65.
+- Catatan: email kontak di landing sementara memakai susyanto@gmail.com — ganti saat ada email/WA resmi perusahaan.
+
 ## Backlog Prioritas
 - P0: Kunci Tripay asli dari user + uji webhook; tablet React Native (kiosk native, embedding cache on-device)
 - P1: Absen siswa (v2), geofence penuh untuk absen via HP pribadi guru

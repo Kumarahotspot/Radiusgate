@@ -1,95 +1,301 @@
 {
-  "app_name": "Absensi Sekolah (SaaS Multi-Tenant)",
-  "app_type": "saas_app_mobile_first_kiosk",
-  "theme_strategy": "Warm Educational Tech & Tactical Minimalist Hybrid (Clean, readable off-white light mode for high-density dashboards + deep graphite high-contrast kiosk mode with biometric overlay)",
-  "default_language": "id",
-  "supported_languages": ["id", "en"],
+  "project_info": {
+    "app_name": "EduGateID",
+    "tagline": "Gerbang Absensi Digital Sekolah Masa Kini",
+    "company": "PT. Pusaka Kreasi Mandiri",
+    "target_audience": "Kepala Sekolah, Yayasan Pendidikan, Admin IT Sekolah, Wakasek Kesiswaan",
+    "primary_language": "Indonesian (Bahasa Indonesia)",
+    "app_type": "Marketing & Public SaaS Landing Page"
+  },
+  "theme": {
+    "mode": "Light (Clean, Trustworthy, Modern EdTech)",
+    "primary_color": "#0f766e",
+    "primary_hover": "#115e59",
+    "secondary_color": "#0d9488",
+    "accent_color": "#10b981",
+    "bg_main": "#f8fafc",
+    "bg_surface": "#ffffff",
+    "bg_teal_light": "#f0fdfa",
+    "text_dark": "#0f172a",
+    "text_muted": "#475569",
+    "border_light": "#e2e8f0",
+    "border_teal_subtle": "#ccfbf1"
+  },
   "typography": {
-    "font_files_format": ".js",
-    "headline_font": "Plus Jakarta Sans, sans-serif",
-    "body_font": "Inter, sans-serif",
-    "mono_font": "JetBrains Mono, monospace",
-    "anti_default_rules": "Do NOT use Inter for main section headings or metric callouts. Use Plus Jakarta Sans (bold/extra-bold, tight tracking -0.02em) for Headings and JetBrains Mono for codes, timestamps, coordinates, and invoices.",
-    "hierarchy": {
-      "h1_hero": "text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight leading-tight",
-      "h2_section": "text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-100",
-      "h3_subsection": "text-lg sm:text-xl font-semibold text-slate-800 dark:text-slate-200",
-      "h4_card_widget": "text-base sm:text-lg font-semibold text-slate-900 dark:text-slate-100",
-      "body_base": "text-sm sm:text-base leading-relaxed text-slate-600 dark:text-slate-300",
-      "caption_mono": "font-mono text-xs uppercase tracking-widest text-slate-500"
+    "font_family": "Plus Jakarta Sans, sans-serif",
+    "headings": {
+      "font_weight": "700/800",
+      "h1": "text-4xl sm:text-5xl lg:text-6xl tracking-tight text-slate-900 font-extrabold",
+      "h2": "text-3xl sm:text-4xl tracking-tight text-slate-900 font-bold",
+      "h3": "text-xl sm:text-2xl font-bold text-slate-800",
+      "h4": "text-lg font-semibold text-slate-800"
+    },
+    "body": {
+      "font_weight": "400/500/600",
+      "standard": "text-base text-slate-600 leading-relaxed",
+      "small": "text-sm text-slate-500 leading-normal"
     }
   },
-  "colors": {
-    "palette_archetype": "ARCHETYPE 1 & 2 HYBRID: Warm Trust & Performance Tactical (Emerald Navy & Emerald Sage)",
-    "primary": "#0F766E",
-    "primary_hover": "#0D9488",
-    "primary_light": "#CCFBF1",
-    "primary_dark": "#115E59",
-    "accent_warning": "#EAB308",
-    "accent_danger": "#EF4444",
-    "accent_success": "#10B981",
-    "kiosk_dark_bg": "#0B1320",
-    "kiosk_surface": "#152238",
-    "dashboard_bg": "#F8FAFC",
-    "dashboard_card": "#FFFFFF",
-    "text_main": "#0F172A",
-    "text_muted": "#64748B",
-    "border_subtle": "#E2E8F0",
-    "forbidden_colors": ["#7351B7", "#1B93A4"],
-    "contrast_rules": "All normal text must meet WCAG AA >= 4.5:1. Never use pure transparent backgrounds on sticky headers, overlays, or dropdowns. Always use backdrop-blur with minimum 80% opacity fill."
+  "navigation": {
+    "header_style": "Sticky Glassmorphic Header (backdrop-blur-md bg-white/80 border-b border-teal-100/60 z-50)",
+    "brand_logo": {
+      "src": "/logo.png",
+      "fallback_badge": "Teal rounded-2xl icon with white 'E' & door symbol + text EduGateID",
+      "alt": "EduGateID Logo"
+    },
+    "nav_links": [
+      { "label": "Fitur Utama", "href": "#fitur", "data_testid": "nav-link-fitur" },
+      { "label": "Cara Kerja", "href": "#cara-kerja", "data_testid": "nav-link-cara-kerja" },
+      { "label": "Harga & Simulasi", "href": "#harga", "data_testid": "nav-link-harga" },
+      { "label": "Demo Kiosk", "href": "#demo-kiosk", "data_testid": "nav-link-demo" },
+      { "label": "Kontak", "href": "#kontak", "data_testid": "nav-link-kontak" }
+    ],
+    "action_buttons": [
+      { "label": "Mode Kiosk", "path": "/kiosk", "variant": "outline", "data_testid": "nav-kiosk-button" },
+      { "label": "Masuk Portal", "path": "/login", "variant": "primary", "data_testid": "nav-login-button" }
+    ]
   },
-  "visual_enhancers": {
-    "glassmorphism": "backdrop-blur-md bg-white/90 dark:bg-slate-900/90 border border-slate-200/60 dark:border-slate-800/60 shadow-sm",
-    "kiosk_camera_view": "relative overflow-hidden rounded-3xl border-2 border-teal-500/50 shadow-[0_0_30px_rgba(15,118,110,0.2)] bg-black",
-    "face_recognition_overlay": "absolute inset-0 border-2 border-dashed border-teal-400/70 rounded-full animate-pulse flex items-center justify-center",
-    "geofence_status_badge": "inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold tracking-wide",
-    "invoice_badge": "inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium"
-  },
-  "layouts": {
-    "dashboard_grid": "grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6",
-    "kiosk_mobile_layout": "max-w-md mx-auto min-h-screen flex flex-col justify-between p-4 sm:p-6 bg-slate-950 text-white",
-    "sidebar_navigation": "fixed lg:static inset-y-0 left-0 z-40 w-64 bg-slate-900 text-slate-100 flex flex-col justify-between border-r border-slate-800"
-  },
-  "grids": {
-    "bento_dashboard": "grid grid-cols-1 md:grid-cols-8 lg:grid-cols-12 gap-6",
-    "bento_spans": {
-      "hero_stat": "col-span-full md:col-span-8 lg:col-span-8",
-      "side_feed": "col-span-full md:col-span-4 lg:col-span-4",
-      "quarter_card": "col-span-full md:col-span-4 lg:col-span-3",
-      "half_card": "col-span-full md:col-span-4 lg:col-span-6"
+  "hero_section": {
+    "badge": "🚀 Solusi Absensi AI Multi-Tenant Sekolah Masa Kini",
+    "title_headline": "Gerbang Absensi Digital Sekolah Masa Kini",
+    "subtitle": "Sistem presensi siswa berbasis Pengenalan Wajah ArcFace & Liveness Detection. Cepat, akurat, hemat biaya, dan terintegrasi otomatis dengan laporan serta penagihan per-siswa.",
+    "cta_primary": {
+      "label": "Daftar Pilot Sekolah",
+      "target": "#kontak",
+      "data_testid": "hero-cta-pilot"
+    },
+    "cta_secondary": {
+      "label": "Coba Demo Kiosk Web",
+      "target": "/kiosk",
+      "data_testid": "hero-cta-kiosk-demo"
+    },
+    "stat_highlights": [
+      { "value": "99.8%", "label": "Akurasi Wajah ArcFace" },
+      { "value": "< 1 Detik", "label": "Kecepatan Presensi" },
+      { "value": "100%", "label": "Dukungan Sync Offline" },
+      { "value": "Rp 0", "label": "Biaya Alat Khusus (Pakai HP/Tablet)" }
+    ],
+    "hero_visual_mockup": {
+      "type": "Interactive Kiosk Scanner Card Mockup",
+      "components": [
+        "Camera Viewfinder with Scanning Grid Animation",
+        "Liveness Detection Meter (Anti-Spoof Check)",
+        "Realtime Student Face Recognition Card Badge",
+        "Voice Feedback Waves Indicator ('Terima kasih, Budi!')"
+      ]
     }
   },
-  "motion": {
-    "hover_lift": "transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-md",
-    "face_scan_laser": "animate-[scan_2.5s_ease-in-out_infinite]",
-    "toast_sonner": "Use sonner for instant feedback on offline sync, face recognition match, and invoice generation",
-    "accessibility_motion": "Respect prefers-reduced-motion CSS media query across all animations."
+  "features_bento_grid": {
+    "section_title": "Fitur Canggih Didesain Khusus Sekolah Indonesia",
+    "section_subtitle": "Semua yang dibutuhkan sekolah dalam satu platform absensi digital yang responsif dan aman.",
+    "items": [
+      {
+        "id": "arcface-liveness",
+        "title": "Face Recognition ArcFace + Anti-Spoofing Liveness",
+        "description": "Deteksi wajah AI tingkat lanjut yang mengenali siswa kurang dari 1 detik dan mencegah manipulasi presensi menggunakan foto atau video HP.",
+        "icon": "ScanFace",
+        "span": "col-span-1 md:col-span-2 lg:col-span-2",
+        "badge": "Keamanan AI"
+      },
+      {
+        "id": "gps-geofence",
+        "title": "GPS Geofence Smart Radius",
+        "description": "Memastikan absensi hanya dapat dilakukan dalam area sekolah yang valid, sangat cocok untuk siswa & guru.",
+        "icon": "MapPin",
+        "span": "col-span-1 md:col-span-1 lg:col-span-1",
+        "badge": "Akurasi Lokasi"
+      },
+      {
+        "id": "offline-sync",
+        "title": "Offline-First Sync Engine",
+        "description": "Jaringan sekolah tidak stabil? Tidak masalah. Absensi tetap berjalan 100% offline dan akan tersinkron otomatis saat internet terhubung.",
+        "icon": "WifiOff",
+        "span": "col-span-1 md:col-span-1 lg:col-span-1",
+        "badge": "Jaminan Standby"
+      },
+      {
+        "id": "kiosk-web",
+        "title": "Mode Kiosk Web Smartphone & Tablet",
+        "description": "Ubah tablet Android/iPad atau HP sekolah menjadi mesin absensi canggih tanpa perlu membeli hardware mahal berlisensi.",
+        "icon": "Tablet",
+        "span": "col-span-1 md:col-span-2 lg:col-span-2",
+        "badge": "Hemat Biaya"
+      },
+      {
+        "id": "auto-billing",
+        "title": "Billing Otomatis Per-Siswa",
+        "description": "Perhitungan biaya berlangganan sekolah dihitung transparan per jumlah siswa aktif bulanan.",
+        "icon": "Receipt",
+        "span": "col-span-1 md:col-span-1 lg:col-span-1",
+        "badge": "Per-Siswa"
+      },
+      {
+        "id": "pdf-invoice-wa",
+        "title": "Invoice PDF via Email & WhatsApp",
+        "description": "Tagihan sekolah dan ringkasan kehadiran terkirim otomatis dalam format PDF langsung ke email admin & WhatsApp resmi orang tua.",
+        "icon": "Send",
+        "span": "col-span-1 md:col-span-1 lg:col-span-1",
+        "badge": "Otomasi WA"
+      },
+      {
+        "id": "bilingual-support",
+        "title": "Dwibahasa ID / EN",
+        "description": "Dukungan penuh Bahasa Indonesia dan Bahasa Inggris untuk sekolah nasional maupun sekolah internasional.",
+        "icon": "Languages",
+        "span": "col-span-1 md:col-span-1 lg:col-span-1",
+        "badge": "Bilingual"
+      },
+      {
+        "id": "voice-feedback",
+        "title": "Umpan Balik Suara (Voice Audio)",
+        "description": "Sapaan suara ramah real-time ('Presensi Berhasil, Selamat Pagi!') yang memberi konfirmasi langsung bagi siswa dan petugas sekolah.",
+        "icon": "Volume2",
+        "span": "col-span-1 md:col-span-1 lg:col-span-1",
+        "badge": "Audio Realtime"
+      }
+    ]
   },
-  "accessibility": {
-    "data_testid_requirement": "CRITICAL: Every interactive button, input, toggle, table row, dropdown, and tab MUST have a role-based kebab-case data-testid attribute (e.g. data-testid='kiosk-check-in-button', data-testid='tenant-school-select').",
-    "voice_feedback": "Provide web SpeechSynthesis voice feedback in Indonesian ('Absensi berhasil', 'Wajah tidak cocok', 'Liveness gagal', 'Diluar lokasi sekolah') with mute/unmute audio button."
+  "how_it_works": {
+    "section_title": "3 Langkah Mudah Menerapkan EduGateID",
+    "steps": [
+      {
+        "step_number": "01",
+        "title": "Enroll Wajah Siswa",
+        "description": "Admin sekolah mendaftarkan data siswa dan mengambil sampel foto wajah pertama melalui portal admin.",
+        "icon": "UserPlus"
+      },
+      {
+        "step_number": "02",
+        "title": "Absen Mandiri di Kiosk",
+        "description": "Siswa berdiri di depan tablet kiosk sekolah. Dalam sekedipan mata, AI memverifikasi liveness & identitas siswa.",
+        "icon": "Camera"
+      },
+      {
+        "step_number": "03",
+        "title": "Laporan & Tagihan Otomatis",
+        "description": "Data rekap presensi langsung dapat diakses wali kelas, wali murid, dan invoice berlangganan sekolah terproses otomatis.",
+        "icon": "FileCheck"
+      }
+    ]
   },
-  "media": {
-    "image_urls": {
-      "kiosk_student_1": "https://images.pexels.com/photos/36005723/pexels-photo-36005723.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
-      "kiosk_student_2": "https://images.pexels.com/photos/7548729/pexels-photo-7548729.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
-      "school_banner": "https://images.unsplash.com/photo-1525829528215-ffae12a76ac8?crop=entropy&cs=srgb&fm=jpg&q=85",
-      "avatar_placeholder": "https://images.unsplash.com/photo-1515351029128-8a8d584ab6b6?crop=entropy&cs=srgb&fm=jpg&q=85"
+  "pricing_and_calculator": {
+    "section_title": "Harga Berlangganan Transparan Per-Siswa",
+    "section_subtitle": "Tanpa biaya tersembunyi. Dapatkan tarif khusus pilot multi-tenant untuk sekolah Anda.",
+    "base_rate_per_student": 2500,
+    "currency": "Rp",
+    "billing_period": "bulan / siswa",
+    "plans": [
+      {
+        "name": "Paket Pilot Sekolah",
+        "target": "Untuk Uji Coba (Max 150 Siswa)",
+        "price": "Rp 2.500",
+        "period": "/ siswa / bulan",
+        "features": [
+          "Presensi Wajah ArcFace + Liveness",
+          "Kiosk Web Mode Unlimited Device",
+          "Sync Offline Standby",
+          "Laporan Presensi Harian (Excel/PDF)",
+          "Dukungan WhatsApp Support Group"
+        ],
+        "highlight": false,
+        "cta_label": "Mulai Pilot Gratis",
+        "data_testid": "pricing-plan-pilot"
+      },
+      {
+        "name": "Paket Multi-Tenant Standar",
+        "target": "Untuk Sekolah Reguler (150 - 1000+ Siswa)",
+        "price": "Rp 2.000",
+        "period": "/ siswa / bulan",
+        "features": [
+          "Semua Fitur Paket Pilot",
+          "Notifikasi WhatsApp Otomatis Ortu",
+          "Billing & Invoicing PDF Otomatis",
+          "Manajemen Multi-Kelas & Multi-Shift",
+          "Dedicated Account Manager",
+          "Prioritas Integrasi Dapodik/EMIS"
+        ],
+        "highlight": true,
+        "badge": "Paling Populer",
+        "cta_label": "Pilih Paket Standar",
+        "data_testid": "pricing-plan-standard"
+      },
+      {
+        "name": "Paket Yayasan / Multi-Sekolah",
+        "target": "Untuk Yayasan Pendidikan / Kompleks Sekolah",
+        "price": "Custom",
+        "period": "/ penawaran khusus",
+        "features": [
+          "Satu Dashboard Terpusat Multi-Sekolah",
+          "Kustomisasi Branding & Domain Sekolah",
+          "Multi-Tenant Tenant Isolation Server",
+          "SLA Uptime 99.9%",
+          "Pelatihan On-site untuk Staf Guru"
+        ],
+        "highlight": false,
+        "cta_label": "Hubungi Tim Penjualan",
+        "data_testid": "pricing-plan-enterprise"
+      }
+    ],
+    "interactive_calculator": {
+      "enabled": true,
+      "min_students": 50,
+      "max_students": 2500,
+      "step": 25,
+      "default_students": 300,
+      "unit_price_under_500": 2500,
+      "unit_price_above_500": 2000
     }
   },
-  "3d_libraries": {
-    "recommendation": "Use lightweight SVG dynamic radar / canvas liveness ring instead of heavy WebGL to guarantee fast load on mid-range school smartphones & tablet kiosks."
+  "interactive_demo_simulator": {
+    "title": "Simulasi Mode Kiosk Interaktif",
+    "subtitle": "Uji coba langsung bagaimana AI EduGateID mengenali sampel wajah presensi siswa secara real-time.",
+    "data_testid": "interactive-demo-section"
   },
-  "UNIVERSAL GUIDELINES FOR MAIN AGENT": [
-    "You MUST write clean .js files using React components and standard Tailwind classes.",
-    "Do NOT use Inter for main titles or primary metrics. Use Plus Jakarta Sans.",
-    "Always support both ID (Bahasa Indonesia) and EN (English) via a clean header language toggle component.",
-    "Default language MUST be Bahasa Indonesia ('id').",
-    "Every page MUST contain clear layout headers, responsive mobile navigation, and active role switchers (Platform Owner, School Admin, Teacher, Kiosk Mode).",
-    "Kiosk Mode MUST be mobile-first optimized for vertical phone viewports (100vh height layout, touch friendly controls).",
-    "All forms and interactive inputs MUST use data-testid attributes.",
-    "Do NOT use full transparent backgrounds on menus, overlays, or popovers.",
-    "Include Tripay payment simulator dialog & automatic PDF/WhatsApp invoice trigger feedback in billing sections."
-  ],
-  "instructions_to_main_agent": "Read this design_guidelines.json configuration to apply exact theme tokens, font rules, layout structures, and test attributes across all SaaS views (Platform Owner, School Admin, Teacher Portal, Mobile Kiosk, and Billing/Tripay)."
+  "contact_section": {
+    "title": "Daftarkan Sekolah Anda Dalam Program Pilot Multi-Tenant",
+    "subtitle": "Isi formulir di bawah ini dan tim PT. Pusaka Kreasi Mandiri akan segera menghubungi Anda.",
+    "company_info": {
+      "name": "PT. Pusaka Kreasi Mandiri",
+      "email": "info@edugate.id",
+      "phone_wa": "+62 812-3456-7890",
+      "address": "Jakarta, Indonesia"
+    },
+    "form_fields": [
+      { "name": "school_name", "label": "Nama Sekolah / Yayasan", "type": "text", "placeholder": "contoh: SMA Negeri 1 Jakarta", "data_testid": "contact-input-school" },
+      { "name": "contact_person", "label": "Nama Penanggung Jawab", "type": "text", "placeholder": "Nama & Jabatan (misal: Bpk. Ahmad, Head of IT)", "data_testid": "contact-input-name" },
+      { "name": "email", "label": "Email Resmi Sekolah", "type": "email", "placeholder": "admin@sekolah.sch.id", "data_testid": "contact-input-email" },
+      { "name": "phone", "label": "Nomor WhatsApp", "type": "tel", "placeholder": "0812xxxxxxxx", "data_testid": "contact-input-phone" },
+      { "name": "student_count", "label": "Perkiraan Jumlah Siswa", "type": "number", "placeholder": "contoh: 450", "data_testid": "contact-input-count" },
+      { "name": "message", "label": "Pesan / Pertanyaan Tambahan", "type": "textarea", "placeholder": "Sebutkan kebutuhan khusus sekolah Anda...", "data_testid": "contact-input-message" }
+    ],
+    "submit_button": {
+      "label": "Kirim Pengajuan Pilot",
+      "data_testid": "contact-submit-button"
+    }
+  },
+  "footer": {
+    "company_name": "PT. Pusaka Kreasi Mandiri",
+    "app_name": "EduGateID",
+    "tagline": "Gerbang Absensi Digital Sekolah Masa Kini",
+    "copyright": "© 2026 PT. Pusaka Kreasi Mandiri. All rights reserved.",
+    "links": [
+      { "label": "Fitur", "href": "#fitur" },
+      { "label": "Harga", "href": "#harga" },
+      { "label": "Cara Kerja", "href": "#cara-kerja" },
+      { "label": "Login Administrator", "href": "/login" },
+      { "label": "Mode Kiosk Sekolah", "href": "/kiosk" }
+    ]
+  },
+  "image_urls": {
+    "indonesian_classroom": "https://images.pexels.com/photos/35548841/pexels-photo-35548841.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+    "students_study_group": "https://images.pexels.com/photos/31940733/pexels-photo-31940733.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+    "tablet_face_recognition": "https://images.unsplash.com/photo-1612888077748-00e3a1bd7aad?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NTYxNzV8MHwxfHNlYXJjaHwzfHx0YWJsZXQlMjBmYWNlJTIwc2NhbiUyMGZhY2lhbCUyMHJlY29nbml0aW9uJTIwdGVjaG5vbG9neXxlbnwwfHx8fDE3ODk4MTUzOTh8MA&ixlib=rb-4.1.0&q=85",
+    "face_scan_laser_tech": "https://images.pexels.com/photos/8090302/pexels-photo-8090302.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+    "student_with_laptop": "https://images.unsplash.com/photo-1729821728588-1a10b3ae6083?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NDQ2NDF8MHwxfHNlYXJjaHwzfHxpbmRvbmVzaWFuJTIwc2Nob29sJTIwc3R1ZGVudHMlMjBjbGFzc3Jvb20lMjBmYWNlJTIwcmVjb2duaXRpb24lMjB0YWJsZXR8ZW58MHx8fHwxNzg5ODE1MzkyfDA&ixlib=rb-4.1.0&q=85"
+  },
+  "testing_and_accessibility": {
+    "data_testid_convention": "kebab-case, role-based, clear context",
+    "aria_labels": "All interactive buttons and inputs must have meaningful aria-labels",
+    "contrast_ratio": "APCA Compliant, text-slate-900 on white/slate-50 background"
+  }
 }
