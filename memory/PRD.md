@@ -337,3 +337,8 @@ Aplikasi absensi berbasis tablet kiosk + face recognition & liveness, geofence G
 - kiosk_success (ID): "Absen berhasil" -> "Presensi berhasil".
 - kiosk_welcome (ID): -> "Selamat beraktivitas dan jangan lupa berdoa".
 - Hasil suara absen masuk: "Presensi berhasil. [Nama]. Selamat beraktivitas dan jangan lupa berdoa." (pulang tetap "Hati-hati di jalan").
+
+## 2026-09-20 — Sapaan voice absen pulang dipisah
+- Key baru kiosk_success_out (ID: "Presensi pulang berhasil" / EN: "Check-out recorded").
+- kiosk_goodbye (ID): -> "Sampai jumpa besok, hati-hati di jalan" (EN: "See you tomorrow, safe trip home").
+- Kiosk.jsx: suara absen pulang kini "Presensi pulang berhasil. [Nama]. Sampai jumpa besok, hati-hati di jalan."
