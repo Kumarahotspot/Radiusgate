@@ -53,6 +53,8 @@ class SchoolIn(BaseModel):
     admin_password: str
     rate_per_student: int = 8000
     student_count_manual: int | None = None
+    school_type: str = ""
+    majors: list[str] = []
 
 
 class SchoolPatch(BaseModel):
@@ -103,7 +105,13 @@ async def create_school(body: SchoolIn, user: dict = Depends(owner_dep)):
         "kiosk_token": "KIOSK-" + uuid.uuid4().hex[:8].upper(), "created_at": now_iso(),
     }
     await db.schools.insert_one(school)
-    await db.settings.insert_one({"school_id": sid, "work_start": "07:00", "work_end": "15:00", "late_tolerance_min": 10, "early_checkin_min": 60, "timezone": "Asia/Jakarta"})
+    st_doc = {"school_id": sid, "work_start": "07:00", "work_end": "15:00", "late_tolerance_min": 10, "early_checkin_min": 60, "timezone": "Asia/Jakarta"}
+    if body.school_type:
+        st_doc["school_type"] = body.school_type
+    majors = [m.strip() for m in body.majors if m.strip()]
+    if majors:
+        st_doc["major_list"] = majors
+    await db.settings.insert_one(st_doc)
     await db.users.insert_one({
         "id": str(uuid.uuid4()), "email": body.admin_email.lower(), "name": body.admin_name,
         "role": "school_admin", "password_hash": hash_password(body.admin_password),

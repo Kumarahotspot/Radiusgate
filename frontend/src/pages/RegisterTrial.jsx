@@ -3,10 +3,11 @@ import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import api, { errMsg } from "../api";
 import { CheckCircle2 } from "lucide-react";
+import { SCHOOL_TYPES, MAJOR_OPTIONS } from "../schoolTemplates";
 
 export default function RegisterTrial() {
   const { t } = useTranslation();
-  const [form, setForm] = useState({ school_name: "", admin_name: "", email: "", password: "", student_count: "" });
+  const [form, setForm] = useState({ school_name: "", admin_name: "", email: "", password: "", student_count: "", school_type: "", majors: [], majorOther: "" });
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(null);
   const [done, setDone] = useState(false);
@@ -16,7 +17,12 @@ export default function RegisterTrial() {
     setBusy(true);
     setError(null);
     try {
-      await api.post("/auth/register-trial", { ...form, student_count: form.student_count ? Number(form.student_count) : null });
+      const majors = [...form.majors, ...form.majorOther.split(",").map((s) => s.trim()).filter(Boolean)];
+      await api.post("/auth/register-trial", {
+        school_name: form.school_name, admin_name: form.admin_name, email: form.email, password: form.password,
+        student_count: form.student_count ? Number(form.student_count) : null,
+        school_type: form.school_type, majors,
+      });
       setDone(true);
     } catch (err) { setError(errMsg(err)); } finally { setBusy(false); }
   };
@@ -58,6 +64,34 @@ export default function RegisterTrial() {
               <F k="email" label={t("email")} type="email" testid="register-email" />
               <F k="password" label={t("password")} type="password" testid="register-password" />
               <F k="student_count" label={t("student_count")} type="number" testid="register-student-count" req={false} />
+              <div>
+                <label className="text-xs font-semibold text-slate-400 uppercase tracking-wide">{t("school_type")}</label>
+                <select data-testid="register-school-type" value={form.school_type}
+                  onChange={(e) => setForm({ ...form, school_type: e.target.value, majors: [] })}
+                  className="mt-1.5 w-full rounded-xl bg-white/5 border border-white/10 px-4 py-3 text-white text-sm outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 transition">
+                  <option value="" className="text-slate-800">—</option>
+                  {SCHOOL_TYPES.map((st) => <option key={st} value={st} className="text-slate-800">{st}</option>)}
+                </select>
+              </div>
+              {(form.school_type === "SMA" || form.school_type === "SMK") && (
+                <div>
+                  <label className="text-xs font-semibold text-slate-400 uppercase tracking-wide">{t("majors")}</label>
+                  <p className="text-[11px] text-slate-500 mt-0.5">{t("majors_pick_hint")}</p>
+                  <div data-testid="register-majors" className="mt-1.5 max-h-36 overflow-y-auto rounded-xl bg-white/5 border border-white/10 p-3 grid grid-cols-2 sm:grid-cols-3 gap-2">
+                    {(MAJOR_OPTIONS[form.school_type] || []).map((m) => (
+                      <label key={m} className="flex items-center gap-2 text-sm text-slate-200 cursor-pointer">
+                        <input type="checkbox" data-testid={`register-major-${m}`} checked={form.majors.includes(m)}
+                          onChange={() => setForm({ ...form, majors: form.majors.includes(m) ? form.majors.filter((x) => x !== m) : [...form.majors, m] })}
+                          className="accent-teal-500 w-4 h-4" />
+                        {m}
+                      </label>
+                    ))}
+                  </div>
+                  <input data-testid="register-major-other" value={form.majorOther} placeholder={t("majors_other")}
+                    onChange={(e) => setForm({ ...form, majorOther: e.target.value })}
+                    className="mt-2 w-full rounded-xl bg-white/5 border border-white/10 px-4 py-2.5 text-white text-sm outline-none focus:border-teal-500 transition" />
+                </div>
+              )}
               {error && <p data-testid="register-error" className="text-red-400 text-sm">{error}</p>}
               <button data-testid="register-submit" disabled={busy}
                 className="w-full bg-teal-600 hover:bg-teal-500 text-white font-bold rounded-xl py-3 text-sm transition-colors disabled:opacity-50">

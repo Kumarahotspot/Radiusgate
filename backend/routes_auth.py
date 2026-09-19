@@ -108,6 +108,8 @@ class TrialIn(BaseModel):
     email: EmailStr
     password: str
     student_count: int | None = None
+    school_type: str = ""
+    majors: list[str] = []
 
 
 @router.post("/auth/register-trial")
@@ -126,8 +128,14 @@ async def register_trial(body: TrialIn):
         "kiosk_token": "KIOSK-" + uuid.uuid4().hex[:8].upper(),
         "trial": True, "trial_ends_at": trial_ends, "created_at": now_iso(),
     })
-    await db.settings.insert_one({"school_id": sid, "work_start": "07:00", "work_end": "15:00",
-                                  "late_tolerance_min": 10, "early_checkin_min": 60, "timezone": "Asia/Jakarta"})
+    st_doc = {"school_id": sid, "work_start": "07:00", "work_end": "15:00",
+              "late_tolerance_min": 10, "early_checkin_min": 60, "timezone": "Asia/Jakarta"}
+    if body.school_type:
+        st_doc["school_type"] = body.school_type
+    majors = [m.strip() for m in body.majors if m.strip()]
+    if majors:
+        st_doc["major_list"] = majors
+    await db.settings.insert_one(st_doc)
     await db.users.insert_one({
         "id": str(uuid.uuid4()), "email": body.email.lower(), "name": body.admin_name,
         "role": "school_admin", "password_hash": hash_password(body.password),
@@ -136,6 +144,7 @@ async def register_trial(body: TrialIn):
     await db.leads.insert_one({
         "id": str(uuid.uuid4()), "school_name": body.school_name, "contact_person": body.admin_name,
         "email": body.email.lower(), "phone": "", "student_count": body.student_count,
+        "school_type": body.school_type, "majors": majors,
         "message": "Mendaftar self-service trial", "source": "self_service_trial",
         "status": "new", "school_id": sid, "created_at": now_iso(),
     })

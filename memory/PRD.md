@@ -382,3 +382,9 @@ Aplikasi absensi berbasis tablet kiosk + face recognition & liveness, geofence G
 - Template: SD (Kelas 1-6 + mapel umum SD), SMP (7-9), SMA (X-XII + IPA/IPS/Bahasa), SMK (X-XII + TKJ/RPL/TKR/TBSM/AKL/BDP + mapel umum & produktif).
 - Sekolah demo diset SMK (data riil user: kelas X TKJ/TAV/TB, mapel produktif TAV/Boga).
 - Terverifikasi: rename/hapus jurusan via API, template merge via UI, pytest 79 passed / 1 skipped, mobile OK.
+
+## 2026-09-20 — Tipe Sekolah & Jurusan sejak pendaftaran
+- schoolTemplates.js (baru): SCHOOL_TYPES + MAJOR_OPTIONS (SMA: IPA/IPS/Bahasa; SMK: TKJ/RPL/TAV/TITL/TKR/TBSM/TPM/AKL/BDP/Tata Boga/Tata Busana/Multimedia/DKV/Perhotelan/Farmasi/Keperawatan/MPLB).
+- Backend: TrialIn & SchoolIn terima school_type + majors; settings sekolah baru langsung berisi school_type + major_list; lead trial mencatat tipe & jurusan.
+- Frontend: halaman /daftar (trial), modal "Jadikan Sekolah" (OwnerLeads, prefill dari lead), dan form Buat Sekolah (OwnerDashboard) semua punya dropdown Tipe Sekolah + checklist Jurusan (muncul hanya untuk SMA/SMK) + input "Jurusan lain". Tenant baru otomatis hanya melihat jurusan yang dipilih saat pendaftaran.
+- Terverifikasi: e2e register-trial (settings bertipe SMK + jurusan tersimpan, lead tercatat, cleanup bersih), UI /daftar & owner form (checklist muncul/hilang sesuai tipe), pytest 79 passed / 1 skipped, mobile OK.

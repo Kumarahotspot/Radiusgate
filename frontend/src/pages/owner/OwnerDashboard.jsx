@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import api, { errMsg } from "../../api";
 import { School, Users, GraduationCap, FileWarning, Plus, Trash2, Copy, Pencil, Link2 } from "lucide-react";
+import { SCHOOL_TYPES, MAJOR_OPTIONS } from "../../schoolTemplates";
 
 const rupiah = (n) => `Rp ${Number(n || 0).toLocaleString("id-ID")}`;
 
@@ -11,7 +12,7 @@ export default function OwnerDashboard() {
   const [ov, setOv] = useState(null);
   const [schools, setSchools] = useState([]);
   const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState({ name: "", address: "", phone: "", admin_name: "", admin_email: "", admin_password: "", rate_per_student: 8000, student_count_manual: "" });
+  const [form, setForm] = useState({ name: "", address: "", phone: "", admin_name: "", admin_email: "", admin_password: "", rate_per_student: 8000, student_count_manual: "", school_type: "", majors: [], majorOther: "" });
   const [busy, setBusy] = useState(false);
   const [editFor, setEditFor] = useState(null);
 
@@ -43,14 +44,17 @@ export default function OwnerDashboard() {
     e.preventDefault();
     setBusy(true);
     try {
+      const majors = [...form.majors, ...form.majorOther.split(",").map((s) => s.trim()).filter(Boolean)];
       await api.post("/owner/schools", {
-        ...form,
+        name: form.name, address: form.address, phone: form.phone,
+        admin_name: form.admin_name, admin_email: form.admin_email, admin_password: form.admin_password,
         rate_per_student: Number(form.rate_per_student),
         student_count_manual: form.student_count_manual ? Number(form.student_count_manual) : null,
+        school_type: form.school_type, majors,
       });
       toast.success(t("save"));
       setShowForm(false);
-      setForm({ name: "", address: "", phone: "", admin_name: "", admin_email: "", admin_password: "", rate_per_student: 8000, student_count_manual: "" });
+      setForm({ name: "", address: "", phone: "", admin_name: "", admin_email: "", admin_password: "", rate_per_student: 8000, student_count_manual: "", school_type: "", majors: [], majorOther: "" });
       load();
     } catch (err) { toast.error(errMsg(err)); } finally { setBusy(false); }
   };
@@ -95,6 +99,34 @@ export default function OwnerDashboard() {
           <Field label={t("phone")} testid="school-phone" value={form.phone} onChange={(v) => setForm({ ...form, phone: v })} />
           <Field label={t("rate")} testid="school-rate" type="number" value={form.rate_per_student} onChange={(v) => setForm({ ...form, rate_per_student: v })} required />
           <Field label={t("student_count_manual")} testid="school-students-manual" type="number" value={form.student_count_manual} onChange={(v) => setForm({ ...form, student_count_manual: v })} />
+          <div>
+            <label className="text-xs font-semibold text-slate-500">{t("school_type")}</label>
+            <select data-testid="school-type" value={form.school_type}
+              onChange={(e) => setForm({ ...form, school_type: e.target.value, majors: [] })}
+              className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm bg-white outline-none focus:border-teal-600">
+              <option value="">—</option>
+              {SCHOOL_TYPES.map((st) => <option key={st} value={st}>{st}</option>)}
+            </select>
+          </div>
+          {(form.school_type === "SMA" || form.school_type === "SMK") && (
+            <div className="sm:col-span-2">
+              <label className="text-xs font-semibold text-slate-500">{t("majors")}</label>
+              <p className="text-[11px] text-slate-400 mt-0.5">{t("majors_pick_hint")}</p>
+              <div data-testid="school-majors" className="mt-1 max-h-32 overflow-y-auto rounded-xl border border-slate-200 p-3 grid grid-cols-2 sm:grid-cols-4 gap-2">
+                {(MAJOR_OPTIONS[form.school_type] || []).map((m) => (
+                  <label key={m} className="flex items-center gap-2 text-sm text-slate-700 cursor-pointer">
+                    <input type="checkbox" data-testid={`school-major-${m}`} checked={form.majors.includes(m)}
+                      onChange={() => setForm({ ...form, majors: form.majors.includes(m) ? form.majors.filter((x) => x !== m) : [...form.majors, m] })}
+                      className="accent-teal-700 w-4 h-4" />
+                    {m}
+                  </label>
+                ))}
+              </div>
+              <input data-testid="school-major-other" value={form.majorOther} placeholder={t("majors_other")}
+                onChange={(e) => setForm({ ...form, majorOther: e.target.value })}
+                className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-teal-600" />
+            </div>
+          )}
           <div className="sm:col-span-2 border-t pt-4">
             <p className="text-xs font-bold text-slate-500 uppercase tracking-wide mb-3">{t("admin_account")}</p>
             <div className="grid sm:grid-cols-3 gap-4">

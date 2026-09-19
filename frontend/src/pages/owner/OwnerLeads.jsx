@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import api, { errMsg } from "@/api";
 import { School } from "lucide-react";
+import { SCHOOL_TYPES, MAJOR_OPTIONS } from "@/schoolTemplates";
 
 const LEAD_STATUS = {
   new: "bg-sky-100 text-sky-700 border-sky-200",
@@ -34,16 +35,20 @@ export default function OwnerLeads() {
     name: l.school_name, address: "", phone: l.phone || "",
     admin_name: l.contact_person, admin_email: l.email, admin_password: "",
     rate_per_student: 8000, student_count_manual: l.student_count ?? "",
+    school_type: l.school_type || "", majors: l.majors || [], majorOther: "",
   });
 
   const convert = async (e) => {
     e.preventDefault();
     setBusy(true);
     try {
+      const majors = [...convertFor.majors, ...(convertFor.majorOther || "").split(",").map((s) => s.trim()).filter(Boolean)];
       await api.post("/owner/schools", {
-        ...convertFor,
+        name: convertFor.name, address: convertFor.address, phone: convertFor.phone,
+        admin_name: convertFor.admin_name, admin_email: convertFor.admin_email, admin_password: convertFor.admin_password,
         rate_per_student: Number(convertFor.rate_per_student),
         student_count_manual: convertFor.student_count_manual ? Number(convertFor.student_count_manual) : null,
+        school_type: convertFor.school_type, majors,
       });
       toast.success(t("updated_ok"));
       setConvertFor(null);
@@ -112,6 +117,34 @@ export default function OwnerLeads() {
             <div className="sm:col-span-2"><CField label={t("address")} testid="convert-school-address" value={convertFor.address} onChange={(v) => setConvertFor({ ...convertFor, address: v })} /></div>
             <CField label={t("rate")} testid="convert-school-rate" type="number" value={convertFor.rate_per_student} onChange={(v) => setConvertFor({ ...convertFor, rate_per_student: v })} required />
             <CField label={t("student_count_manual")} testid="convert-school-students" type="number" value={convertFor.student_count_manual} onChange={(v) => setConvertFor({ ...convertFor, student_count_manual: v })} />
+            <div>
+              <label className="text-xs font-semibold text-slate-500">{t("school_type")}</label>
+              <select data-testid="convert-school-type" value={convertFor.school_type}
+                onChange={(e) => setConvertFor({ ...convertFor, school_type: e.target.value, majors: [] })}
+                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm bg-white outline-none focus:border-teal-600">
+                <option value="">—</option>
+                {SCHOOL_TYPES.map((st) => <option key={st} value={st}>{st}</option>)}
+              </select>
+            </div>
+            {(convertFor.school_type === "SMA" || convertFor.school_type === "SMK") && (
+              <div className="sm:col-span-2">
+                <label className="text-xs font-semibold text-slate-500">{t("majors")}</label>
+                <p className="text-[11px] text-slate-400 mt-0.5">{t("majors_pick_hint")}</p>
+                <div data-testid="convert-majors" className="mt-1 max-h-32 overflow-y-auto rounded-xl border border-slate-200 p-3 grid grid-cols-2 sm:grid-cols-4 gap-2">
+                  {[...new Set([...(MAJOR_OPTIONS[convertFor.school_type] || []), ...convertFor.majors])].map((m) => (
+                    <label key={m} className="flex items-center gap-2 text-sm text-slate-700 cursor-pointer">
+                      <input type="checkbox" data-testid={`convert-major-${m}`} checked={convertFor.majors.includes(m)}
+                        onChange={() => setConvertFor({ ...convertFor, majors: convertFor.majors.includes(m) ? convertFor.majors.filter((x) => x !== m) : [...convertFor.majors, m] })}
+                        className="accent-teal-700 w-4 h-4" />
+                      {m}
+                    </label>
+                  ))}
+                </div>
+                <input data-testid="convert-major-other" value={convertFor.majorOther} placeholder={t("majors_other")}
+                  onChange={(e) => setConvertFor({ ...convertFor, majorOther: e.target.value })}
+                  className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-teal-600" />
+              </div>
+            )}
             <div className="sm:col-span-2 border-t pt-4">
               <p className="text-xs font-bold text-slate-500 uppercase tracking-wide mb-3">{t("admin_account")}</p>
               <div className="grid sm:grid-cols-3 gap-4">
