@@ -279,3 +279,9 @@ Aplikasi absensi berbasis tablet kiosk + face recognition & liveness, geofence G
 - WEBHOOK_CRON_SECRET ditambahkan di backend/.env (jangan commit).
 - Insiden data: guru demo (Budi + user, Susiyanto) & siswa demo NIS 10001-10003 pernah terhapus (residu insiden lama, bukan tes aktif) -> sudah di-restore; suite hijau (78 passed, 1 skipped) dan data tetap utuh setelah suite jalan.
 - Terverifikasi: 401 tanpa/salah token, 200 + duplicate run_id, background done (created:0 utk periode berjalan karena sudah ada), generate_for_period('2026-08') create 3 lalu dedupe 0 lalu dibersihkan, crons.yml valid.
+
+## 2026-09-19 — Pengingat Invoice H+10 Otomatis (Cron ke-2)
+- Cron `invoice-reminders` (crons.yml): harian 01:00 UTC (08:00 WIB) -> POST /api/cron/invoice-reminders.
+- Logika: invoice unpaid berumur >=10 hari -> kirim pengingat email (+ WA via Wablas jika nomor sekolah ada); diulang tiap 7 hari, maks 3x. Dilacak via `last_reminder_at` + `reminder_count` di dokumen invoice.
+- Hardening: kegagalan kirim 1 sekolah (mis. email undeliverable) kini dicatat (send_failed di cron_runs) dan TIDAK menghentikan sekolah lain — berlaku juga di generate_for_period (endpoint owner + cron bulanan).
+- Terverifikasi: run1 reminded=1 send_failed=1 (email demo fake ditolak Resend, tapi tetap tercatat), run2 skip (anti-spam), pytest 78 passed / 1 skipped.

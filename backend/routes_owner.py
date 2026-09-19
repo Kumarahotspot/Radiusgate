@@ -1,16 +1,20 @@
+import logging
 import os
 import re
 import uuid
 from datetime import datetime, timezone
-from fastapi import APIRouter, HTTPException, Depends
+
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, EmailStr
+
+from auth import hash_password, require_roles
 from db import db
-from auth import require_roles, hash_password
 from emailer import invoice_email_html
 from notif import send_email_unified, send_whatsapp
 
 router = APIRouter(tags=["owner"])
 owner_dep = require_roles("owner")
+logger = logging.getLogger(__name__)
 FRONTEND_URL = os.environ.get("FRONTEND_URL", "")
 
 
@@ -180,8 +184,11 @@ async def generate_for_period(period: str, send_email: bool) -> dict:
         inv.pop("_id", None)
         created.append(inv)
         if send_email and s.get("admin_email"):
-            await _send_invoice_email(inv, s)
-            sent += 1
+            try:
+                await _send_invoice_email(inv, s)
+                sent += 1
+            except Exception as e:
+                logger.warning("Gagal kirim email invoice %s ke %s: %s", inv["invoice_no"], s.get("admin_email"), e)
     return {"created": len(created), "sent": sent, "invoices": created}
 
 

@@ -6,3 +6,10 @@ crons:
     method: POST
     # Cron endpoints must ack 2xx immediately; enqueue/background the actual work.
     enabled: true
+  - name: invoice-reminders
+    description: "Kirim pengingat email/WA untuk invoice belum lunas berumur H+10, diulang tiap 7 hari (08:00 WIB)"
+    cron: "0 1 * * *"
+    endpoint: "{{BASE_URL}}/api/cron/invoice-reminders"
+    method: POST
+    # Cron endpoints must ack 2xx immediately; enqueue/background the actual work.
+    enabled: true
