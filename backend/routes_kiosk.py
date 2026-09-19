@@ -92,6 +92,11 @@ def _closest_on_clock(m: int, anchor: int) -> int:
     return min((m, m - 1440, m + 1440), key=lambda c: abs(c - anchor))
 
 
+def _hhmm_to_min(s: str) -> int:
+    h, m = s.split(":")
+    return int(h) * 60 + int(m)
+
+
 def _late_overtime(settings, att_type, m):
     late, overtime = 0, 0
     if not settings:
@@ -156,13 +161,18 @@ async def _record(school, teacher_id, teacher_name, att_type, ts_device, lat, ln
             status = "ok"
     if settings and not manual:
         ko, kc = settings.get("kiosk_open"), settings.get("kiosk_close")
-        if ko and minutes < int(ko.split(":")[0]) * 60 + int(ko.split(":")[1]):
-            open_m = int(ko.split(":")[0]) * 60 + int(ko.split(":")[1])
+        open_m = _hhmm_to_min(ko) if ko else None
+        close_m = _hhmm_to_min(kc) if kc else None
+        if open_m is not None and close_m is not None:
+            # close <= open = window lewat tengah malam (mis. 23:00 - 06:00)
+            inside = (open_m <= minutes <= close_m) if close_m > open_m else (minutes >= open_m or minutes <= close_m)
+            if not inside:
+                if minutes < open_m:
+                    raise HTTPException(status_code=422, detail=f"kiosk_not_open:{ko}:{open_m - minutes}")
+                raise HTTPException(status_code=422, detail=f"kiosk_closed:{kc}:{ko}:{(1440 - minutes) + open_m}")
+        elif open_m is not None and minutes < open_m:
             raise HTTPException(status_code=422, detail=f"kiosk_not_open:{ko}:{open_m - minutes}")
-        if kc and minutes > int(kc.split(":")[0]) * 60 + int(kc.split(":")[1]):
-            if ko:
-                sisa = (1440 - minutes) + int(ko.split(":")[0]) * 60 + int(ko.split(":")[1])
-                raise HTTPException(status_code=422, detail=f"kiosk_closed:{kc}:{ko}:{sisa}")
+        elif close_m is not None and minutes > close_m:
             raise HTTPException(status_code=422, detail=f"kiosk_closed:{kc}")
     if att_type == "in" and settings and not manual:
         ws_h, ws_m = map(int, settings.get("work_start", "07:00").split(":"))

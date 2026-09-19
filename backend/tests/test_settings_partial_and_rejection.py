@@ -120,7 +120,7 @@ def _put_settings(tok, payload):
 
 def _ensure_baseline(tok):
     """Force baseline via full PUT (all fields Optional, so this is legal)."""
-    r = _put_settings(tok, EXPECTED_FINAL)
+    r = _put_settings(tok, {**EXPECTED_FINAL, "kiosk_open": None, "kiosk_close": None})
     assert r.status_code == 200, r.text
 
 

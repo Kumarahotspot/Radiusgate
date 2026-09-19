@@ -307,3 +307,10 @@ Aplikasi absensi berbasis tablet kiosk + face recognition & liveness, geofence G
 - settings_guard di kedua file tes diperluas mencakup kiosk_open/close (restore null jika memang tidak diset).
 - Tes baru: test_scenario8_kiosk_open_close_window (04:30 ditolak + detail, 22:45 ditolak + detail, 07:05 ok).
 - Terverifikasi: e2e curl (set/window reject/clear via null), pytest 80 passed / 1 skipped, UI Pengaturan desktop+mobile OK tanpa overflow.
+
+## 2026-09-19 — Fix: Window kiosk lewat tengah malam (23:00-06:00) menolak semua absen
+- Akar masalah: pengecekan window menganggap jam buka < jam tutup; window overnight membuat jam 23:10 dianggap "lewat tutup" dan jam 01:00 dianggap "belum buka".
+- Fix: jika close <= open maka window dianggap aktif saat minutes >= open ATAU minutes <= close. Helper _hhmm_to_min ditambahkan. Pesan penolakan tetap membawa jam buka + hitung mundur.
+- Tes baru: test_scenario9_overnight_kiosk_window (23:30 diterima, 12:00 ditolak not_open 660).
+- Hardening tes: _set_settings & _ensure_baseline kini selalu me-null-kan kiosk_open/close agar skenario tidak bergantung konfigurasi live user; settings_guard mengembalikan window user apa adanya.
+- Terverifikasi: pytest 81 passed / 1 skipped; window user 23:00-06:00 tetap utuh setelah suite jalan.
