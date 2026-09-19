@@ -233,6 +233,10 @@ Aplikasi absensi berbasis tablet kiosk + face recognition & liveness, geofence G
 - i18n: `year_mode`, `per_class_mode`, `year_hint`, `apply_year`, `confirm_year`, `year_ok`, `col_new_class`, `col_graduate` (ID/EN).
 - Tes: TestPromoteYear (urutan atomic: TY-X→XI tidak dobel, TY-XI→XII tetap aktif, TY-XII asli→lulus). **Suite 79/79 lulus.** Screenshot UI: saran X-1→XI-1 benar, tab beralih normal (tidak diterapkan ke data demo).
 
+## Update 2026-09-19 (iterasi 39 — template CSV impor siswa)
+- Tombol **"Unduh template CSV"** di bawah tombol impor (header halaman Siswa) — mengunduh `template-siswa.csv` ber-BOM UTF-8 (rapi di Excel) berisi header `nama,nis,nisn,jk,kelas` + 2 baris contoh (L & P).
+- Terverifikasi loop penuh: file template yang diunduh lolos endpoint import/preview (2 baris valid, NISN leading-zero utuh, gender ternormalisasi) + unduhan UI berfungsi.
+
 ## Backlog Prioritas
 - P0: Kunci Tripay asli dari user + uji webhook; tablet React Native (kiosk native, embedding cache on-device)
 - P1: Absen siswa (v2), geofence penuh untuk absen via HP pribadi guru

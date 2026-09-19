@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import api, { errMsg } from "../../api";
 import CameraCapture from "../../components/CameraCapture";
-import { Plus, Upload, Download, Trash2, X, Pencil, ScanFace, CheckCircle2, Circle, Search, ChevronLeft, ChevronRight, GraduationCap } from "lucide-react";
+import { Plus, Upload, Download, Trash2, X, Pencil, ScanFace, CheckCircle2, Circle, Search, ChevronLeft, ChevronRight, GraduationCap, FileDown } from "lucide-react";
 
 export default function Students() {
   const { t } = useTranslation();
@@ -151,6 +151,16 @@ export default function Students() {
     } catch (err) { toast.error(errMsg(err)); } finally { setBusy(false); }
   };
 
+  const downloadTemplate = () => {
+    const csv = "nama,nis,nisn,jk,kelas\nAhmad Contoh,1001,0012345678,L,X-1\nSiti Contoh,1002,0012345679,P,X-1\n";
+    const url = URL.createObjectURL(new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8" }));
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "template-siswa.csv";
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   const pickFile = async (e) => {
     const f = e.target.files?.[0];
     if (!f) return;
@@ -210,6 +220,12 @@ export default function Students() {
           </button>
         </div>
         <input ref={fileRef} data-testid="import-file-input" type="file" accept=".csv,.xlsx,.xls" className="hidden" onChange={pickFile} />
+      </div>
+      <div className="flex justify-end -mt-1">
+        <button data-testid="template-btn" onClick={downloadTemplate}
+          className="flex items-center gap-1 text-xs font-semibold text-teal-700 hover:underline">
+          <FileDown className="w-3.5 h-3.5" /> {t("template_download")}
+        </button>
       </div>
 
       <form onSubmit={add} data-testid="add-student-form" className="bg-white rounded-2xl border border-slate-200 p-4 flex flex-wrap items-end gap-3">
