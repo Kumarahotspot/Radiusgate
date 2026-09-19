@@ -2,12 +2,13 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import api, { errMsg } from "../../api";
+import { periodLabel } from "../../i18n";
 import { FileText, Send, MessageCircle } from "lucide-react";
 
 const rupiah = (n) => `Rp ${Number(n || 0).toLocaleString("id-ID")}`;
 
 export default function OwnerInvoices() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [invoices, setInvoices] = useState([]);
   const [period, setPeriod] = useState(new Date().toISOString().slice(0, 7));
   const [sendEmail, setSendEmail] = useState(true);
@@ -72,7 +73,7 @@ export default function OwnerInvoices() {
                 <tr key={i.id} data-testid={`invoice-row-${i.invoice_no}`} className="border-b last:border-0 hover:bg-slate-50/60">
                   <td className="px-4 py-3 font-mono text-xs">{i.invoice_no}</td>
                   <td className="px-4 py-3 font-semibold text-slate-800">{i.school_name}</td>
-                  <td className="px-4 py-3">{i.period}</td>
+                  <td className="px-4 py-3">{periodLabel(i.period, i18n.language)}</td>
                   <td className="px-4 py-3">{i.student_count}</td>
                   <td className="px-4 py-3 font-semibold">{rupiah(i.amount)}</td>
                   <td className="px-4 py-3">

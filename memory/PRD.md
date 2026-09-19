@@ -266,3 +266,8 @@ Aplikasi absensi berbasis tablet kiosk + face recognition & liveness, geofence G
 - PDF invoice kini menampilkan periode "September 2026" (nama bulan Indonesia) via periode_label() di pdfgen.py.
 - Cleanup DB: 75 invoice sampah dihapus + PDF yatim dibersihkan (dibuat ulang on-demand). Tersisa: 2026-06 (lunas) + 2026-09 per sekolah.
 - Terverifikasi: 422 untuk periode invalid, dedupe periode berjalan, pytest TestInvoices 6/6, halaman Tagihan bersih.
+
+## 2026-09-19 — Tampilan Periode Bulan di UI Tagihan
+- Helper `periodLabel(period, lang)` di i18n.js ("2026-09" -> "September 2026" / EN "September 2026").
+- Diterapkan di halaman Tagihan admin (Billing.jsx) dan Invoice owner (OwnerInvoices.jsx).
+- Terverifikasi screenshot: ID ("September 2026", "Juni 2026") & EN ("June 2026"), halaman owner ikut berubah.

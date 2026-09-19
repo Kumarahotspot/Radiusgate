@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import api from "../../api";
+import { periodLabel } from "../../i18n";
 import { FileText, CreditCard } from "lucide-react";
 
 const rupiah = (n) => `Rp ${Number(n || 0).toLocaleString("id-ID")}`;
 
 export default function Billing() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [invoices, setInvoices] = useState([]);
 
   useEffect(() => { api.get("/admin/invoices").then((r) => setInvoices(r.data)); }, []);
@@ -18,7 +19,7 @@ export default function Billing() {
         {invoices.map((i) => (
           <div key={i.id} data-testid={`billing-invoice-${i.invoice_no}`} className="bg-white rounded-2xl border border-slate-200 p-5 flex flex-wrap items-center gap-4">
             <div className="flex-1 min-w-[200px]">
-              <p className="font-mono text-xs text-slate-500">{i.invoice_no} · {i.period}</p>
+              <p className="font-mono text-xs text-slate-500">{i.invoice_no} · {periodLabel(i.period, i18n.language)}</p>
               <p className="font-extrabold text-slate-800 text-xl mt-1">{rupiah(i.amount)}</p>
               <p className="text-xs text-slate-500">{i.student_count} {t("students").toLowerCase()} × {rupiah(i.rate)}</p>
               {i.paid_at && <p className="text-xs text-emerald-600 mt-1">{t("paid_at")}: {i.paid_at.slice(0, 10)}</p>}

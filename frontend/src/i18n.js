@@ -597,3 +597,14 @@ i18n.use(initReactI18next).init({
 });
 
 export default i18n;
+
+
+const MONTHS_ID = ["", "Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+const MONTHS_EN = ["", "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+
+export function periodLabel(period, lang = "id") {
+  const m = /^(\d{4})-(\d{2})$/.exec(period || "");
+  if (!m) return period;
+  const names = String(lang).startsWith("en") ? MONTHS_EN : MONTHS_ID;
+  return `${names[parseInt(m[2], 10)]} ${m[1]}`;
+}
