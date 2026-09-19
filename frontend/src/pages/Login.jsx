@@ -47,10 +47,10 @@ export default function Login() {
         </div>
         <p className="relative text-teal-200/60 text-xs">{t("app_name")} oleh {t("company_name")} · SaaS Multi-Tenant · v1 Pilot</p>
       </div>
-      <div className="flex-1 flex flex-col">
-        <div className="lg:hidden bg-teal-800 relative overflow-hidden px-6 pt-6 pb-9 rounded-b-[2.5rem]">
-          <div className="absolute -top-16 -right-16 w-56 h-56 rounded-full bg-teal-700/50" />
-          <div className="absolute -bottom-24 -left-10 w-48 h-48 rounded-full bg-teal-900/60" />
+      <div className="flex-1 flex flex-col max-lg:bg-gradient-to-b max-lg:from-teal-800 max-lg:via-[#0f3d3a] max-lg:to-slate-950">
+        <div className="lg:hidden relative overflow-hidden px-6 pt-6 pb-4">
+          <div className="absolute -top-16 -right-16 w-56 h-56 rounded-full bg-teal-600/40" />
+          <div className="absolute -bottom-24 -left-10 w-48 h-48 rounded-full bg-teal-900/40" />
           <div className="relative flex items-center justify-between">
             <div className="flex items-center gap-2.5">
               <div className="w-10 h-10 rounded-2xl bg-white flex items-center justify-center overflow-hidden p-1">

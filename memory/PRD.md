@@ -212,6 +212,7 @@ Aplikasi absensi berbasis tablet kiosk + face recognition & liveness, geofence G
 
 ## Update 2026-09-19 (iterasi 35 — rebranding tampilan mobile login)
 - Masalah: panel hero teal login hanya tampil di desktop (`hidden lg:flex`) sehingga mobile polos gelap. Kini mobile punya **banner brand teal** edge-to-edge (logo + EduGateID + tagline + chip fitur + LangSwitch, rounded-b 2.5rem, ornamen lingkaran), form tetap di bawahnya. Desktop tidak berubah.
+- Lanjutan: warna banner teal vs latar gelap terasa tabrakan → diganti **gradien halus** `teal-800 → #0f3d3a → slate-950` menyelimuti seluruh kolom form mobile (max-lg), banner tanpa bg/border sendiri sehingga menyatu.
 
 ## Backlog Prioritas
 - P0: Kunci Tripay asli dari user + uji webhook; tablet React Native (kiosk native, embedding cache on-device)
