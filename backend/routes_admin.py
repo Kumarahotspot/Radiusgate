@@ -336,6 +336,34 @@ async def graduate_students(body: GraduateIn, user: dict = Depends(admin_dep)):
     return {"updated": res.modified_count}
 
 
+class YearActionIn(BaseModel):
+    promote: list[PromoteIn] = []
+    graduate: list[str] = []
+
+
+@router.post("/admin/students/promote-year")
+async def promote_year(body: YearActionIn, user: dict = Depends(admin_dep)):
+    """Kenaikan kelas massal 1 tahun ajaran. Kelulusan diproses dulu, lalu kenaikan
+    diurutkan menurun (XII->XI->X) agar tidak ada siswa yang naik dua kali."""
+    graduated = 0
+    for cls in body.graduate[:200]:
+        if not cls.strip():
+            continue
+        res = await db.students.update_many(
+            {"school_id": user["school_id"], "class": cls.strip(), "status": {"$ne": "lulus"}},
+            {"$set": {"status": "lulus"}})
+        graduated += res.modified_count
+    promoted = 0
+    for m in sorted(body.promote[:200], key=lambda x: x.from_class, reverse=True):
+        if not m.from_class.strip() or not m.to_class.strip():
+            continue
+        res = await db.students.update_many(
+            {"school_id": user["school_id"], "class": m.from_class.strip(), "status": {"$ne": "lulus"}},
+            {"$set": {"class": m.to_class.strip()}})
+        promoted += res.modified_count
+    return {"promoted": promoted, "graduated": graduated}
+
+
 @router.delete("/admin/students/{stid}")
 async def delete_student(stid: str, user: dict = Depends(admin_dep)):
     await db.students.delete_one({"id": stid, "school_id": user["school_id"]})

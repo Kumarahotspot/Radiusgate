@@ -117,6 +117,40 @@ export default function Students() {
     } catch (err) { toast.error(errMsg(err)); } finally { setBusy(false); }
   };
 
+  const [yearMode, setYearMode] = useState(false);
+  const [yearMap, setYearMap] = useState([]);
+
+  const suggestTarget = (cls) => {
+    const m = cls.match(/^(XII|XI|X)(.*)$/i);
+    if (!m) return "";
+    const head = m[1].toUpperCase();
+    if (head === "XII") return null; // default lulus
+    return (head === "XI" ? "XII" : "XI") + m[2];
+  };
+
+  const openYearMode = () => {
+    setYearMap(classes.map((c) => {
+      const s = suggestTarget(c);
+      return { from: c, to: s ?? "", graduate: s === null };
+    }));
+    setYearMode(true);
+  };
+
+  const doYearPromote = async () => {
+    const promote = yearMap.filter((r) => !r.graduate && r.to.trim()).map((r) => ({ from_class: r.from, to_class: r.to.trim() }));
+    const graduate = yearMap.filter((r) => r.graduate).map((r) => r.from);
+    if (!promote.length && !graduate.length) return;
+    if (!window.confirm(t("confirm_year"))) return;
+    setBusy(true);
+    try {
+      const { data } = await api.post("/admin/students/promote-year", { promote, graduate });
+      toast.success(t("year_ok", { promoted: data.promoted, graduated: data.graduated }));
+      setPromoteOpen(false);
+      setYearMode(false);
+      load();
+    } catch (err) { toast.error(errMsg(err)); } finally { setBusy(false); }
+  };
+
   const pickFile = async (e) => {
     const f = e.target.files?.[0];
     if (!f) return;
@@ -291,6 +325,18 @@ export default function Students() {
               <p className="font-bold text-slate-800">{t("promote_class")}</p>
               <button data-testid="promote-close" onClick={() => setPromoteOpen(false)} className="p-1 rounded-lg hover:bg-slate-100"><X className="w-4 h-4" /></button>
             </div>
+            <div className="flex gap-1 p-1 bg-slate-100 rounded-xl">
+              <button data-testid="mode-per-class" onClick={() => setYearMode(false)}
+                className={`flex-1 text-xs font-bold py-2 rounded-lg transition-colors ${!yearMode ? "bg-white text-teal-700 shadow-sm" : "text-slate-500"}`}>
+                {t("per_class_mode")}
+              </button>
+              <button data-testid="mode-year" onClick={openYearMode}
+                className={`flex-1 text-xs font-bold py-2 rounded-lg transition-colors ${yearMode ? "bg-white text-teal-700 shadow-sm" : "text-slate-500"}`}>
+                {t("year_mode")}
+              </button>
+            </div>
+            {!yearMode && (
+            <>
             <div>
               <label className="text-xs font-semibold text-slate-500">{t("from_class")}</label>
               <select data-testid="promote-from" value={promoteForm.from_class} onChange={(e) => setPromoteForm({ ...promoteForm, from_class: e.target.value })}
@@ -316,6 +362,45 @@ export default function Students() {
               </button>
               <p className="mt-2 text-[11px] text-slate-400">{t("graduate_hint")}</p>
             </div>
+            </>
+            )}
+            {yearMode && (
+            <>
+            <p className="text-[11px] text-slate-400">{t("year_hint")}</p>
+            <div className="max-h-64 overflow-y-auto border border-slate-200 rounded-xl">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="text-xs uppercase text-slate-500 border-b bg-slate-50">
+                    <th className="px-3 py-2 text-left">{t("from_class")}</th>
+                    <th className="px-3 py-2 text-left">{t("col_new_class")}</th>
+                    <th className="px-3 py-2 text-center">{t("col_graduate")}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {yearMap.map((r, i) => (
+                    <tr key={r.from} className="border-b last:border-0">
+                      <td className="px-3 py-2 font-semibold text-slate-700">{r.from}</td>
+                      <td className="px-3 py-2">
+                        <input data-testid={`year-to-${r.from}`} value={r.to} disabled={r.graduate}
+                          onChange={(e) => setYearMap(yearMap.map((x, j) => (j === i ? { ...x, to: e.target.value } : x)))}
+                          className="w-full rounded-lg border border-slate-200 px-2 py-1.5 text-sm outline-none focus:border-teal-600 disabled:bg-slate-50 disabled:text-slate-400 transition" />
+                      </td>
+                      <td className="px-3 py-2 text-center">
+                        <input type="checkbox" data-testid={`year-grad-${r.from}`} checked={r.graduate}
+                          onChange={(e) => setYearMap(yearMap.map((x, j) => (j === i ? { ...x, graduate: e.target.checked } : x)))}
+                          className="accent-red-600 w-4 h-4 cursor-pointer" />
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <button data-testid="year-submit" onClick={doYearPromote} disabled={busy}
+              className="w-full bg-teal-700 hover:bg-teal-800 text-white font-bold text-sm py-3 rounded-xl transition-colors disabled:opacity-50">
+              {busy ? t("loading") : t("apply_year")}
+            </button>
+            </>
+            )}
           </div>
         </div>
       )}

@@ -274,3 +274,35 @@ class TestPromoteGraduate:
     def test_zz_cleanup(self, admin_token):
         for sid in TestPromoteGraduate._ids:
             requests.delete(f"{API}/admin/students/{sid}", headers=h(admin_token), timeout=30)
+
+
+class TestPromoteYear:
+    """Wizard tahun ajaran: promote massal + graduate, urutan benar (tidak dobel-naik)."""
+    _ids = {}
+
+    def test_setup(self, admin_token):
+        for cls in ("TY-X", "TY-XI", "TY-XII"):
+            r = requests.post(f"{API}/admin/students",
+                              json={"name": f"TEST_YEAR_{cls}", "nis": f"TY-{uuid.uuid4().hex[:6]}", "class_name": cls},
+                              headers=h(admin_token), timeout=30)
+            assert r.status_code == 200, r.text
+            TestPromoteYear._ids[cls] = r.json()["id"]
+
+    def test_promote_year_atomic(self, admin_token):
+        r = requests.post(f"{API}/admin/students/promote-year",
+                          json={"promote": [{"from_class": "TY-X", "to_class": "TY-XI"},
+                                            {"from_class": "TY-XI", "to_class": "TY-XII"}],
+                                "graduate": ["TY-XII"]},
+                          headers=h(admin_token), timeout=30)
+        assert r.status_code == 200, r.text
+        assert r.json()["promoted"] == 2 and r.json()["graduated"] == 1, r.text
+        students = {s["id"]: s for s in _fetch_students(admin_token)}
+        # TY-X -> TY-XI (tidak lanjut ke XII), TY-XI -> TY-XII (aktif), TY-XII asli -> lulus
+        assert students[TestPromoteYear._ids["TY-X"]]["class"] == "TY-XI"
+        assert students[TestPromoteYear._ids["TY-XI"]]["class"] == "TY-XII"
+        assert students[TestPromoteYear._ids["TY-XI"]].get("status") != "lulus"
+        assert students[TestPromoteYear._ids["TY-XII"]].get("status") == "lulus"
+
+    def test_zz_cleanup(self, admin_token):
+        for sid in TestPromoteYear._ids.values():
+            requests.delete(f"{API}/admin/students/{sid}", headers=h(admin_token), timeout=30)

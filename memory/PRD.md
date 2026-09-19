@@ -227,6 +227,12 @@ Aplikasi absensi berbasis tablet kiosk + face recognition & liveness, geofence G
 - UI Siswa: tombol **"Kenaikan Kelas"** → modal (pilih Dari Kelas → isi Ke Kelas Baru → Naikkan Kelas; zona merah "Tandai Lulus" dengan hint). Badge "Lulus" di kolom nama, toggle "Tampilkan lulus" (default sembunyi).
 - Tes: TestPromoteGraduate (buat 2 siswa kelas TESTPROMO → promote → graduate → absen NIS ditolak 422 → cleanup). **Suite 76/76 lulus.** E2E UI PASS (promote ZZ-NAIK→XI, graduate, badge, bulk-delete cleanup).
 
+## Update 2026-09-19 (iterasi 38 — wizard tahun ajaran baru)
+- Endpoint `POST /admin/students/promote-year` {promote:[{from_class,to_class}], graduate:[cls]} — **kelulusan diproses dulu, lalu kenaikan diurutkan menurun (XII→XI→X)** sehingga tidak ada siswa yang naik dua kali dalam satu run.
+- Modal Kenaikan Kelas kini punya 2 tab: **Per Kelas** (lama) & **Tahun Ajaran Baru** — tabel semua kelas dengan saran target otomatis (X→XI, XI→XII, XII→centang Lulus), bisa diedit per baris, satu klik "Terapkan ke Semua Kelas" + konfirmasi.
+- i18n: `year_mode`, `per_class_mode`, `year_hint`, `apply_year`, `confirm_year`, `year_ok`, `col_new_class`, `col_graduate` (ID/EN).
+- Tes: TestPromoteYear (urutan atomic: TY-X→XI tidak dobel, TY-XI→XII tetap aktif, TY-XII asli→lulus). **Suite 79/79 lulus.** Screenshot UI: saran X-1→XI-1 benar, tab beralih normal (tidak diterapkan ke data demo).
+
 ## Backlog Prioritas
 - P0: Kunci Tripay asli dari user + uji webhook; tablet React Native (kiosk native, embedding cache on-device)
 - P1: Absen siswa (v2), geofence penuh untuk absen via HP pribadi guru
