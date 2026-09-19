@@ -368,3 +368,10 @@ Aplikasi absensi berbasis tablet kiosk + face recognition & liveness, geofence G
 ## 2026-09-20 — Dropdown kelas di form Siswa + rapi data
 - Students.jsx: input kelas (tambah & edit) diganti komponen ClassSelect = dropdown dari daftar kelas yang ada + opsi "+ Kelas baru" (muncul input teks). i18n ID/EN.
 - Data: kelas "X1" -> "X-1" untuk 2 siswa + 4 rekaman absensi.
+
+## 2026-09-20 — Data Master: Kelola Kelas & Mata Pelajaran di Pengaturan
+- Settings baru `class_list` / `subject_list` (SettingsIn). Jika diset -> menjadi daftar master authoritative; jika null -> diturunkan dari data siswa/guru (mode derived, default).
+- Endpoint baru: POST /admin/meta/rename (propagasi ganti nama ke students, attendance, teachers.classes/subject) dan POST /admin/meta/delete (ditolak 400 jika masih dipakai: class_in_use:N / subject_in_use). meta_options kini memakai _effective_list.
+- SettingsPage: kartu "Data Master" dengan komponen MasterList (chip + rename inline + hapus + tambah) untuk Kelas & Mapel.
+- Students.jsx: dropdown kelas kini membaca /admin/meta/options (fallback derived).
+- Terverifikasi: rename kelas & mapel propagasi + bisa dikembalikan, hapus diblokir saat dipakai (X-1 dipakai 22 siswa), tambah/hapus OK, pytest 79 passed / 1 skipped, UI desktop+mobile OK.

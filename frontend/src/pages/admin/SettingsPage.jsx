@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import api, { errMsg } from "../../api";
-import { MapPin, Plus, Trash2, Crosshair, Copy } from "lucide-react";
+import { MapPin, Plus, Trash2, Crosshair, Copy, Pencil, X, Check } from "lucide-react";
 
 export default function SettingsPage() {
   const { t } = useTranslation();
@@ -10,13 +10,54 @@ export default function SettingsPage() {
   const [locations, setLocations] = useState([]);
   const [school, setSchool] = useState(null);
   const [loc, setLoc] = useState({ name: "", lat: "", lng: "", radius_m: 50 });
+  const [masterClasses, setMasterClasses] = useState([]);
+  const [masterSubjects, setMasterSubjects] = useState([]);
+
+  const loadMaster = () => api.get("/admin/meta/options").then((r) => {
+    setMasterClasses(r.data.classes || []);
+    setMasterSubjects(r.data.subjects || []);
+  });
 
   const load = () => api.get("/admin/settings").then((r) => {
     if (r.data.settings) setSettings(r.data.settings);
     setLocations(r.data.locations || []);
     setSchool(r.data.school);
   });
-  useEffect(() => { load(); }, []);
+  useEffect(() => { load(); loadMaster(); }, []);
+
+  const saveList = async (key, list) => {
+    try {
+      await api.put("/admin/settings", { [key]: list });
+      loadMaster();
+    } catch (err) { toast.error(errMsg(err)); }
+  };
+
+  const addItem = (kind, v) => {
+    const list = kind === "class" ? masterClasses : masterSubjects;
+    if (list.includes(v)) return;
+    saveList(kind === "class" ? "class_list" : "subject_list", [...list, v].sort());
+  };
+
+  const deleteItem = async (kind, v) => {
+    try {
+      await api.post("/admin/meta/delete", { kind, value: v });
+      loadMaster();
+    } catch (err) {
+      const d = err.response?.data?.detail || "";
+      if (d.startsWith("class_in_use")) toast.error(t("class_in_use", { count: d.split(":")[1] }));
+      else if (d === "subject_in_use") toast.error(t("subject_in_use"));
+      else toast.error(errMsg(err));
+    }
+  };
+
+  const renameItem = async (kind, fromV, toV) => {
+    if (!toV || toV === fromV) return;
+    try {
+      await api.post("/admin/meta/rename", { kind, from_value: fromV, to_value: toV });
+      toast.success(t("save"));
+      loadMaster();
+    } catch (err) { toast.error(errMsg(err)); }
+  };
 
   const saveSettings = async (e) => {
     e.preventDefault();
@@ -120,6 +161,17 @@ export default function SettingsPage() {
         <button data-testid="save-settings-btn" className="mt-4 px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-teal-700 hover:bg-teal-800">{t("save")}</button>
       </form>
 
+      <div className="bg-white rounded-2xl border border-slate-200 p-5" data-testid="master-data-card">
+        <p className="font-bold text-slate-800 mb-1">{t("master_data")}</p>
+        <p className="text-xs text-slate-400 mb-4">{t("master_hint")}</p>
+        <div className="grid sm:grid-cols-2 gap-4">
+          <MasterList title={t("master_classes")} testid="master-class" items={masterClasses}
+            onAdd={(v) => addItem("class", v)} onDelete={(v) => deleteItem("class", v)} onRename={(f2, t2) => renameItem("class", f2, t2)} t={t} />
+          <MasterList title={t("master_subjects")} testid="master-subject" items={masterSubjects}
+            onAdd={(v) => addItem("subject", v)} onDelete={(v) => deleteItem("subject", v)} onRename={(f2, t2) => renameItem("subject", f2, t2)} t={t} />
+        </div>
+      </div>
+
       <div className="bg-white rounded-2xl border border-slate-200 p-5">
         <p className="font-bold text-slate-800 mb-4">{t("locations")}</p>
         <form onSubmit={addLoc} data-testid="add-location-form" className="grid sm:grid-cols-5 gap-3 items-end mb-5">
@@ -163,6 +215,47 @@ export default function SettingsPage() {
           ))}
           {locations.length === 0 && <p className="text-slate-400 text-sm text-center py-4">{t("no_data")}</p>}
         </div>
+      </div>
+    </div>
+  );
+}
+
+function MasterList({ title, testid, items, onAdd, onDelete, onRename, t }) {
+  const [val, setVal] = useState("");
+  const [renaming, setRenaming] = useState(null);
+  const [renameVal, setRenameVal] = useState("");
+  return (
+    <div className="border border-slate-200 rounded-xl p-4">
+      <p className="text-sm font-bold text-slate-700 mb-2">{title}</p>
+      <div className="flex flex-wrap gap-2" data-testid={`${testid}-list`}>
+        {items.map((it) => (
+          <span key={it} className="inline-flex items-center gap-1.5 bg-slate-100 rounded-full px-3 py-1.5 text-xs font-semibold text-slate-700">
+            {renaming === it ? (
+              <>
+                <input autoFocus value={renameVal} onChange={(e) => setRenameVal(e.target.value)} data-testid={`${testid}-rename-input`}
+                  className="w-24 bg-white border border-teal-300 rounded px-1.5 py-0.5 text-xs outline-none" />
+                <button type="button" data-testid={`${testid}-rename-save`} onClick={() => { onRename(it, renameVal.trim()); setRenaming(null); }}
+                  className="text-teal-700 hover:text-teal-900"><Check className="w-3.5 h-3.5" /></button>
+                <button type="button" onClick={() => setRenaming(null)} className="text-slate-400 hover:text-slate-600"><X className="w-3.5 h-3.5" /></button>
+              </>
+            ) : (
+              <>
+                {it}
+                <button type="button" data-testid={`${testid}-rename-${it}`} onClick={() => { setRenaming(it); setRenameVal(it); }}
+                  className="text-sky-600 hover:text-sky-800"><Pencil className="w-3 h-3" /></button>
+                <button type="button" data-testid={`${testid}-delete-${it}`} onClick={() => onDelete(it)}
+                  className="text-red-400 hover:text-red-600"><X className="w-3.5 h-3.5" /></button>
+              </>
+            )}
+          </span>
+        ))}
+        {items.length === 0 && <p className="text-xs text-slate-400">{t("no_data")}</p>}
+      </div>
+      <div className="mt-3 flex gap-2">
+        <input value={val} onChange={(e) => setVal(e.target.value)} placeholder={title} data-testid={`${testid}-add-input`}
+          className="flex-1 rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-teal-600" />
+        <button type="button" data-testid={`${testid}-add-btn`} onClick={() => { if (val.trim()) { onAdd(val.trim()); setVal(""); } }}
+          className="px-4 py-2 rounded-xl text-xs font-bold text-white bg-teal-700 hover:bg-teal-800 transition-colors">{t("add")}</button>
       </div>
     </div>
   );

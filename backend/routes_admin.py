@@ -65,19 +65,99 @@ async def delete_attendance(aid: str, user: dict = Depends(admin_dep)):
 
 
 # ---------- Teachers ----------
+def _split_csv(s) -> list:
+    return [p.strip() for p in (s or "").split(",") if p.strip()]
+
+
+async def _derived_list(sid: str, kind: str) -> list:
+    if kind == "class":
+        raw = await db.students.distinct("class", {"school_id": sid, "status": {"$ne": "lulus"}})
+        return sorted(c for c in raw if c)
+    raw = await db.teachers.distinct("subject", {"school_id": sid})
+    return sorted({p for s in raw for p in _split_csv(s)})
+
+
+async def _effective_list(sid: str, kind: str) -> tuple[list, str]:
+    key = "class_list" if kind == "class" else "subject_list"
+    st = await db.settings.find_one({"school_id": sid}, {"_id": 0, key: 1}) or {}
+    if st.get(key) is not None:
+        return list(st[key]), key
+    return await _derived_list(sid, kind), key
+
+
 @router.get("/admin/meta/options")
 async def meta_options(user: dict = Depends(admin_dep)):
-    """Opsi checkbox untuk form guru: kelas (dari data siswa) & mapel (dari guru yang sudah ada)."""
-    classes = await db.students.distinct(
-        "class", {"school_id": user["school_id"], "status": {"$ne": "lulus"}})
-    subjects_raw = await db.teachers.distinct("subject", {"school_id": user["school_id"]})
-    subjects = set()
-    for s in subjects_raw:
-        for part in (s or "").split(","):
-            p = part.strip()
-            if p:
-                subjects.add(p)
-    return {"classes": sorted(c for c in classes if c), "subjects": sorted(subjects)}
+    """Opsi checkbox form guru/siswa: daftar master jika diset, selain itu diturunkan dari data."""
+    classes, _ = await _effective_list(user["school_id"], "class")
+    subjects, _ = await _effective_list(user["school_id"], "subject")
+    return {"classes": classes, "subjects": subjects}
+
+
+class MetaRenameIn(BaseModel):
+    kind: str  # class | subject
+    from_value: str
+    to_value: str
+
+
+class MetaDeleteIn(BaseModel):
+    kind: str
+    value: str
+
+
+@router.post("/admin/meta/rename")
+async def meta_rename(body: MetaRenameIn, user: dict = Depends(admin_dep)):
+    """Ganti nama kelas/mapel, otomatis diterapkan ke siswa, absensi, dan guru."""
+    if body.kind not in ("class", "subject"):
+        raise HTTPException(status_code=400, detail="kind tidak valid")
+    fv, tv = body.from_value.strip(), body.to_value.strip()
+    if not fv or not tv or fv == tv:
+        raise HTTPException(status_code=400, detail="Nama tidak valid")
+    sid = user["school_id"]
+    items, key = await _effective_list(sid, body.kind)
+    if fv not in items:
+        raise HTTPException(status_code=404, detail="Data tidak ditemukan")
+    if tv in items:
+        raise HTTPException(status_code=400, detail="Nama baru sudah ada")
+    items = sorted(tv if x == fv else x for x in items)
+    await db.settings.update_one({"school_id": sid}, {"$set": {key: items}}, upsert=True)
+    if body.kind == "class":
+        await db.students.update_many({"school_id": sid, "class": fv}, {"$set": {"class": tv}})
+        await db.attendance.update_many({"school_id": sid, "class": fv}, {"$set": {"class": tv}})
+        teachers = await db.teachers.find({"school_id": sid}, {"_id": 0, "id": 1, "classes": 1}).to_list(2000)
+        for tch in teachers:
+            parts = _split_csv(tch.get("classes"))
+            if fv in parts:
+                await db.teachers.update_one({"id": tch["id"]},
+                                             {"$set": {"classes": ", ".join(tv if p == fv else p for p in parts)}})
+    else:
+        teachers = await db.teachers.find({"school_id": sid}, {"_id": 0, "id": 1, "subject": 1}).to_list(2000)
+        for tch in teachers:
+            parts = _split_csv(tch.get("subject"))
+            if fv in parts:
+                await db.teachers.update_one({"id": tch["id"]},
+                                             {"$set": {"subject": ", ".join(tv if p == fv else p for p in parts)}})
+    return {"ok": True, "items": items}
+
+
+@router.post("/admin/meta/delete")
+async def meta_delete(body: MetaDeleteIn, user: dict = Depends(admin_dep)):
+    """Hapus kelas/mapel dari daftar master; ditolak jika masih dipakai data siswa/guru."""
+    if body.kind not in ("class", "subject"):
+        raise HTTPException(status_code=400, detail="kind tidak valid")
+    v = body.value.strip()
+    sid = user["school_id"]
+    if body.kind == "class":
+        used = await db.students.count_documents({"school_id": sid, "class": v, "status": {"$ne": "lulus"}})
+        if used:
+            raise HTTPException(status_code=400, detail=f"class_in_use:{used}")
+    else:
+        teachers = await db.teachers.find({"school_id": sid}, {"_id": 0, "subject": 1}).to_list(2000)
+        if any(v in _split_csv(tch.get("subject")) for tch in teachers):
+            raise HTTPException(status_code=400, detail="subject_in_use")
+    items, key = await _effective_list(sid, body.kind)
+    items = [x for x in items if x != v]
+    await db.settings.update_one({"school_id": sid}, {"$set": {key: items}}, upsert=True)
+    return {"ok": True, "items": items}
 
 
 class TeacherIn(BaseModel):
@@ -204,6 +284,8 @@ class SettingsIn(BaseModel):
     require_checkin: bool | None = None
     greeting_in: str | None = None
     greeting_out: str | None = None
+    class_list: list[str] | None = None
+    subject_list: list[str] | None = None
 
 
 @router.get("/admin/settings")

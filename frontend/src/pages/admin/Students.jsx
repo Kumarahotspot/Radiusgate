@@ -30,6 +30,7 @@ export default function Students() {
   const { t } = useTranslation();
   const [students, setStudents] = useState([]);
   const [form, setForm] = useState({ name: "", nis: "", nisn: "", gender: "", class_name: "" });
+  const [metaClasses, setMetaClasses] = useState(null);
   const [preview, setPreview] = useState(null);
   const [busy, setBusy] = useState(false);
   const [editFor, setEditFor] = useState(null);
@@ -62,7 +63,7 @@ export default function Students() {
   const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
   const safePage = Math.min(page, totalPages);
   const paged = filtered.slice((safePage - 1) * pageSize, safePage * pageSize);
-  const classes = [...new Set(students.filter((s) => s.status !== "lulus").map((s) => s.class).filter(Boolean))].sort();
+  const classes = metaClasses ?? [...new Set(students.filter((s) => s.status !== "lulus").map((s) => s.class).filter(Boolean))].sort();
 
   const enroll = async (photo) => {
     try {
@@ -74,7 +75,10 @@ export default function Students() {
   };
   const fileRef = useRef(null);
 
-  const load = () => api.get("/admin/students").then((r) => setStudents(r.data));
+  const load = () => {
+    api.get("/admin/students").then((r) => setStudents(r.data));
+    api.get("/admin/meta/options").then((r) => setMetaClasses(r.data.classes));
+  };
   useEffect(() => { load(); }, []);
 
   const add = async (e) => {
