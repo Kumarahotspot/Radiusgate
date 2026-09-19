@@ -284,6 +284,10 @@ class StudentPatch(BaseModel):
     class_name: str | None = None
 
 
+class BulkDeleteIn(BaseModel):
+    ids: list[str]
+
+
 @router.patch("/admin/students/{stid}")
 async def update_student(stid: str, body: StudentPatch, user: dict = Depends(admin_dep)):
     upd = {k: v for k, v in body.model_dump(exclude_unset=True).items()}
@@ -295,6 +299,12 @@ async def update_student(stid: str, body: StudentPatch, user: dict = Depends(adm
     if res.matched_count == 0:
         raise HTTPException(status_code=404, detail="Siswa tidak ditemukan")
     return {"ok": True}
+
+
+@router.post("/admin/students/bulk-delete")
+async def bulk_delete_students(body: BulkDeleteIn, user: dict = Depends(admin_dep)):
+    res = await db.students.delete_many({"id": {"$in": body.ids[:1000]}, "school_id": user["school_id"]})
+    return {"deleted": res.deleted_count}
 
 
 @router.delete("/admin/students/{stid}")

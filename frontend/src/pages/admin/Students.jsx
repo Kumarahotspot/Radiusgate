@@ -27,6 +27,7 @@ export default function Students() {
   const [enrollFor, setEnrollFor] = useState(null);
   const [query, setQuery] = useState("");
   const [page, setPage] = useState(1);
+  const [selected, setSelected] = useState(new Set());
   const PAGE_SIZE = 10;
   const q = query.trim().toLowerCase();
   const filtered = students.filter((s) => !q || [s.name, s.nis, s.nisn, s.class].some((f) => (f || "").toLowerCase().includes(q)));
@@ -61,6 +62,29 @@ export default function Students() {
     if (!window.confirm(t("confirm_delete"))) return;
     await api.delete(`/admin/students/${id}`);
     load();
+  };
+
+  const toggleAll = () => {
+    const next = new Set(selected);
+    const allSel = paged.length > 0 && paged.every((s) => selected.has(s.id));
+    paged.forEach((s) => (allSel ? next.delete(s.id) : next.add(s.id)));
+    setSelected(next);
+  };
+
+  const toggleOne = (id) => {
+    const next = new Set(selected);
+    if (next.has(id)) next.delete(id); else next.add(id);
+    setSelected(next);
+  };
+
+  const bulkDelete = async () => {
+    if (!selected.size || !window.confirm(t("confirm_delete_many", { count: selected.size }))) return;
+    try {
+      await api.post("/admin/students/bulk-delete", { ids: [...selected] });
+      toast.success(t("deleted_ok"));
+      setSelected(new Set());
+      load();
+    } catch (err) { toast.error(errMsg(err)); }
   };
 
   const pickFile = async (e) => {
@@ -102,6 +126,12 @@ export default function Students() {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h2 className="text-lg font-bold text-slate-800">{t("students")} <span data-testid="student-total" className="text-teal-700">({students.length})</span></h2>
         <div className="flex items-center gap-2">
+          {selected.size > 0 && (
+            <button data-testid="bulk-delete-btn" onClick={bulkDelete}
+              className="flex items-center gap-1.5 bg-red-600 hover:bg-red-700 text-white text-xs font-bold px-4 py-2 rounded-xl transition-colors">
+              <Trash2 className="w-4 h-4" /> {t("delete_selected")} ({selected.size})
+            </button>
+          )}
           <button data-testid="export-btn" onClick={doExport}
             className="flex items-center gap-1.5 bg-white border border-teal-700 text-teal-700 hover:bg-teal-50 text-xs font-bold px-4 py-2 rounded-xl transition-colors">
             <Download className="w-4 h-4" /> {t("export_file")}
@@ -145,6 +175,10 @@ export default function Students() {
           <table className="w-full text-sm">
             <thead className="sticky top-0 bg-slate-50">
               <tr className="text-left text-xs uppercase tracking-wide text-slate-500 border-b">
+                <th className="px-3 py-3 w-8">
+                  <input type="checkbox" data-testid="select-all-students" className="accent-teal-700 w-4 h-4 cursor-pointer"
+                    checked={paged.length > 0 && paged.every((s) => selected.has(s.id))} onChange={toggleAll} />
+                </th>
                 <th className="px-4 py-3">{t("name")}</th>
                 <th className="px-4 py-3">{t("nis")}</th>
                 <th className="px-4 py-3">{t("nisn")}</th>
@@ -156,7 +190,11 @@ export default function Students() {
             </thead>
             <tbody>
               {paged.map((s) => (
-                <tr key={s.id} className="border-b last:border-0 hover:bg-slate-50/60">
+                <tr key={s.id} className={`border-b last:border-0 hover:bg-slate-50/60 ${selected.has(s.id) ? "bg-teal-50/60" : ""}`}>
+                  <td className="px-3 py-2.5">
+                    <input type="checkbox" data-testid={`select-student-${s.id}`} className="accent-teal-700 w-4 h-4 cursor-pointer"
+                      checked={selected.has(s.id)} onChange={() => toggleOne(s.id)} />
+                  </td>
                   <td className="px-4 py-2.5 font-semibold text-slate-800">{s.name}</td>
                   <td className="px-4 py-2.5 font-mono text-xs">{s.nis}</td>
                   <td className="px-4 py-2.5 font-mono text-xs">{s.nisn || "-"}</td>
@@ -177,7 +215,7 @@ export default function Students() {
                   </td>
                 </tr>
               ))}
-              {paged.length === 0 && <tr><td colSpan={7} className="px-4 py-8 text-center text-slate-400">{t("no_data")}</td></tr>}
+              {paged.length === 0 && <tr><td colSpan={8} className="px-4 py-8 text-center text-slate-400">{t("no_data")}</td></tr>}
             </tbody>
           </table>
         </div>

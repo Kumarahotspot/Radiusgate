@@ -162,6 +162,10 @@ Aplikasi absensi berbasis tablet kiosk + face recognition & liveness, geofence G
 - Endpoint baru `GET /admin/students/export?format=xlsx|csv` (kolom: Nama, NIS, NISN, L/P, Kelas, Enroll Wajah). Tombol **Ekspor XLS** di header halaman Siswa (di samping Impor) mengunduh `siswa.xlsx` via blob.
 - i18n: `export_file` (ID/EN). Terverifikasi: curl xlsx (120 baris, kolom benar) & csv; screenshot UI (tombol tampil, download `siswa.xlsx` ter-trigger, tanpa overflow desktop/mobile).
 
+## Update 2026-09-19 (iterasi 25 — bulk delete siswa)
+- Endpoint `POST /admin/students/bulk-delete` {ids:[]} (scoped school_id, maks 1000). UI Siswa: checkbox per baris + select-all (per halaman), baris terpilih di-highlight, tombol merah **Hapus Terpilih (N)** muncul di header saat ada seleksi, dengan konfirmasi.
+- i18n: `delete_selected`, `confirm_delete_many`, `deleted_ok` (ID/EN). Terverifikasi: curl (buat 3 → bulk-delete 3 → bersih), screenshot e2e (buat 2 via UI flow → select-all → hapus → "Belum ada data"), tanpa overflow, suite 65/65.
+
 ## Backlog Prioritas
 - P0: Kunci Tripay asli dari user + uji webhook; tablet React Native (kiosk native, embedding cache on-device)
 - P1: Absen siswa (v2), geofence penuh untuk absen via HP pribadi guru
