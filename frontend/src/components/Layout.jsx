@@ -4,13 +4,14 @@ import { useAuth, homeFor } from "../context/AuthContext";
 import LangSwitch from "./LangSwitch";
 import {
   LayoutDashboard, School, FileText, Users, GraduationCap, Settings,
-  CalendarClock, BarChart3, CreditCard, LogOut, ScanFace, MonitorSmartphone, Bell,
+  CalendarClock, BarChart3, CreditCard, LogOut, ScanFace, MonitorSmartphone, Bell, Inbox,
 } from "lucide-react";
 
 const menus = {
   owner: [
     { to: "/owner", icon: LayoutDashboard, key: "dashboard", end: true },
     { to: "/owner/invoices", icon: FileText, key: "invoices" },
+    { to: "/owner/leads", icon: Inbox, key: "leads" },
     { to: "/owner/settings", icon: Bell, key: "notif_settings" },
   ],
   school_admin: [

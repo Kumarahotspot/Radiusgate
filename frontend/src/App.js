@@ -10,6 +10,7 @@ import Kiosk from "@/pages/Kiosk";
 import Pay from "@/pages/Pay";
 import OwnerDashboard from "@/pages/owner/OwnerDashboard";
 import OwnerInvoices from "@/pages/owner/OwnerInvoices";
+import OwnerLeads from "@/pages/owner/OwnerLeads";
 import NotifSettings from "@/pages/owner/NotifSettings";
 import AdminDashboard from "@/pages/admin/AdminDashboard";
 import Teachers from "@/pages/admin/Teachers";
@@ -40,6 +41,7 @@ function App() {
           <Route path="/pay/:token" element={<Pay />} />
           <Route element={<Guard roles={["owner"]}><Layout /></Guard>}>
             <Route path="/owner" element={<OwnerDashboard />} />
+            <Route path="/owner/leads" element={<OwnerLeads />} />
             <Route path="/owner/invoices" element={<OwnerInvoices />} />
             <Route path="/owner/settings" element={<NotifSettings />} />
           </Route>

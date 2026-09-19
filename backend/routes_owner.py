@@ -17,6 +17,11 @@ def now_iso():
     return datetime.now(timezone.utc).isoformat()
 
 
+@router.get("/owner/leads")
+async def list_leads(user: dict = Depends(owner_dep)):
+    return await db.leads.find({}, {"_id": 0}).sort("created_at", -1).to_list(500)
+
+
 class SchoolIn(BaseModel):
     name: str
     address: str = ""

@@ -196,6 +196,11 @@ Aplikasi absensi berbasis tablet kiosk + face recognition & liveness, geofence G
 - Terverifikasi: screenshot desktop+mobile (tanpa overflow), curl leads 200 + tersimpan di Mongo, suite 65/65.
 - Catatan: email kontak di landing sementara memakai susyanto@gmail.com — ganti saat ada email/WA resmi perusahaan.
 
+## Update 2026-09-19 (iterasi 32 — notifikasi lead + halaman Leads owner)
+- `routes_public.py`: setiap POST /public/leads kini juga mengirim **email notifikasi ke akun owner** (via Resend/emailer, HTML aman lolos _assert_safe_email, kegagalan email tidak menggagalkan submit).
+- `GET /api/owner/leads` + halaman baru **Portal Owner → Pengajuan Pilot** (`/owner/leads`, menu ikon Inbox): tabel tanggal, sekolah, penanggung jawab, email, WA, jumlah siswa, pesan.
+- i18n: `leads`, `contact_person`, `message` (ID/EN). Terverifikasi: curl POST lead → tersimpan & muncul di GET owner/leads, email notif terkirim ke owner, screenshot halaman Leads, suite 65/65.
+
 ## Backlog Prioritas
 - P0: Kunci Tripay asli dari user + uji webhook; tablet React Native (kiosk native, embedding cache on-device)
 - P1: Absen siswa (v2), geofence penuh untuk absen via HP pribadi guru
