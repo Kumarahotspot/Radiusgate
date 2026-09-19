@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import api, { errMsg } from "../../api";
 import CameraCapture from "../../components/CameraCapture";
-import { Plus, Upload, Download, Trash2, X, Pencil, ScanFace, CheckCircle2, Circle, Search, ChevronLeft, ChevronRight } from "lucide-react";
+import { Plus, Upload, Download, Trash2, X, Pencil, ScanFace, CheckCircle2, Circle, Search, ChevronLeft, ChevronRight, GraduationCap } from "lucide-react";
 
 export default function Students() {
   const { t } = useTranslation();
@@ -28,12 +28,16 @@ export default function Students() {
   const [query, setQuery] = useState("");
   const [page, setPage] = useState(1);
   const [selected, setSelected] = useState(new Set());
+  const [showGrad, setShowGrad] = useState(false);
+  const [promoteOpen, setPromoteOpen] = useState(false);
+  const [promoteForm, setPromoteForm] = useState({ from_class: "", to_class: "" });
   const [pageSize, setPageSize] = useState(10);
   const q = query.trim().toLowerCase();
-  const filtered = students.filter((s) => !q || [s.name, s.nis, s.nisn, s.class].some((f) => (f || "").toLowerCase().includes(q)));
+  const filtered = students.filter((s) => (showGrad || s.status !== "lulus") && (!q || [s.name, s.nis, s.nisn, s.class].some((f) => (f || "").toLowerCase().includes(q))));
   const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
   const safePage = Math.min(page, totalPages);
   const paged = filtered.slice((safePage - 1) * pageSize, safePage * pageSize);
+  const classes = [...new Set(students.filter((s) => s.status !== "lulus").map((s) => s.class).filter(Boolean))].sort();
 
   const enroll = async (photo) => {
     try {
@@ -87,6 +91,32 @@ export default function Students() {
     } catch (err) { toast.error(errMsg(err)); }
   };
 
+  const doPromote = async () => {
+    if (!promoteForm.from_class || !promoteForm.to_class.trim()) return;
+    if (!window.confirm(t("confirm_promote", { from: promoteForm.from_class, to: promoteForm.to_class.trim() }))) return;
+    setBusy(true);
+    try {
+      const { data } = await api.post("/admin/students/promote", { from_class: promoteForm.from_class, to_class: promoteForm.to_class.trim() });
+      toast.success(t("promoted_ok", { count: data.updated }));
+      setPromoteOpen(false);
+      setPromoteForm({ from_class: "", to_class: "" });
+      load();
+    } catch (err) { toast.error(errMsg(err)); } finally { setBusy(false); }
+  };
+
+  const doGraduate = async () => {
+    if (!promoteForm.from_class) return;
+    if (!window.confirm(t("confirm_graduate", { cls: promoteForm.from_class }))) return;
+    setBusy(true);
+    try {
+      const { data } = await api.post("/admin/students/graduate", { class_name: promoteForm.from_class });
+      toast.success(t("graduated_ok", { count: data.updated }));
+      setPromoteOpen(false);
+      setPromoteForm({ from_class: "", to_class: "" });
+      load();
+    } catch (err) { toast.error(errMsg(err)); } finally { setBusy(false); }
+  };
+
   const pickFile = async (e) => {
     const f = e.target.files?.[0];
     if (!f) return;
@@ -132,6 +162,10 @@ export default function Students() {
               <Trash2 className="w-4 h-4" /> {t("delete_selected")} ({selected.size})
             </button>
           )}
+          <button data-testid="promote-btn" onClick={() => setPromoteOpen(true)}
+            className="flex items-center gap-1.5 bg-white border border-teal-700 text-teal-700 hover:bg-teal-50 text-xs font-bold px-4 py-2 rounded-xl transition-colors">
+            <GraduationCap className="w-4 h-4" /> {t("promote_class")}
+          </button>
           <button data-testid="export-btn" onClick={doExport}
             className="flex items-center gap-1.5 bg-white border border-teal-700 text-teal-700 hover:bg-teal-50 text-xs font-bold px-4 py-2 rounded-xl transition-colors">
             <Download className="w-4 h-4" /> {t("export_file")}
@@ -176,6 +210,10 @@ export default function Students() {
           className="rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-sm outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-600/15 transition">
           {[10, 25, 50, 100].map((n) => <option key={n} value={n}>{n}</option>)}
         </select>
+        <label className="flex items-center gap-1.5 text-xs font-semibold text-slate-500 cursor-pointer">
+          <input type="checkbox" data-testid="show-graduated" checked={showGrad} onChange={(e) => { setShowGrad(e.target.checked); setPage(1); }} className="accent-teal-700 w-4 h-4" />
+          {t("show_graduated")}
+        </label>
       </div>
 
       <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
@@ -203,7 +241,10 @@ export default function Students() {
                     <input type="checkbox" data-testid={`select-student-${s.id}`} className="accent-teal-700 w-4 h-4 cursor-pointer"
                       checked={selected.has(s.id)} onChange={() => toggleOne(s.id)} />
                   </td>
-                  <td className="px-4 py-2.5 font-semibold text-slate-800">{s.name}</td>
+                  <td className="px-4 py-2.5 font-semibold text-slate-800">
+                    {s.name}
+                    {s.status === "lulus" && <span className="ml-2 text-[10px] font-bold bg-slate-200 text-slate-500 rounded-full px-2 py-0.5">{t("status_lulus")}</span>}
+                  </td>
                   <td className="px-4 py-2.5 font-mono text-xs">{s.nis}</td>
                   <td className="px-4 py-2.5 font-mono text-xs">{s.nisn || "-"}</td>
                   <td className="px-4 py-2.5" data-testid={`student-gender-cell-${s.id}`}>{s.gender || "-"}</td>
@@ -242,6 +283,42 @@ export default function Students() {
           </div>
         )}
       </div>
+
+      {promoteOpen && (
+        <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4" data-testid="promote-modal">
+          <div className="bg-white rounded-2xl w-full max-w-md p-5 space-y-4">
+            <div className="flex items-center justify-between">
+              <p className="font-bold text-slate-800">{t("promote_class")}</p>
+              <button data-testid="promote-close" onClick={() => setPromoteOpen(false)} className="p-1 rounded-lg hover:bg-slate-100"><X className="w-4 h-4" /></button>
+            </div>
+            <div>
+              <label className="text-xs font-semibold text-slate-500">{t("from_class")}</label>
+              <select data-testid="promote-from" value={promoteForm.from_class} onChange={(e) => setPromoteForm({ ...promoteForm, from_class: e.target.value })}
+                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm bg-white outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-600/15 transition">
+                <option value="">-</option>
+                {classes.map((c) => <option key={c} value={c}>{c}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="text-xs font-semibold text-slate-500">{t("to_class")}</label>
+              <input data-testid="promote-to" value={promoteForm.to_class} onChange={(e) => setPromoteForm({ ...promoteForm, to_class: e.target.value })}
+                placeholder="contoh: XI-1"
+                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-600/15 transition" />
+            </div>
+            <button data-testid="promote-submit" onClick={doPromote} disabled={busy}
+              className="w-full bg-teal-700 hover:bg-teal-800 text-white font-bold text-sm py-3 rounded-xl transition-colors disabled:opacity-50">
+              {t("promote_action")}
+            </button>
+            <div className="border-t pt-4">
+              <button data-testid="graduate-submit" onClick={doGraduate} disabled={busy || !promoteForm.from_class}
+                className="w-full bg-red-600 hover:bg-red-700 text-white font-bold text-sm py-3 rounded-xl transition-colors disabled:opacity-50">
+                {t("graduate_action")} {promoteForm.from_class ? `(${promoteForm.from_class})` : ""}
+              </button>
+              <p className="mt-2 text-[11px] text-slate-400">{t("graduate_hint")}</p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {enrollFor && <CameraCapture testid="enroll-student-camera" onDone={enroll} onClose={() => setEnrollFor(null)} />}
 

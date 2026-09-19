@@ -43,7 +43,7 @@ async def stats(user: dict = Depends(admin_dep)):
         "late_today": len([a for a in today_att if a.get("status") == "late"]),
         "pending_leaves": await db.leaves.count_documents({"school_id": sid, "status": "pending"}),
         "total_teachers": await db.teachers.count_documents({"school_id": sid, "active": True}),
-        "total_students": await db.students.count_documents({"school_id": sid}),
+        "total_students": await db.students.count_documents({"school_id": sid, "status": {"$ne": "lulus"}}),
     }
 
 
@@ -254,7 +254,7 @@ async def list_students(user: dict = Depends(admin_dep)):
 async def add_student(body: StudentIn, user: dict = Depends(admin_dep)):
     st = {"id": str(uuid.uuid4()), "school_id": user["school_id"],
           "name": body.name, "nis": body.nis, "nisn": body.nisn,
-          "gender": _norm_gender(body.gender), "class": body.class_name}
+          "gender": _norm_gender(body.gender), "class": body.class_name, "status": "aktif"}
     await db.students.insert_one(st)
     st.pop("_id", None)
     return st
@@ -305,6 +305,35 @@ async def update_student(stid: str, body: StudentPatch, user: dict = Depends(adm
 async def bulk_delete_students(body: BulkDeleteIn, user: dict = Depends(admin_dep)):
     res = await db.students.delete_many({"id": {"$in": body.ids[:1000]}, "school_id": user["school_id"]})
     return {"deleted": res.deleted_count}
+
+
+class PromoteIn(BaseModel):
+    from_class: str
+    to_class: str
+
+
+class GraduateIn(BaseModel):
+    class_name: str
+
+
+@router.post("/admin/students/promote")
+async def promote_students(body: PromoteIn, user: dict = Depends(admin_dep)):
+    if not body.from_class.strip() or not body.to_class.strip():
+        raise HTTPException(status_code=422, detail="empty_class")
+    res = await db.students.update_many(
+        {"school_id": user["school_id"], "class": body.from_class.strip(), "status": {"$ne": "lulus"}},
+        {"$set": {"class": body.to_class.strip()}})
+    return {"updated": res.modified_count}
+
+
+@router.post("/admin/students/graduate")
+async def graduate_students(body: GraduateIn, user: dict = Depends(admin_dep)):
+    if not body.class_name.strip():
+        raise HTTPException(status_code=422, detail="empty_class")
+    res = await db.students.update_many(
+        {"school_id": user["school_id"], "class": body.class_name.strip(), "status": {"$ne": "lulus"}},
+        {"$set": {"status": "lulus"}})
+    return {"updated": res.modified_count}
 
 
 @router.delete("/admin/students/{stid}")
@@ -370,7 +399,8 @@ async def import_commit(body: CommitIn, user: dict = Depends(admin_dep)):
             continue
         docs.append({"id": str(uuid.uuid4()), "school_id": sid, "name": str(r.get("name", "")).strip(),
                      "nis": nis, "nisn": str(r.get("nisn", "")).strip(),
-                     "gender": _norm_gender(str(r.get("gender", ""))), "class": str(r.get("class", "")).strip()})
+                     "gender": _norm_gender(str(r.get("gender", ""))), "class": str(r.get("class", "")).strip(),
+                     "status": "aktif"})
         if nis:
             existing.add(nis)
     if docs:

@@ -20,7 +20,7 @@ async def my_teacher(user: dict) -> dict:
 @router.get("/teacher/students")
 async def students_for_teacher(user: dict = Depends(teacher_dep)):
     return await db.students.find(
-        {"school_id": user["school_id"]}, {"_id": 0, "id": 1, "name": 1, "nis": 1, "class": 1}
+        {"school_id": user["school_id"], "status": {"$ne": "lulus"}}, {"_id": 0, "id": 1, "name": 1, "nis": 1, "class": 1}
     ).to_list(5000)
 
 

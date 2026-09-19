@@ -188,7 +188,7 @@ async def attend(body: AttendIn, request: Request):
         {"school_id": school["id"], "active": True, "embedding": {"$ne": None}},
         {"_id": 0, "id": 1, "name": 1, "embedding": 1}).to_list(1000)
     students = await db.students.find(
-        {"school_id": school["id"], "embedding": {"$ne": None}},
+        {"school_id": school["id"], "embedding": {"$ne": None}, "status": {"$ne": "lulus"}},
         {"_id": 0, "id": 1, "name": 1, "class": 1, "embedding": 1}).to_list(5000)
     if not teachers and not students:
         raise HTTPException(status_code=422, detail="no_enrolled")
@@ -246,7 +246,7 @@ class AttendStudentIn(BaseModel):
 @router.post("/kiosk/attend-student")
 async def attend_student(body: AttendStudentIn, request: Request):
     school = await school_by_token(request)
-    student = await db.students.find_one({"school_id": school["id"], "nis": body.nis.strip()})
+    student = await db.students.find_one({"school_id": school["id"], "nis": body.nis.strip(), "status": {"$ne": "lulus"}})
     if not student:
         raise HTTPException(status_code=422, detail="student_not_found")
     att_status = body.status if body.status in ("present", "sakit", "izin") else "present"
@@ -268,7 +268,7 @@ async def sync(body: SyncIn, request: Request):
     for r in body.records:
         try:
             if r.get("person_type") == "student":
-                st = await db.students.find_one({"school_id": school["id"], "nis": str(r.get("nis", "")).strip()}, {"_id": 0})
+                st = await db.students.find_one({"school_id": school["id"], "nis": str(r.get("nis", "")).strip(), "status": {"$ne": "lulus"}}, {"_id": 0})
                 if not st:
                     results.append({"client_uuid": r.get("client_uuid"), "ok": False, "reason": "student_not_found"})
                     continue

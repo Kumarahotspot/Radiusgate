@@ -221,6 +221,12 @@ Aplikasi absensi berbasis tablet kiosk + face recognition & liveness, geofence G
 - Halaman Reset/Daftar memakai gradien brand yang sama dengan login mobile. errMsg mapping: trial_expired, email_taken, invalid_or_expired, password_too_short (i18n ID/EN lengkap).
 - Tes: `tests/test_auth_trial.py` (7 tes: register, duplikat, login trial, forgot neutral, reset flow + reuse/expired token, blokir login expired, cleanup) — xdist_group "auth_trial". E2E live curl 7 langkah PASS. **Suite 72/72 lulus.**
 
+## Update 2026-09-19 (iterasi 37 — kenaikan kelas & kelulusan massal)
+- Siswa kini punya field `status` ("aktif" default / "lulus"). Endpoint baru: `POST /admin/students/promote` {from_class, to_class} (update_many kelas, hanya siswa aktif) dan `POST /admin/students/graduate` {class_name} (set status=lulus).
+- Siswa lulus: **dikeluarkan dari** pencocokan wajah kiosk, absen NIS, sync offline, daftar siswa di portal guru, statistik admin, dan **hitungan tagihan** (owner schools & billing). Data & riwayat tetap tersimpan.
+- UI Siswa: tombol **"Kenaikan Kelas"** → modal (pilih Dari Kelas → isi Ke Kelas Baru → Naikkan Kelas; zona merah "Tandai Lulus" dengan hint). Badge "Lulus" di kolom nama, toggle "Tampilkan lulus" (default sembunyi).
+- Tes: TestPromoteGraduate (buat 2 siswa kelas TESTPROMO → promote → graduate → absen NIS ditolak 422 → cleanup). **Suite 76/76 lulus.** E2E UI PASS (promote ZZ-NAIK→XI, graduate, badge, bulk-delete cleanup).
+
 ## Backlog Prioritas
 - P0: Kunci Tripay asli dari user + uji webhook; tablet React Native (kiosk native, embedding cache on-device)
 - P1: Absen siswa (v2), geofence penuh untuk absen via HP pribadi guru

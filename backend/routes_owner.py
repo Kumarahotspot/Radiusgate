@@ -81,7 +81,7 @@ async def list_schools(user: dict = Depends(owner_dep)):
     for s in schools:
         manual = s.get("student_count_manual")
         s["student_count_source"] = "manual" if manual else "data"
-        s["student_count"] = manual if manual else await db.students.count_documents({"school_id": s["id"]})
+        s["student_count"] = manual if manual else await db.students.count_documents({"school_id": s["id"], "status": {"$ne": "lulus"}})
         s["teacher_count"] = await db.teachers.count_documents({"school_id": s["id"]})
     return schools
 
@@ -163,7 +163,7 @@ async def generate_invoices(body: GenerateIn, user: dict = Depends(owner_dep)):
         if await db.invoices.find_one({"school_id": s["id"], "period": body.period}):
             continue
         seq += 1
-        count = s.get("student_count_manual") or await db.students.count_documents({"school_id": s["id"]})
+        count = s.get("student_count_manual") or await db.students.count_documents({"school_id": s["id"], "status": {"$ne": "lulus"}})
         inv = {
             "id": str(uuid.uuid4()),
             "invoice_no": f"INV-{body.period}-{seq:03d}",

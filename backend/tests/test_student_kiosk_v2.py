@@ -237,3 +237,40 @@ class TestAdminStatsStudents:
         assert isinstance(d["students_present"], int)
         assert d["students_present"] >= 0
         assert isinstance(d["present_today"], int)
+
+
+class TestPromoteGraduate:
+    """Kenaikan kelas & kelulusan massal."""
+    _ids = []
+
+    def test_setup_students(self, admin_token):
+        for i in range(2):
+            r = requests.post(f"{API}/admin/students",
+                              json={"name": f"TEST_PROMO_{i}", "nis": f"TP-{uuid.uuid4().hex[:6]}", "class_name": "TESTPROMO"},
+                              headers=h(admin_token), timeout=30)
+            assert r.status_code == 200, r.text
+            TestPromoteGraduate._ids.append(r.json()["id"])
+
+    def test_promote_class(self, admin_token):
+        r = requests.post(f"{API}/admin/students/promote",
+                          json={"from_class": "TESTPROMO", "to_class": "TESTPROMO-XI"},
+                          headers=h(admin_token), timeout=30)
+        assert r.status_code == 200 and r.json()["updated"] == 2, r.text
+        students = _fetch_students(admin_token)
+        assert all(s["class"] == "TESTPROMO-XI" for s in students if s["id"] in TestPromoteGraduate._ids)
+
+    def test_graduate_class_blocks_attendance(self, admin_token):
+        r = requests.post(f"{API}/admin/students/graduate", json={"class_name": "TESTPROMO-XI"},
+                          headers=h(admin_token), timeout=30)
+        assert r.status_code == 200 and r.json()["updated"] == 2, r.text
+        students = _fetch_students(admin_token)
+        mine = [s for s in students if s["id"] in TestPromoteGraduate._ids]
+        assert all(s.get("status") == "lulus" for s in mine)
+        body = {"nis": mine[0]["nis"], "status": "present", "lat": -6.398118, "lng": 106.758963,
+                "ts_device": datetime.now(timezone.utc).isoformat(), "client_uuid": uuid.uuid4().hex}
+        r = requests.post(f"{API}/kiosk/attend-student", json=body, headers=KIOSK_HDR, timeout=30)
+        assert r.status_code == 422 and "student_not_found" in r.text, r.text
+
+    def test_zz_cleanup(self, admin_token):
+        for sid in TestPromoteGraduate._ids:
+            requests.delete(f"{API}/admin/students/{sid}", headers=h(admin_token), timeout=30)
