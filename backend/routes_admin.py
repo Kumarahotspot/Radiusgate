@@ -398,8 +398,14 @@ async def report_attendance(date_from: str, date_to: str, teacher_id: str | None
     if teacher_id:
         q["teacher_id"] = teacher_id
     rows = await db.attendance.find(q, {"_id": 0, "photo": 0}).sort([("date", 1), ("ts_server", 1)]).to_list(10000)
+    students = {s["id"]: s for s in await db.students.find(
+        {"school_id": user["school_id"]}, {"_id": 0, "id": 1, "nisn": 1, "gender": 1}).to_list(10000)}
     for r in rows:
         r["time"] = r.get("time_local") or r.get("ts_device", r.get("ts_server", ""))[11:16]
+        st = students.get(r.get("student_id"))
+        if st:
+            r["nisn"] = st.get("nisn", "")
+            r["gender"] = st.get("gender", "")
     return rows
 
 
@@ -408,7 +414,8 @@ async def report_export(format: str, date_from: str, date_to: str, user: dict = 
     rows = await report_attendance(date_from, date_to, None, user)
     if format == "xlsx":
         df = pd.DataFrame([{
-            "Tanggal": r.get("date"), "Guru": r.get("teacher_name"), "Tipe": r.get("type"),
+            "Tanggal": r.get("date"), "Nama": r.get("teacher_name"), "NISN": r.get("nisn", ""),
+            "L/P": r.get("gender", ""), "Tipe": r.get("type"),
             "Jam": r.get("time"), "Status": r.get("status"), "Telat (mnt)": r.get("late_minutes", 0),
             "Lembur (mnt)": r.get("overtime_minutes", 0), "Offline": "Ya" if r.get("offline") else "Tidak",
         } for r in rows])

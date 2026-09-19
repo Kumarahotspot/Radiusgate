@@ -153,6 +153,11 @@ Aplikasi absensi berbasis tablet kiosk + face recognition & liveness, geofence G
 - Impor CSV/XLSX: kolom `nisn` terpisah dari `nis`; kolom gender dikenali (gender/jk/kelamin/jenis_kelamin/jenis kelamin/l-p). **Fix:** `pd.read_csv/read_excel(..., dtype=str)` agar leading zero NISN tidak hilang (sebelumnya 0099990001 → 99990001).
 - i18n: `nisn`, `gender`, `gender_short`, `gender_l`, `gender_p` (ID/EN). Terverifikasi: curl create/patch/impor (leading zero utuh, normalisasi gender OK) + screenshot UI (kolom & form tampil, tambah/hapus jalan). Suite tetap 65/65.
 
+## Update 2026-09-19 (iterasi 23 — NISN & L/P di laporan/ekspor)
+- `report_attendance` meng-enrich baris siswa dengan `nisn`/`gender` (join ke koleksi students via student_id).
+- Ekspor **XLSX**: kolom baru NISN & L/P, header "Guru"→"Nama". Ekspor **PDF**: kolom NISN & L/P dengan posisi kolom diatur ulang (muat A4). Tabel **Laporan** di UI: kolom NISN & L/P (colSpan 10).
+- Terverifikasi: XLSX terunduh & ter-parse berisi kolom NISN/L/P, PDF valid, header UI benar, tanpa overflow desktop/mobile, suite 65/65.
+
 ## Backlog Prioritas
 - P0: Kunci Tripay asli dari user + uji webhook; tablet React Native (kiosk native, embedding cache on-device)
 - P1: Absen siswa (v2), geofence penuh untuk absen via HP pribadi guru

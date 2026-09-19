@@ -73,6 +73,8 @@ export default function Reports() {
               <tr className="text-left text-xs uppercase tracking-wide text-slate-500 border-b bg-slate-50">
                 <th className="px-4 py-3">{t("date_from")}</th>
                 <th className="px-4 py-3">{t("name")}</th>
+                <th className="px-4 py-3">{t("nisn")}</th>
+                <th className="px-4 py-3">{t("gender_short")}</th>
                 <th className="px-4 py-3">{t("type")}</th>
                 <th className="px-4 py-3">{t("time")}</th>
                 <th className="px-4 py-3">{t("status")}</th>
@@ -86,6 +88,8 @@ export default function Reports() {
                 <tr key={r.id} className="border-b last:border-0 hover:bg-slate-50/60">
                   <td className="px-4 py-2.5">{r.date}</td>
                   <td className="px-4 py-2.5 font-semibold text-slate-800">{r.teacher_name}</td>
+                  <td className="px-4 py-2.5 font-mono text-xs">{r.nisn || "-"}</td>
+                  <td className="px-4 py-2.5">{r.gender || "-"}</td>
                   <td className="px-4 py-2.5">{r.type === "in" ? t("check_in") : t("check_out")}</td>
                   <td className="px-4 py-2.5">{r.time}</td>
                   <td className="px-4 py-2.5">
@@ -98,7 +102,7 @@ export default function Reports() {
                   <td className="px-4 py-2.5 text-xs font-mono text-slate-500">{r.lat?.toFixed(4)}, {r.lng?.toFixed(4)}</td>
                 </tr>
               ))}
-              {rows.length === 0 && <tr><td colSpan={8} className="px-4 py-8 text-center text-slate-400">{t("no_data")}</td></tr>}
+              {rows.length === 0 && <tr><td colSpan={10} className="px-4 py-8 text-center text-slate-400">{t("no_data")}</td></tr>}
             </tbody>
           </table>
         </div>
