@@ -32,6 +32,10 @@ export default function Students() {
   const [promoteOpen, setPromoteOpen] = useState(false);
   const [promoteForm, setPromoteForm] = useState({ from_class: "", to_class: "" });
   const [pageSize, setPageSize] = useState(10);
+  const [bulkOpen, setBulkOpen] = useState(false);
+  const [zipFile, setZipFile] = useState(null);
+  const [mapFile, setMapFile] = useState(null);
+  const [bulkReport, setBulkReport] = useState(null);
   const q = query.trim().toLowerCase();
   const filtered = students.filter((s) => (showGrad || s.status !== "lulus") && (!q || [s.name, s.nis, s.nisn, s.class].some((f) => (f || "").toLowerCase().includes(q))));
   const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
@@ -195,11 +199,35 @@ export default function Students() {
     } catch (err) { toast.error(errMsg(err)); } finally { setBusy(false); }
   };
 
+  const doBulkEnroll = async () => {
+    if (!zipFile) { toast.error(t("zip_required")); return; }
+    const fd = new FormData();
+    fd.append("file", zipFile);
+    if (mapFile) fd.append("mapping", mapFile);
+    setBusy(true);
+    try {
+      const { data } = await api.post("/admin/students/enroll-zip", fd, { headers: { "Content-Type": "multipart/form-data" } });
+      setBulkReport(data);
+      load();
+    } catch (err) { toast.error(errMsg(err)); } finally { setBusy(false); }
+  };
+
+  const downloadBulkReport = () => {
+    const esc = (v) => `"${String(v ?? "").replaceAll('"', '""')}"`;
+    const rows = ["file,nis,nama,status,keterangan", ...bulkReport.results.map((r) => [r.file, r.nis, r.name, r.status, r.reason].map(esc).join(","))];
+    const url = URL.createObjectURL(new Blob(["﻿" + rows.join("\n")], { type: "text/csv;charset=utf-8" }));
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "laporan-enroll.csv";
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div data-testid="students-page" className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h2 className="text-lg font-bold text-slate-800">{t("students")} <span data-testid="student-total" className="text-teal-700">({students.length})</span></h2>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           {selected.size > 0 && (
             <button data-testid="bulk-delete-btn" onClick={bulkDelete}
               className="flex items-center gap-1.5 bg-red-600 hover:bg-red-700 text-white text-xs font-bold px-4 py-2 rounded-xl transition-colors">
@@ -213,6 +241,10 @@ export default function Students() {
           <button data-testid="export-btn" onClick={doExport}
             className="flex items-center gap-1.5 bg-white border border-teal-700 text-teal-700 hover:bg-teal-50 text-xs font-bold px-4 py-2 rounded-xl transition-colors">
             <Download className="w-4 h-4" /> {t("export_file")}
+          </button>
+          <button data-testid="bulk-enroll-btn" onClick={() => { setBulkOpen(true); setBulkReport(null); setZipFile(null); setMapFile(null); }}
+            className="flex items-center gap-1.5 bg-white border border-teal-700 text-teal-700 hover:bg-teal-50 text-xs font-bold px-4 py-2 rounded-xl transition-colors">
+            <ScanFace className="w-4 h-4" /> {t("bulk_enroll")}
           </button>
           <button data-testid="import-btn" onClick={() => fileRef.current?.click()} disabled={busy}
             className="flex items-center gap-1.5 bg-teal-700 hover:bg-teal-800 text-white text-xs font-bold px-4 py-2 rounded-xl transition-colors disabled:opacity-50">
@@ -422,6 +454,65 @@ export default function Students() {
       )}
 
       {enrollFor && <CameraCapture testid="enroll-student-camera" onDone={enroll} onClose={() => setEnrollFor(null)} />}
+
+      {bulkOpen && (
+        <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4" data-testid="bulk-enroll-modal">
+          <div className="bg-white rounded-2xl w-full max-w-2xl max-h-[85vh] flex flex-col overflow-hidden">
+            <div className="flex items-center justify-between px-5 py-4 border-b">
+              <p className="font-bold text-slate-800">{t("bulk_enroll_title")}</p>
+              <button data-testid="bulk-enroll-close" onClick={() => setBulkOpen(false)} className="p-1 rounded-lg hover:bg-slate-100"><X className="w-4 h-4" /></button>
+            </div>
+            <div className="overflow-auto flex-1 px-5 py-4 space-y-4">
+              <p className="text-xs text-slate-500 bg-slate-50 rounded-xl p-3">{t("bulk_enroll_hint")}</p>
+              <div className="grid sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-semibold text-slate-500">{t("zip_photos")}</label>
+                  <input data-testid="bulk-enroll-zip-input" type="file" accept=".zip" onChange={(e) => setZipFile(e.target.files?.[0] || null)}
+                    className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-teal-700 file:text-white file:text-xs file:font-bold file:px-3 file:py-1.5" />
+                </div>
+                <div>
+                  <label className="text-xs font-semibold text-slate-500">{t("mapping_optional")}</label>
+                  <input data-testid="bulk-enroll-mapping-input" type="file" accept=".csv,.xlsx,.xls" onChange={(e) => setMapFile(e.target.files?.[0] || null)}
+                    className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-slate-200 file:text-slate-700 file:text-xs file:font-bold file:px-3 file:py-1.5" />
+                </div>
+              </div>
+              <button data-testid="bulk-enroll-process-btn" onClick={doBulkEnroll} disabled={busy || !zipFile}
+                className="w-full bg-teal-700 hover:bg-teal-800 text-white font-bold text-sm py-3 rounded-xl transition-colors disabled:opacity-50">
+                {busy ? t("loading") : t("process_enroll")}
+              </button>
+              {bulkReport && (
+                <div data-testid="bulk-enroll-report" className="space-y-3">
+                  <div className="flex flex-wrap items-center gap-4 text-sm border-y bg-slate-50 -mx-5 px-5 py-3">
+                    <span data-testid="bulk-enroll-success-count" className="font-bold text-emerald-600">{t("success")}: {bulkReport.success}</span>
+                    <span data-testid="bulk-enroll-failed-count" className="font-bold text-red-500">{t("failed")}: {bulkReport.failed}</span>
+                    <button data-testid="bulk-enroll-download-btn" onClick={downloadBulkReport}
+                      className="ml-auto flex items-center gap-1 text-xs font-bold text-teal-700 hover:underline">
+                      <FileDown className="w-3.5 h-3.5" /> {t("download_report")}
+                    </button>
+                  </div>
+                  <table className="w-full text-sm">
+                    <thead><tr className="text-left text-xs uppercase text-slate-500 border-b">
+                      <th className="py-2 pr-3">{t("result_file")}</th><th className="py-2 pr-3">{t("nis")}</th><th className="py-2 pr-3">{t("name")}</th><th className="py-2 pr-3">{t("result_status")}</th><th className="py-2">{t("result_reason")}</th>
+                    </tr></thead>
+                    <tbody>
+                      {bulkReport.results.slice(0, 200).map((r, i) => (
+                        <tr key={i} className="border-b last:border-0" data-testid={`bulk-enroll-row-${i}`}>
+                          <td className="py-1.5 pr-3 font-mono text-xs">{r.file}</td>
+                          <td className="py-1.5 pr-3 font-mono text-xs">{r.nis || "-"}</td>
+                          <td className="py-1.5 pr-3">{r.name || "-"}</td>
+                          <td className={`py-1.5 pr-3 text-xs font-bold ${r.status === "sukses" ? "text-emerald-600" : "text-red-500"}`}>{r.status === "sukses" ? t("success") : t("failed")}</td>
+                          <td className="py-1.5 text-xs text-slate-500">{r.reason || "-"}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                  {bulkReport.results.length > 200 && <p className="text-xs text-slate-400">+{bulkReport.results.length - 200}...</p>}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {editFor && (
         <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4" data-testid="edit-student-modal">

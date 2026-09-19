@@ -1,5 +1,7 @@
+import base64
 import io
 import uuid
+import zipfile
 from datetime import datetime, timezone
 from zoneinfo import ZoneInfo
 import pandas as pd
@@ -139,8 +141,8 @@ class EnrollIn(BaseModel):
     photo: str
 
 
-async def _face_dup_check(school_id: str, emb, exclude_id: str):
-    """Tolak enroll jika wajah sudah terdaftar atas nama orang lain (guru/siswa) di sekolah."""
+async def _face_dup_name(school_id: str, emb, exclude_id: str):
+    """Nama orang lain yang wajahnya sudah terdaftar, atau None jika aman."""
     others = await db.teachers.find(
         {"school_id": school_id, "id": {"$ne": exclude_id}, "embedding": {"$type": "array"}},
         {"_id": 0, "name": 1, "embedding": 1}).to_list(2000)
@@ -149,7 +151,14 @@ async def _face_dup_check(school_id: str, emb, exclude_id: str):
         {"_id": 0, "name": 1, "embedding": 1}).to_list(5000)
     for o in others:
         if cos_sim(emb, o["embedding"]) >= MATCH_SIM_THRESHOLD:
-            raise HTTPException(status_code=409, detail=f"face_already_enrolled:{o['name']}")
+            return o["name"]
+    return None
+
+
+async def _face_dup_check(school_id: str, emb, exclude_id: str):
+    dup = await _face_dup_name(school_id, emb, exclude_id)
+    if dup:
+        raise HTTPException(status_code=409, detail=f"face_already_enrolled:{dup}")
 
 
 @router.post("/admin/teachers/{tid}/enroll")
@@ -274,6 +283,64 @@ async def enroll_student_face(stid: str, body: EnrollIn, user: dict = Depends(ad
     await _face_dup_check(user["school_id"], emb, stid)
     await db.students.update_one({"id": stid}, {"$set": {"embedding": emb, "embedding_model": "buffalo_s", "photo": body.photo, "enrolled_at": now_iso()}})
     return {"ok": True, "enrolled": True}
+
+
+@router.post("/admin/students/enroll-zip")
+async def enroll_students_zip(file: UploadFile = File(...), mapping: UploadFile = File(None), user: dict = Depends(admin_dep)):
+    """Enroll wajah massal dari ZIP foto. Nama file = NIS, atau dicocokkan via mapping Excel/CSV (kolom NIS + nama file)."""
+    sid = user["school_id"]
+    try:
+        zf = zipfile.ZipFile(io.BytesIO(await file.read()))
+    except Exception:
+        raise HTTPException(status_code=400, detail="File bukan ZIP yang valid")
+    fmap = {}
+    if mapping and mapping.filename:
+        mc = await mapping.read()
+        try:
+            mdf = pd.read_excel(io.BytesIO(mc), dtype=str) if mapping.filename.lower().endswith((".xlsx", ".xls")) else pd.read_csv(io.BytesIO(mc), dtype=str)
+        except Exception:
+            raise HTTPException(status_code=400, detail="File mapping tidak bisa dibaca")
+        mdf.columns = [str(c).strip().lower() for c in mdf.columns]
+        nis_col = next((c for c in mdf.columns if "nis" in c and "nisn" not in c), None)
+        file_col = next((c for c in mdf.columns if any(k in c for k in ("file", "foto", "photo"))), None)
+        if not nis_col or not file_col:
+            raise HTTPException(status_code=400, detail="Mapping wajib punya kolom NIS dan kolom nama file/foto")
+        for _, r in mdf.iterrows():
+            fn, nis = str(r[file_col]).strip().lower(), str(r[nis_col]).strip()
+            if fn and nis and fn != "nan" and nis.lower() != "nan":
+                fmap[fn] = nis
+                fmap[fn.rsplit(".", 1)[0]] = nis
+    students = {s["nis"]: s for s in await db.students.find(
+        {"school_id": sid, "nis": {"$nin": [None, ""]}}, {"_id": 0, "embedding": 0, "photo": 0}).to_list(10000)}
+    entries = [i for i in zf.infolist() if not i.is_dir() and not i.filename.startswith("__MACOSX")
+               and i.filename.lower().rsplit(".", 1)[-1] in ("jpg", "jpeg", "png")][:2000]
+    results = []
+    for info in entries:
+        base = info.filename.split("/")[-1]
+        stem = base.rsplit(".", 1)[0]
+        nis = fmap.get(base.lower()) or fmap.get(stem.lower()) or stem.strip()
+        st = students.get(nis)
+        if not st:
+            results.append({"file": base, "nis": nis, "name": "", "status": "gagal", "reason": "NIS tidak ditemukan di data siswa"})
+            continue
+        try:
+            b64 = "data:image/jpeg;base64," + base64.b64encode(zf.read(info)).decode()
+            emb = await run_in_threadpool(embed, b64)
+        except NoFaceError as e:
+            results.append({"file": base, "nis": nis, "name": st["name"], "status": "gagal",
+                            "reason": "Wajah tidak terdeteksi" if "no_face" in str(e) else "Lebih dari 1 wajah di foto"})
+            continue
+        except Exception:
+            results.append({"file": base, "nis": nis, "name": st["name"], "status": "gagal", "reason": "File gambar rusak/tidak bisa dibaca"})
+            continue
+        dup = await _face_dup_name(sid, emb, st["id"])
+        if dup:
+            results.append({"file": base, "nis": nis, "name": st["name"], "status": "gagal", "reason": f"Wajah sudah terdaftar atas nama {dup}"})
+            continue
+        await db.students.update_one({"id": st["id"]}, {"$set": {"embedding": emb, "embedding_model": "buffalo_s", "enrolled_at": now_iso()}})
+        results.append({"file": base, "nis": nis, "name": st["name"], "status": "sukses", "reason": ""})
+    ok = len([r for r in results if r["status"] == "sukses"])
+    return {"total": len(results), "success": ok, "failed": len(results) - ok, "results": results}
 
 
 class StudentPatch(BaseModel):

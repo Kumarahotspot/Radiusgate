@@ -251,3 +251,10 @@ Aplikasi absensi berbasis tablet kiosk + face recognition & liveness, geofence G
 1. Minta kunci Tripay (merchant code, API key, private key) dari user → aktifkan mode real
 2. Uji lapangan kiosk di HP dengan wajah asli (kalibrasi threshold)
 3. Build tablet app React Native + TS (Fase 2 native)
+
+## 2026-09-19 — Enroll Wajah Massal (ZIP)
+- Endpoint baru `POST /api/admin/students/enroll-zip` (routes_admin.py): upload ZIP foto, nama file = NIS atau cocok via mapping Excel/CSV opsional (kolom NIS + nama file). Laporan per-file: sukses / NIS tidak ditemukan / wajah tidak terdeteksi / >1 wajah / duplikat wajah orang lain.
+- Refactor `_face_dup_check` -> helper `_face_dup_name` (dipakai ulang oleh enroll ZIP tanpa mengubah perilaku endpoint enroll tunggal).
+- UI: tombol "Enroll Massal (ZIP)" + modal di halaman Admin > Siswa (Students.jsx), laporan di layar + unduh CSV. i18n ID/EN ditambah.
+- Fix kecil: overflow horizontal mobile di halaman Siswa (toolbar tombol kini flex-wrap).
+- Terverifikasi: e2e curl (2 sukses, 1 NIS tak dikenal, duplikat ditolak, mapping CSV jalan), screenshot UI desktop+mobile, pytest 79 passed.
