@@ -314,3 +314,9 @@ Aplikasi absensi berbasis tablet kiosk + face recognition & liveness, geofence G
 - Tes baru: test_scenario9_overnight_kiosk_window (23:30 diterima, 12:00 ditolak not_open 660).
 - Hardening tes: _set_settings & _ensure_baseline kini selalu me-null-kan kiosk_open/close agar skenario tidak bergantung konfigurasi live user; settings_guard mengembalikan window user apa adanya.
 - Terverifikasi: pytest 81 passed / 1 skipped; window user 23:00-06:00 tetap utuh setelah suite jalan.
+
+## 2026-09-19 — Revert: fitur Kiosk Dibuka/Ditutup dihapus atas permintaan user
+- User memutuskan cukup pakai Jam Kerja (jam masuk/pulang/toleransi/early window); field kiosk_open/kiosk_close dihapus dari UI Pengaturan, SettingsIn, logika _record, handler Kiosk.jsx, i18n, dan tes (scenario8/9 dihapus, guard dikembalikan ke 6 field asli).
+- Logika yang dipertahankan: shift siang tanpa wrap-around (absen larut = telat), shift malam pakai wrap, too_early pakai early_checkin_min, require_checkin toggle.
+- DB: kiosk_open/kiosk_close di-unset dari dokumen settings.
+- Terverifikasi: pytest 79 passed / 1 skipped, halaman Pengaturan bersih (desktop+mobile, tanpa overflow).

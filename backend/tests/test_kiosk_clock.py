@@ -91,8 +91,7 @@ def admin_token():
     return r.json().get("access_token") or r.json().get("token")
 
 
-SETTINGS_KEYS = ("work_start", "work_end", "late_tolerance_min", "early_checkin_min", "timezone", "require_checkin",
-                 "kiosk_open", "kiosk_close")
+SETTINGS_KEYS = ("work_start", "work_end", "late_tolerance_min", "early_checkin_min", "timezone", "require_checkin")
 
 
 @pytest.fixture(scope="module", autouse=True)
@@ -102,8 +101,9 @@ def settings_guard(admin_token):
     hdr = {"Authorization": f"Bearer {admin_token}"}
     orig = requests.get(f"{BASE}/api/admin/settings", headers=hdr, timeout=10).json().get("settings") or {}
     yield
-    keep = {k: orig.get(k) for k in SETTINGS_KEYS}
-    requests.put(f"{BASE}/api/admin/settings", json=keep, headers=hdr, timeout=10)
+    keep = {k: v for k, v in orig.items() if k in SETTINGS_KEYS}
+    if keep:
+        requests.put(f"{BASE}/api/admin/settings", json=keep, headers=hdr, timeout=10)
 
 
 def _set_settings(admin_token, work_start, work_end, tol, early):
@@ -111,8 +111,7 @@ def _set_settings(admin_token, work_start, work_end, tol, early):
         f"{BASE}/api/admin/settings",
         headers={"Authorization": f"Bearer {admin_token}"},
         json={"work_start": work_start, "work_end": work_end,
-              "late_tolerance_min": tol, "early_checkin_min": early,
-              "kiosk_open": None, "kiosk_close": None},
+              "late_tolerance_min": tol, "early_checkin_min": early},
         timeout=10,
     )
     assert r.status_code == 200, f"set settings failed: {r.status_code} {r.text}"
@@ -257,48 +256,6 @@ def test_scenario7_day_shift_night_checkin_marked_late(admin_token, temp_teacher
     j = r.json()
     assert j["status"] == "late", j
     assert j["late_minutes"] == 935, j
-
-
-def test_scenario8_kiosk_open_close_window(admin_token, temp_teacher, mongo):
-    """kiosk_open/close 05:00/18:00 -> 04:30 ditolak (detail jam buka + sisa), 22:45 ditolak, 07:05 ok."""
-    _set_settings(admin_token, "07:00", "15:00", 10, 60)
-    hdr = {"Authorization": f"Bearer {admin_token}"}
-    requests.put(f"{BASE}/api/admin/settings", json={"kiosk_open": "05:00", "kiosk_close": "18:00"}, headers=hdr, timeout=10)
-
-    _clear_attendance(mongo, temp_teacher)
-    r = _attend("in", "2026-09-27T04:30:00")
-    assert r.status_code == 422, f"{r.status_code} {r.text}"
-    assert r.json().get("detail") == "kiosk_not_open:05:00:30", r.text
-
-    _clear_attendance(mongo, temp_teacher)
-    r = _attend("in", "2026-09-27T22:45:00")
-    assert r.status_code == 422, f"{r.status_code} {r.text}"
-    assert r.json().get("detail") == "kiosk_closed:18:00:05:00:375", r.text
-
-    _clear_attendance(mongo, temp_teacher)
-    r = _attend("in", "2026-09-27T07:05:00")
-    assert r.status_code == 200, f"{r.status_code} {r.text}"
-    assert r.json()["status"] == "ok"
-
-    requests.put(f"{BASE}/api/admin/settings", json={"kiosk_open": None, "kiosk_close": None}, headers=hdr, timeout=10)
-
-
-def test_scenario9_overnight_kiosk_window(admin_token, temp_teacher, mongo):
-    """Window lewat tengah malam 23:00-06:00 -> 23:30 dan 01:00 diterima, 12:00 ditolak."""
-    _set_settings(admin_token, "07:00", "15:00", 10, 60)
-    hdr = {"Authorization": f"Bearer {admin_token}"}
-    requests.put(f"{BASE}/api/admin/settings", json={"kiosk_open": "23:00", "kiosk_close": "06:00"}, headers=hdr, timeout=10)
-
-    _clear_attendance(mongo, temp_teacher)
-    r = _attend("in", "2026-09-28T23:30:00")
-    assert r.status_code == 200, f"{r.status_code} {r.text}"
-
-    _clear_attendance(mongo, temp_teacher)
-    r = _attend("in", "2026-09-28T12:00:00")
-    assert r.status_code == 422, f"{r.status_code} {r.text}"
-    assert r.json().get("detail") == "kiosk_not_open:23:00:660", r.text
-
-    requests.put(f"{BASE}/api/admin/settings", json={"kiosk_open": None, "kiosk_close": None}, headers=hdr, timeout=10)
 
 
 def test_susiyanto_record_ok(admin_token):

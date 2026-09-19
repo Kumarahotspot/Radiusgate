@@ -290,18 +290,6 @@ export default function Kiosk() {
           msg = mins ? t("kiosk_too_early_min", { time: tm, minutes: mins }) : t("kiosk_too_early", { time: tm });
           voiceMsg = msg;
         }
-        else if (d.startsWith("kiosk_not_open") || d.startsWith("kiosk_closed")) {
-          const p = d.split(":");
-          const notOpen = d.startsWith("kiosk_not_open");
-          const tm = `${p[1]}:${p[2]}`;
-          const sisa = parseInt(notOpen ? p[3] : p[5], 10) || 0;
-          const hh = Math.floor(sisa / 60), mm = sisa % 60;
-          const cd = hh > 0 ? `${hh} ${t("hours_short")} ${mm} ${t("minutes_short")}` : `${mm} ${t("minutes_short")}`;
-          if (notOpen) msg = t("kiosk_not_open_msg", { time: tm, countdown: cd });
-          else if (p.length >= 6) msg = t("kiosk_closed_reopen_msg", { time: tm, open: `${p[3]}:${p[4]}`, countdown: cd });
-          else msg = t("kiosk_closed_msg", { time: tm });
-          voiceMsg = msg;
-        }
         else if (!coords) { msg = t("kiosk_gps_error"); voiceMsg = msg; }
         setResult({ ok: false, message: msg });
         speak(`${t("kiosk_failed")}. ${voiceMsg}`);
