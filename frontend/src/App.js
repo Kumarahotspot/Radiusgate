@@ -6,6 +6,8 @@ import { AuthProvider, useAuth, homeFor } from "@/context/AuthContext";
 import Layout from "@/components/Layout";
 import Login from "@/pages/Login";
 import Landing from "@/pages/Landing";
+import ResetPassword from "@/pages/ResetPassword";
+import RegisterTrial from "@/pages/RegisterTrial";
 import Kiosk from "@/pages/Kiosk";
 import Pay from "@/pages/Pay";
 import OwnerDashboard from "@/pages/owner/OwnerDashboard";
@@ -37,6 +39,8 @@ function App() {
         <Routes>
           <Route path="/" element={<Landing />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/daftar" element={<RegisterTrial />} />
           <Route path="/kiosk" element={<Kiosk />} />
           <Route path="/pay/:token" element={<Pay />} />
           <Route element={<Guard roles={["owner"]}><Layout /></Guard>}>

@@ -14,6 +14,10 @@ const CODE_KEYS = {
   multiple_faces: "kiosk_multi_face",
   invalid_photo: "invalid_photo",
   face_already_enrolled: "face_already_enrolled",
+  trial_expired: "trial_expired",
+  email_taken: "email_taken",
+  invalid_or_expired: "reset_invalid",
+  password_too_short: "password_too_short",
 };
 
 export const errMsg = (e, fallback = "Terjadi kesalahan") => {

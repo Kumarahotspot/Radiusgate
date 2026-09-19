@@ -214,6 +214,13 @@ Aplikasi absensi berbasis tablet kiosk + face recognition & liveness, geofence G
 - Masalah: panel hero teal login hanya tampil di desktop (`hidden lg:flex`) sehingga mobile polos gelap. Kini mobile punya **banner brand teal** edge-to-edge (logo + EduGateID + tagline + chip fitur + LangSwitch, rounded-b 2.5rem, ornamen lingkaran), form tetap di bawahnya. Desktop tidak berubah.
 - Lanjutan: warna banner teal vs latar gelap terasa tabrakan → diganti **gradien halus** `teal-800 → #0f3d3a → slate-950` menyelimuti seluruh kolom form mobile (max-lg), banner tanpa bg/border sendiri sehingga menyatu.
 
+## Update 2026-09-19 (iterasi 36 — lupa password & daftar trial self-service)
+- **Lupa Password**: `POST /auth/forgot-password` (selalu 200, anti-enumeration; token `secrets.token_urlsafe(32)` disimpan sebagai **sha256 hash**, berlaku 1 jam, sekali pakai) → email link `{FRONTEND_URL}/reset-password?token=...` via Resend. `POST /auth/reset-password` validasi hash+expiry → update bcrypt, tandai used. Halaman baru `/reset-password`.
+- **Daftar Trial**: `POST /auth/register-trial` — buat tenant sekolah (trial=True, trial_ends_at +14 hari) + admin + settings default + tercatat di `leads` (source self_service_trial) + email sambutan berisi kredensial. Email duplikat → 400 email_taken; password <6 → 422. Halaman baru `/daftar`, link dari Login ("Lupa Password?" + "Daftar Trial Gratis").
+- **Trial expiry enforcement**: login menolak (403 trial_expired) bila trial_ends_at lewat — berlaku untuk semua role di sekolah itu.
+- Halaman Reset/Daftar memakai gradien brand yang sama dengan login mobile. errMsg mapping: trial_expired, email_taken, invalid_or_expired, password_too_short (i18n ID/EN lengkap).
+- Tes: `tests/test_auth_trial.py` (7 tes: register, duplikat, login trial, forgot neutral, reset flow + reuse/expired token, blokir login expired, cleanup) — xdist_group "auth_trial". E2E live curl 7 langkah PASS. **Suite 72/72 lulus.**
+
 ## Backlog Prioritas
 - P0: Kunci Tripay asli dari user + uji webhook; tablet React Native (kiosk native, embedding cache on-device)
 - P1: Absen siswa (v2), geofence penuh untuk absen via HP pribadi guru

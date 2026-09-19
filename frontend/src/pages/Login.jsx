@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useAuth, homeFor } from "../context/AuthContext";
-import { errMsg } from "../api";
+import api, { errMsg } from "../api";
 import LangSwitch from "../components/LangSwitch";
 import { MonitorSmartphone } from "lucide-react";
 
@@ -15,6 +15,19 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState(null);
   const [busy, setBusy] = useState(false);
+  const [forgot, setForgot] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState("");
+  const [sent, setSent] = useState(false);
+
+  const sendReset = async (e) => {
+    e.preventDefault();
+    setBusy(true);
+    try {
+      await api.post("/auth/forgot-password", { email: forgotEmail });
+    } catch { /* anti-enumeration: tetap tampilkan terkirim */ }
+    setSent(true);
+    setBusy(false);
+  };
 
   const submit = async (e) => {
     e.preventDefault();
@@ -72,6 +85,29 @@ export default function Login() {
           <div className="hidden lg:flex items-center justify-end mb-8">
             <LangSwitch dark />
           </div>
+          {forgot ? (
+            <div>
+              <h2 className="text-white text-2xl font-bold">{t("forgot_password")}</h2>
+              {sent ? (
+                <p data-testid="forgot-sent" className="mt-4 text-emerald-400 text-sm leading-relaxed">{t("reset_sent")}</p>
+              ) : (
+                <form onSubmit={sendReset} className="mt-6 space-y-4" data-testid="forgot-form">
+                  <div>
+                    <label className="text-xs font-semibold text-slate-400 uppercase tracking-wide">{t("email")}</label>
+                    <input data-testid="forgot-email" type="email" required value={forgotEmail} onChange={(e) => setForgotEmail(e.target.value)}
+                      className="mt-1.5 w-full rounded-xl bg-white/5 border border-white/10 px-4 py-3 text-white text-sm outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 transition" />
+                  </div>
+                  <button data-testid="forgot-submit" disabled={busy}
+                    className="w-full bg-teal-600 hover:bg-teal-500 text-white font-bold rounded-xl py-3 text-sm transition-colors disabled:opacity-50">
+                    {busy ? t("loading") : t("reset_send")}
+                  </button>
+                </form>
+              )}
+              <button data-testid="forgot-back" onClick={() => { setForgot(false); setSent(false); }}
+                className="mt-4 text-xs font-semibold text-slate-400 hover:text-teal-300 transition-colors">{t("back_to_login")}</button>
+            </div>
+          ) : (
+          <>
           <h2 className="text-white text-2xl font-bold">{t("login_title")}</h2>
           <form onSubmit={submit} className="mt-6 space-y-4" data-testid="login-form">
             <div>
@@ -99,6 +135,12 @@ export default function Login() {
               {busy ? t("loading") : t("login")}
             </button>
           </form>
+          <div className="mt-4 flex items-center justify-between gap-2 text-xs font-semibold">
+            <button type="button" data-testid="forgot-link" onClick={() => setForgot(true)} className="text-slate-400 hover:text-teal-300 transition-colors">{t("forgot_password")}</button>
+            <Link to="/daftar" data-testid="register-link" className="text-teal-400 hover:text-teal-300 transition-colors">{t("no_account")} <span className="underline">{t("register_trial")}</span></Link>
+          </div>
+          </>
+          )}
           <Link
             to="/kiosk"
             data-testid="goto-kiosk-link"
