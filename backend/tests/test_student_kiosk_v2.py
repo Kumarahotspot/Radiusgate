@@ -2,7 +2,8 @@
 import asyncio
 import os
 import uuid
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
+from zoneinfo import ZoneInfo
 
 import pytest
 import requests
@@ -39,6 +40,24 @@ def h(tok):
 @pytest.fixture(scope="module")
 def admin_token():
     return _login(ADMIN)
+
+
+@pytest.fixture(scope="module", autouse=True)
+def wide_hours(admin_token):
+    """Modul ini absen memakai waktu 'sekarang'; lebarkan jam kerja sementara agar kebal
+    aturan terlalu-pagi / lewat-jam-pulang, lalu kembalikan pengaturan asli sekolah."""
+    KEYS = ("work_start", "work_end", "late_tolerance_min", "early_checkin_min", "timezone", "require_checkin")
+    orig = requests.get(f"{API}/admin/settings", headers=h(admin_token), timeout=30).json().get("settings") or {}
+    now = datetime.now(timezone.utc).astimezone(ZoneInfo("Asia/Jakarta"))
+    start = "00:00" if now.hour == 0 else (now - timedelta(hours=1)).strftime("%H:%M")
+    r = requests.put(f"{API}/admin/settings", json={
+        "work_start": start, "work_end": "23:59", "late_tolerance_min": 180,
+        "early_checkin_min": 0}, headers=h(admin_token), timeout=30)
+    assert r.status_code == 200, r.text
+    yield
+    keep = {k: v for k, v in orig.items() if k in KEYS}
+    if keep:
+        requests.put(f"{API}/admin/settings", json=keep, headers=h(admin_token), timeout=30)
 
 
 def _fetch_students(tok):

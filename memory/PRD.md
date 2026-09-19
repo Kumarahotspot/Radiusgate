@@ -320,3 +320,11 @@ Aplikasi absensi berbasis tablet kiosk + face recognition & liveness, geofence G
 - Logika yang dipertahankan: shift siang tanpa wrap-around (absen larut = telat), shift malam pakai wrap, too_early pakai early_checkin_min, require_checkin toggle.
 - DB: kiosk_open/kiosk_close di-unset dari dokumen settings.
 - Terverifikasi: pytest 79 passed / 1 skipped, halaman Pengaturan bersih (desktop+mobile, tanpa overflow).
+
+## 2026-09-19 — Aturan final absen masuk (permintaan user, tanpa pengaturan tambahan)
+- Shift siang (jam pulang > jam masuk): absen masuk otomatis DITOLAK jika lewat jam pulang -> 422 `past_work_end:HH:MM` (kiosk: "Sudah lewat jam kerja (jam pulang pukul X). Absen masuk ditolak." ID/EN).
+- Tetap berlaku: terlalu pagi -> too_early (early_checkin_min sebelum jam masuk); antara buka s/d jam pulang -> ok/telat sesuai toleransi; shift malam -> perilaku lama (wrap-around).
+- Status sakit/izin dikecualikan dari aturan lewat-jam-pulang.
+- Tes: scenario7 diubah jadi expect 422 past_work_end; test_student_kiosk_v2.py diberi fixture wide_hours (jam kerja dilebarkan sementara lalu dikembalikan) agar kebal waktu real-time.
+- Rekaman uji malam SUSIYANTO dibersihkan dari DB.
+- Terverifikasi: e2e 4 kasus (23:55 ditolak, 12:00 late 290, 05:30 too_early, izin 23:55 diterima), pytest 79 passed / 1 skipped, settings demo utuh.

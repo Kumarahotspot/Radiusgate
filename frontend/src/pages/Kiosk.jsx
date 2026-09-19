@@ -290,6 +290,11 @@ export default function Kiosk() {
           msg = mins ? t("kiosk_too_early_min", { time: tm, minutes: mins }) : t("kiosk_too_early", { time: tm });
           voiceMsg = msg;
         }
+        else if (d.startsWith("past_work_end")) {
+          const p = d.split(":");
+          msg = t("kiosk_past_end", { time: `${p[1]}:${p[2]}` });
+          voiceMsg = msg;
+        }
         else if (!coords) { msg = t("kiosk_gps_error"); voiceMsg = msg; }
         setResult({ ok: false, message: msg });
         speak(`${t("kiosk_failed")}. ${voiceMsg}`);
