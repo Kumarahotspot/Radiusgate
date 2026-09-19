@@ -22,6 +22,8 @@ import Leaves from "@/pages/admin/Leaves";
 import Reports from "@/pages/admin/Reports";
 import Billing from "@/pages/admin/Billing";
 import TeacherHome from "@/pages/teacher/TeacherHome";
+import TeacherStudentStatus from "@/pages/teacher/TeacherStudentStatus";
+import TeacherReports from "@/pages/teacher/TeacherReports";
 
 function Guard({ roles, children }) {
   const { user, loading } = useAuth();
@@ -60,6 +62,8 @@ function App() {
           </Route>
           <Route element={<Guard roles={["teacher"]}><Layout /></Guard>}>
             <Route path="/guru" element={<TeacherHome />} />
+            <Route path="/guru/izin" element={<TeacherStudentStatus />} />
+            <Route path="/guru/laporan" element={<TeacherReports />} />
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

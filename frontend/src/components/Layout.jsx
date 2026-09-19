@@ -23,7 +23,11 @@ const menus = {
     { to: "/admin/reports", icon: BarChart3, key: "reports" },
     { to: "/admin/billing", icon: CreditCard, key: "billing" },
   ],
-  teacher: [{ to: "/guru", icon: ScanFace, key: "history", end: true }],
+  teacher: [
+    { to: "/guru", icon: ScanFace, key: "teacher_attendance", end: true },
+    { to: "/guru/izin", icon: CalendarClock, key: "student_status_menu" },
+    { to: "/guru/laporan", icon: BarChart3, key: "student_report_menu" },
+  ],
 };
 
 const portalKey = { owner: "owner_portal", school_admin: "admin_portal", teacher: "teacher_portal" };
