@@ -185,6 +185,11 @@ Aplikasi absensi berbasis tablet kiosk + face recognition & liveness, geofence G
 - Terpasang di: favicon (index.html), hero & mobile header Login (tile putih), header portal (Layout), layar pairing Kiosk, header Pay, kop PDF invoice (tile putih di band teal) & PDF laporan (kiri judul).
 - Terverifikasi: screenshot login/dasbor/kiosk (logo tampil, /logo.png http 200), PDF invoice+laporan render dgn logo (~262KB), suite 65/65.
 
+## Update 2026-09-19 (iterasi 30 — logo final "E" pintu)
+- User memilih konsep simple: kotak rounded teal + huruf "E" putih dengan pintu kecil (dari batch konsep sederhana, menggantikan konsep C yang dirasa sulit dipahami).
+- Diproses transparan via **cv2.floodFill dari 4 sudut** (latar putih luar → alpha 0; huruf E putih di dalam tetap opaque — 52K piksel putih utuh), crop + 512px, menimpa `frontend/public/logo.png` & `backend/assets/logo.png`. File kandidat logo-c1..c4 dibersihkan.
+- Semua titik pemasangan otomatis memakai logo baru (path sama). Terverifikasi: PDF invoice render OK, screenshot login & kiosk.
+
 ## Backlog Prioritas
 - P0: Kunci Tripay asli dari user + uji webhook; tablet React Native (kiosk native, embedding cache on-device)
 - P1: Absen siswa (v2), geofence penuh untuk absen via HP pribadi guru
