@@ -47,16 +47,30 @@ export default function Login() {
         </div>
         <p className="relative text-teal-200/60 text-xs">{t("app_name")} oleh {t("company_name")} · SaaS Multi-Tenant · v1 Pilot</p>
       </div>
-      <div className="flex-1 flex items-center justify-center p-6">
-        <div className="w-full max-w-sm">
-          <div className="flex items-center justify-between mb-8">
-            <div className="flex items-center gap-2 lg:hidden">
-              <div className="w-9 h-9 rounded-xl bg-white flex items-center justify-center overflow-hidden p-1">
+      <div className="flex-1 flex flex-col">
+        <div className="lg:hidden bg-teal-800 relative overflow-hidden px-6 pt-6 pb-9 rounded-b-[2.5rem]">
+          <div className="absolute -top-16 -right-16 w-56 h-56 rounded-full bg-teal-700/50" />
+          <div className="absolute -bottom-24 -left-10 w-48 h-48 rounded-full bg-teal-900/60" />
+          <div className="relative flex items-center justify-between">
+            <div className="flex items-center gap-2.5">
+              <div className="w-10 h-10 rounded-2xl bg-white flex items-center justify-center overflow-hidden p-1">
                 <img src="/logo.png" alt="EduGateID" className="w-full h-full object-contain" />
               </div>
-              <p className="text-white font-bold">{t("app_name")}</p>
+              <p className="text-white font-extrabold text-lg">{t("app_name")}</p>
             </div>
-            <div className="ml-auto"><LangSwitch dark /></div>
+            <LangSwitch dark />
+          </div>
+          <h1 className="relative text-white text-[26px] font-extrabold leading-tight mt-6">{t("app_tagline")}</h1>
+          <div className="relative mt-4 flex flex-wrap gap-1.5">
+            {["Face Recognition", "Liveness", "GPS Geofence", "Offline Sync"].map((c) => (
+              <span key={c} className="text-[10px] font-bold text-teal-100 bg-white/10 border border-white/15 rounded-full px-2.5 py-1">{c}</span>
+            ))}
+          </div>
+        </div>
+        <div className="flex-1 flex items-center justify-center p-6 w-full">
+        <div className="w-full max-w-sm">
+          <div className="hidden lg:flex items-center justify-end mb-8">
+            <LangSwitch dark />
           </div>
           <h2 className="text-white text-2xl font-bold">{t("login_title")}</h2>
           <form onSubmit={submit} className="mt-6 space-y-4" data-testid="login-form">
@@ -92,6 +106,7 @@ export default function Login() {
           >
             <MonitorSmartphone className="w-4 h-4" /> {t("open_kiosk")}
           </Link>
+        </div>
         </div>
       </div>
     </div>
