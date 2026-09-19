@@ -383,15 +383,15 @@ async def import_preview(file: UploadFile = File(...), user: dict = Depends(admi
     df.columns = [str(c).strip().lower() for c in df.columns]
     colmap = {}
     for c in df.columns:
-        if c in ("name", "nama"):
-            colmap["name"] = c
-        elif c == "nis":
-            colmap["nis"] = c
-        elif c == "nisn":
+        if "nisn" in c:
             colmap["nisn"] = c
-        elif c in ("class", "kelas"):
+        elif "nis" in c:
+            colmap["nis"] = c
+        elif "nama" in c or "name" in c:
+            colmap["name"] = c
+        elif "kelas" in c or "class" in c or "rombel" in c:
             colmap["class"] = c
-        elif c in ("gender", "jk", "kelamin", "jenis_kelamin", "jenis kelamin", "l/p"):
+        elif "jk" in c or "kelamin" in c or "gender" in c or "l/p" in c:
             colmap["gender"] = c
     if "name" not in colmap:
         raise HTTPException(status_code=400, detail="Kolom 'name'/'nama' wajib ada")
@@ -405,7 +405,9 @@ async def import_preview(file: UploadFile = File(...), user: dict = Depends(admi
             return "" if v.lower() in ("nan", "none") else v
         nm = val("name")
         if not nm:
-            errors.append({"row": int(i) + 2, "message": "Nama kosong"})
+            # baris benar-benar kosong (pemisah) -> lewati diam-diam; baris berisi tapi tanpa nama -> tetap dilaporkan
+            if any(val(k) for k in ("nis", "nisn", "gender", "class")):
+                errors.append({"row": int(i) + 2, "message": "Nama kosong"})
             continue
         valid.append({"name": nm, "nis": val("nis"), "nisn": val("nisn"),
                       "gender": _norm_gender(val("gender")), "class": val("class")})
