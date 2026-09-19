@@ -237,6 +237,11 @@ Aplikasi absensi berbasis tablet kiosk + face recognition & liveness, geofence G
 - Tombol **"Unduh template CSV"** di bawah tombol impor (header halaman Siswa) — mengunduh `template-siswa.csv` ber-BOM UTF-8 (rapi di Excel) berisi header `nama,nis,nisn,jk,kelas` + 2 baris contoh (L & P).
 - Terverifikasi loop penuh: file template yang diunduh lolos endpoint import/preview (2 baris valid, NISN leading-zero utuh, gender ternormalisasi) + unduhan UI berfungsi.
 
+## Update 2026-09-19 (iterasi 40 — fix impor file asli SMK Perwira Bangsa)
+- Bug dilaporkan user saat impor tenant "perbas": kolom NISN tampil "-" (header file asli = "NISN/ PASSWORD", tidak persis "nisn") + error semu "Baris 2: Nama kosong" (baris kosong pemisah di bawah header).
+- Fix `import_preview`: pencocokan kolom longgar berbasis kandungan (**nisn sebelum nis** karena "nisn" mengandung "nis"; nama/name, kelas/class/rombel, jk/kelamin/gender); baris benar-benar kosong di-skip diam-diam, baris tanpa nama tapi berisi data tetap dilaporkan.
+- Verifikasi file asli via endpoint (token admin perbas): 422/422 valid, NISN terisi semua (mis. 0055384886), 0 error, 12 kelas terdeteksi (X TAV … XII TB 3). Suite 79/79.
+
 ## Backlog Prioritas
 - P0: Kunci Tripay asli dari user + uji webhook; tablet React Native (kiosk native, embedding cache on-device)
 - P1: Absen siswa (v2), geofence penuh untuk absen via HP pribadi guru
