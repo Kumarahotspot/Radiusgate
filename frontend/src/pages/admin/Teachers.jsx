@@ -114,6 +114,7 @@ export default function Teachers() {
                 <th className="px-4 py-3">{t("email")}</th>
                 <th className="px-4 py-3">{t("nip")}</th>
                 <th className="px-4 py-3">{t("subject")}</th>
+                <th className="px-4 py-3">{t("col_class")}</th>
                 <th className="px-4 py-3">{t("enroll_face")}</th>
                 <th className="px-4 py-3">{t("actions")}</th>
               </tr>
@@ -125,6 +126,7 @@ export default function Teachers() {
                   <td className="px-4 py-3 text-slate-600">{tc.email}</td>
                   <td className="px-4 py-3 font-mono text-xs">{tc.nip}</td>
                   <td className="px-4 py-3">{tc.subject}</td>
+                  <td className="px-4 py-3 text-slate-600">{tc.classes || <span className="text-slate-300">—</span>}</td>
                   <td className="px-4 py-3">
                     <span data-testid={`enroll-status-${tc.id}`} className={`inline-flex items-center gap-1 text-xs font-bold ${tc.enrolled ? "text-emerald-600" : "text-slate-400"}`}>
                       {tc.enrolled ? <CheckCircle2 className="w-4 h-4" /> : <Circle className="w-4 h-4" />}
@@ -137,13 +139,19 @@ export default function Teachers() {
                         className="flex items-center gap-1 text-xs font-bold text-teal-700 hover:bg-teal-50 px-2 py-1.5 rounded-lg transition-colors">
                         <ScanFace className="w-4 h-4" /> {t("enroll_face")}
                       </button>
-                      <button data-testid={`edit-teacher-${tc.id}`} onClick={() => setEditFor({ ...tc })} className="p-1.5 text-sky-600 hover:bg-sky-50 rounded-lg" title={t("edit")}><Pencil className="w-4 h-4" /></button>
-                      <button data-testid={`delete-teacher-${tc.id}`} onClick={() => del(tc.id)} className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg" title={t("delete")}><Trash2 className="w-4 h-4" /></button>
+                      <button data-testid={`edit-teacher-${tc.id}`} onClick={() => setEditFor({ ...tc })}
+                        className="flex items-center gap-1 text-xs font-bold text-sky-600 hover:bg-sky-50 px-2 py-1.5 rounded-lg transition-colors">
+                        <Pencil className="w-4 h-4" /> {t("edit")}
+                      </button>
+                      <button data-testid={`delete-teacher-${tc.id}`} onClick={() => del(tc.id)}
+                        className="flex items-center gap-1 text-xs font-bold text-red-500 hover:bg-red-50 px-2 py-1.5 rounded-lg transition-colors">
+                        <Trash2 className="w-4 h-4" /> {t("delete")}
+                      </button>
                     </div>
                   </td>
                 </tr>
               ))}
-              {paged.length === 0 && <tr><td colSpan={6} className="px-4 py-8 text-center text-slate-400">{t("no_data")}</td></tr>}
+              {paged.length === 0 && <tr><td colSpan={7} className="px-4 py-8 text-center text-slate-400">{t("no_data")}</td></tr>}
             </tbody>
           </table>
         </div>

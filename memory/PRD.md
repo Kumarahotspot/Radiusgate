@@ -354,3 +354,7 @@ Aplikasi absensi berbasis tablet kiosk + face recognition & liveness, geofence G
 - Portal guru (TeacherHome.jsx): kartu "Laporan Kehadiran Siswa" — filter kelas + rentang tanggal, tab Harian/Rekap, tombol unduh Excel/PDF. i18n ID/EN.
 - Kelas Budi (demo guru) dipasang "X-1, X-2" agar langsung bisa dicoba.
 - Terverifikasi: my-classes OK, rows hanya kelas diampu, X-9 -> 403, export xlsx/pdf 200, pytest 79 passed / 1 skipped, UI desktop+mobile.
+
+## 2026-09-20 — Perjelas tombol aksi guru + kolom kelas
+- Tabel Guru: tombol Ubah/Hapus kini berteks (bukan ikon saja); kolom baru "Kelas" menampilkan kelas yang diampu tiap guru; modal Ubah Guru punya input Kelas yang Diampu.
+- Menu guru dipisah jadi 3 tab: Presensi Saya (/guru), Izin Siswa (/guru/izin), Laporan Siswa (/guru/laporan).
