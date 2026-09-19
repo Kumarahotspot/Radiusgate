@@ -21,9 +21,16 @@ def build_invoice_pdf(inv: dict, school: dict) -> str:
     w, h = A4
     c.setFillColorRGB(0.059, 0.463, 0.431)
     c.rect(0, h - 30 * mm, w, 30 * mm, stroke=0, fill=1)
+    logo_path = os.path.join(os.path.dirname(__file__), "assets", "logo.png")
+    tx = 20 * mm
+    if os.path.exists(logo_path):
+        c.setFillColorRGB(1, 1, 1)
+        c.roundRect(12 * mm, h - 27 * mm, 24 * mm, 24 * mm, 4 * mm, stroke=0, fill=1)
+        c.drawImage(logo_path, 14 * mm, h - 25 * mm, width=20 * mm, height=20 * mm, mask="auto")
+        tx = 40 * mm
     c.setFillColorRGB(1, 1, 1)
     c.setFont("Helvetica-Bold", 20)
-    c.drawString(20 * mm, h - 20 * mm, "INVOICE")
+    c.drawString(tx, h - 20 * mm, "INVOICE")
     c.setFont("Helvetica", 11)
     c.drawRightString(w - 20 * mm, h - 20 * mm, "EduGateID · PT. Pusaka Kreasi Mandiri")
 
@@ -69,8 +76,13 @@ def build_invoice_pdf(inv: dict, school: dict) -> str:
 def build_report_pdf(path: str, school_name: str, date_from: str, date_to: str, rows: list) -> str:
     c = canvas.Canvas(path, pagesize=A4)
     w, h = A4
+    tx = 20 * mm
+    logo_path = os.path.join(os.path.dirname(__file__), "assets", "logo.png")
+    if os.path.exists(logo_path):
+        c.drawImage(logo_path, 20 * mm, h - 27 * mm, width=14 * mm, height=14 * mm, mask="auto")
+        tx = 37 * mm
     c.setFont("Helvetica-Bold", 14)
-    c.drawString(20 * mm, h - 20 * mm, f"Laporan Absensi - {school_name}")
+    c.drawString(tx, h - 20 * mm, f"Laporan Absensi - {school_name}")
     c.setFont("Helvetica", 10)
     c.drawString(20 * mm, h - 27 * mm, f"Periode: {date_from} s/d {date_to}")
     y = h - 40 * mm

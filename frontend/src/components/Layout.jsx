@@ -39,8 +39,8 @@ export default function Layout() {
       <header className="sticky top-0 z-30 bg-white border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-4 h-14 flex items-center justify-between gap-3">
           <div className="flex items-center gap-2 min-w-0">
-            <div className="w-8 h-8 rounded-lg bg-teal-700 flex items-center justify-center shrink-0">
-              <ScanFace className="w-4 h-4 text-white" />
+            <div className="w-8 h-8 rounded-lg bg-white border border-slate-200 flex items-center justify-center shrink-0 overflow-hidden p-0.5">
+              <img src="/logo.png" alt="EduGateID" className="w-full h-full object-contain" />
             </div>
             <div className="min-w-0">
               <p className="font-bold text-slate-800 text-sm leading-tight truncate">{t("app_name")}</p>

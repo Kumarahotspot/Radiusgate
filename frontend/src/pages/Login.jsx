@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import { useAuth, homeFor } from "../context/AuthContext";
 import { errMsg } from "../api";
 import LangSwitch from "../components/LangSwitch";
-import { ScanFace, MonitorSmartphone } from "lucide-react";
+import { MonitorSmartphone } from "lucide-react";
 
 export default function Login() {
   const { t } = useTranslation();
@@ -36,8 +36,8 @@ export default function Login() {
         <div className="absolute -top-24 -right-24 w-96 h-96 rounded-full bg-teal-700/50" />
         <div className="absolute -bottom-32 -left-16 w-80 h-80 rounded-full bg-teal-900/60" />
         <div className="relative flex items-center gap-3">
-          <div className="w-11 h-11 rounded-2xl bg-white/10 backdrop-blur flex items-center justify-center">
-            <ScanFace className="w-6 h-6 text-white" />
+          <div className="w-11 h-11 rounded-2xl bg-white flex items-center justify-center overflow-hidden p-1.5">
+            <img src="/logo.png" alt="EduGateID" className="w-full h-full object-contain" />
           </div>
           <p className="text-white font-extrabold text-lg">{t("app_name")}</p>
         </div>
@@ -51,8 +51,8 @@ export default function Login() {
         <div className="w-full max-w-sm">
           <div className="flex items-center justify-between mb-8">
             <div className="flex items-center gap-2 lg:hidden">
-              <div className="w-9 h-9 rounded-xl bg-teal-700 flex items-center justify-center">
-                <ScanFace className="w-5 h-5 text-white" />
+              <div className="w-9 h-9 rounded-xl bg-white flex items-center justify-center overflow-hidden p-1">
+                <img src="/logo.png" alt="EduGateID" className="w-full h-full object-contain" />
               </div>
               <p className="text-white font-bold">{t("app_name")}</p>
             </div>

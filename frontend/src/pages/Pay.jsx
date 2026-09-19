@@ -3,7 +3,7 @@ import { useParams, Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import axios from "axios";
 import LangSwitch from "../components/LangSwitch";
-import { ScanFace, FileText, CheckCircle2 } from "lucide-react";
+import { FileText, CheckCircle2 } from "lucide-react";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 const rupiah = (n) => `Rp ${Number(n || 0).toLocaleString("id-ID")}`;
@@ -35,7 +35,7 @@ export default function Pay() {
       <div className="w-full max-w-md">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-2">
-            <div className="w-9 h-9 rounded-xl bg-teal-700 flex items-center justify-center"><ScanFace className="w-5 h-5 text-white" /></div>
+            <div className="w-9 h-9 rounded-xl bg-white flex items-center justify-center overflow-hidden p-1"><img src="/logo.png" alt="EduGateID" className="w-full h-full object-contain" /></div>
             <p className="text-white font-bold">{t("app_name")}</p>
           </div>
           <LangSwitch dark />
