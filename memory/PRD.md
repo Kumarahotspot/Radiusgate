@@ -388,3 +388,9 @@ Aplikasi absensi berbasis tablet kiosk + face recognition & liveness, geofence G
 - Backend: TrialIn & SchoolIn terima school_type + majors; settings sekolah baru langsung berisi school_type + major_list; lead trial mencatat tipe & jurusan.
 - Frontend: halaman /daftar (trial), modal "Jadikan Sekolah" (OwnerLeads, prefill dari lead), dan form Buat Sekolah (OwnerDashboard) semua punya dropdown Tipe Sekolah + checklist Jurusan (muncul hanya untuk SMA/SMK) + input "Jurusan lain". Tenant baru otomatis hanya melihat jurusan yang dipilih saat pendaftaran.
 - Terverifikasi: e2e register-trial (settings bertipe SMK + jurusan tersimpan, lead tercatat, cleanup bersih), UI /daftar & owner form (checklist muncul/hilang sesuai tipe), pytest 79 passed / 1 skipped, mobile OK.
+
+## 2026-09-20 — Edit tipe & jurusan untuk sekolah yang sudah ada (Owner)
+- SchoolPatch terima school_type + majors; PATCH /owner/schools/{id} menyimpan keduanya ke koleksi settings (upsert). GET /owner/schools kini membawa school_type + majors dari settings.
+- OwnerDashboard: modal Ubah Sekolah punya dropdown Tipe Sekolah + checklist Jurusan (prefill dari data tersimpan, merge dengan daftar opsi agar jurusan lama tidak hilang) + input "Jurusan lain".
+- Data: SMK Perwira Bangsa diset tipe SMK + jurusan [TAV, Tata Boga] (diturunkan dari kelas riilnya). Sekolah demo SMA Nusantara berisi daftar bidang keahlian yang diinput user via Data Master.
+- Terverifikasi: PATCH owner -> settings tenant berubah, modal edit prefill benar, pytest 79 passed / 1 skipped.

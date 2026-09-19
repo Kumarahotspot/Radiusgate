@@ -65,6 +65,8 @@ class SchoolPatch(BaseModel):
     admin_password: str | None = None
     rate_per_student: int | None = None
     student_count_manual: int | None = None
+    school_type: str | None = None
+    majors: list[str] | None = None
 
 
 @router.get("/owner/overview")
@@ -90,6 +92,9 @@ async def list_schools(user: dict = Depends(owner_dep)):
         s["student_count_source"] = "manual" if manual else "data"
         s["student_count"] = manual if manual else await db.students.count_documents({"school_id": s["id"], "status": {"$ne": "lulus"}})
         s["teacher_count"] = await db.teachers.count_documents({"school_id": s["id"]})
+        st = await db.settings.find_one({"school_id": s["id"]}, {"_id": 0, "school_type": 1, "major_list": 1}) or {}
+        s["school_type"] = st.get("school_type", "")
+        s["majors"] = st.get("major_list") or []
     return schools
 
 
@@ -123,7 +128,13 @@ async def create_school(body: SchoolIn, user: dict = Depends(owner_dep)):
 
 @router.patch("/owner/schools/{sid}")
 async def update_school(sid: str, body: SchoolPatch, user: dict = Depends(owner_dep)):
-    upd = {k: v for k, v in body.model_dump(exclude_unset=True).items() if k != "admin_password"}
+    data = body.model_dump(exclude_unset=True)
+    upd = {k: v for k, v in data.items() if k not in ("admin_password", "school_type", "majors")}
+    st_upd = {}
+    if "school_type" in data:
+        st_upd["school_type"] = data["school_type"]
+    if "majors" in data:
+        st_upd["major_list"] = [m.strip() for m in data["majors"] if m.strip()]
     admin = await db.users.find_one({"school_id": sid, "role": "school_admin"})
     user_upd = {}
     if body.admin_password:
@@ -135,10 +146,12 @@ async def update_school(sid: str, body: SchoolPatch, user: dict = Depends(owner_
             if await db.users.find_one({"email": new_email}):
                 raise HTTPException(status_code=400, detail="Email admin sudah dipakai akun lain")
             user_upd["email"] = new_email
-    if not upd and not user_upd:
+    if not upd and not user_upd and not st_upd:
         raise HTTPException(status_code=400, detail="Tidak ada perubahan")
     if upd:
         await db.schools.update_one({"id": sid}, {"$set": upd})
+    if st_upd:
+        await db.settings.update_one({"school_id": sid}, {"$set": st_upd}, upsert=True)
     if user_upd and admin:
         await db.users.update_one({"id": admin["id"]}, {"$set": user_upd})
     return await db.schools.find_one({"id": sid}, {"_id": 0})

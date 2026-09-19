@@ -25,6 +25,8 @@ export default function OwnerDashboard() {
         admin_email: editFor.admin_email,
         rate_per_student: Number(editFor.rate_per_student),
         student_count_manual: editFor.student_count_manual === "" || editFor.student_count_manual == null ? null : Number(editFor.student_count_manual),
+        school_type: editFor.school_type || "",
+        majors: [...(editFor.majors || []), ...(editFor.majorOther || "").split(",").map((x) => x.trim()).filter(Boolean)],
       };
       if (editFor.new_password) payload.admin_password = editFor.new_password;
       await api.patch(`/owner/schools/${editFor.id}`, payload);
@@ -178,7 +180,7 @@ export default function OwnerDashboard() {
                     <div className="flex gap-1">
                       <button data-testid={`login-link-${s.kiosk_token}`} onClick={() => { navigator.clipboard.writeText(`${window.location.origin}/login?email=${encodeURIComponent(s.admin_email)}`); toast.success(t("login_link_copied")); }}
                         className="p-1.5 text-sky-600 hover:bg-sky-50 rounded-lg" title={t("login_link")}><Link2 className="w-4 h-4" /></button>
-                      <button data-testid={`edit-school-${s.kiosk_token}`} onClick={() => setEditFor({ ...s })} className="p-1.5 text-teal-700 hover:bg-teal-50 rounded-lg" title={t("edit")}><Pencil className="w-4 h-4" /></button>
+                      <button data-testid={`edit-school-${s.kiosk_token}`} onClick={() => setEditFor({ ...s, majorOther: "" })} className="p-1.5 text-teal-700 hover:bg-teal-50 rounded-lg" title={t("edit")}><Pencil className="w-4 h-4" /></button>
                       <button data-testid={`delete-school-${s.kiosk_token}`} onClick={() => del(s.id)} className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg" title={t("delete")}><Trash2 className="w-4 h-4" /></button>
                     </div>
                   </td>
@@ -199,6 +201,34 @@ export default function OwnerDashboard() {
             <Field label={`${t("email")} Admin`} testid="edit-school-email" type="email" value={editFor.admin_email || ""} onChange={(v) => setEditFor({ ...editFor, admin_email: v })} required />
             <Field label={t("phone")} testid="edit-school-phone" value={editFor.phone || ""} onChange={(v) => setEditFor({ ...editFor, phone: v })} />
             <Field label={t("student_count_manual")} testid="edit-school-students" type="number" value={editFor.student_count_manual ?? ""} onChange={(v) => setEditFor({ ...editFor, student_count_manual: v })} />
+            <div>
+              <label className="text-xs font-semibold text-slate-500">{t("school_type")}</label>
+              <select data-testid="edit-school-type" value={editFor.school_type || ""}
+                onChange={(e) => setEditFor({ ...editFor, school_type: e.target.value, majors: [] })}
+                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm bg-white outline-none focus:border-teal-600">
+                <option value="">—</option>
+                {SCHOOL_TYPES.map((st) => <option key={st} value={st}>{st}</option>)}
+              </select>
+            </div>
+            {(editFor.school_type === "SMA" || editFor.school_type === "SMK") && (
+              <div className="sm:col-span-2">
+                <label className="text-xs font-semibold text-slate-500">{t("majors")}</label>
+                <p className="text-[11px] text-slate-400 mt-0.5">{t("majors_pick_hint")}</p>
+                <div data-testid="edit-school-majors" className="mt-1 max-h-32 overflow-y-auto rounded-xl border border-slate-200 p-3 grid grid-cols-2 sm:grid-cols-4 gap-2">
+                  {[...new Set([...(MAJOR_OPTIONS[editFor.school_type] || []), ...(editFor.majors || [])])].map((m) => (
+                    <label key={m} className="flex items-center gap-2 text-sm text-slate-700 cursor-pointer">
+                      <input type="checkbox" data-testid={`edit-school-major-${m}`} checked={(editFor.majors || []).includes(m)}
+                        onChange={() => setEditFor({ ...editFor, majors: editFor.majors.includes(m) ? editFor.majors.filter((x) => x !== m) : [...(editFor.majors || []), m] })}
+                        className="accent-teal-700 w-4 h-4" />
+                      {m}
+                    </label>
+                  ))}
+                </div>
+                <input data-testid="edit-school-major-other" value={editFor.majorOther || ""} placeholder={t("majors_other")}
+                  onChange={(e) => setEditFor({ ...editFor, majorOther: e.target.value })}
+                  className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-teal-600" />
+              </div>
+            )}
             <div>
               <label className="text-xs font-semibold text-slate-500">{t("password")} Admin</label>
               <input data-testid="edit-school-password" type="password" value={editFor.new_password || ""} placeholder={t("secret_keep")}
