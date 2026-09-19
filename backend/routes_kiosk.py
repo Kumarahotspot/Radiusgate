@@ -100,11 +100,16 @@ def _late_overtime(settings, att_type, m):
         ws_h, ws_m = map(int, settings.get("work_start", "07:00").split(":"))
         we_h, we_m = map(int, settings.get("work_end", "15:00").split(":"))
         start, end = ws_h * 60 + ws_m, we_h * 60 + we_m
-        if end <= start:  # shift malam, mis. 21:00 - 00:00
+        night = end <= start  # shift malam, mis. 21:00 - 00:00
+        if night:
             end += 1440
         tol = int(settings.get("late_tolerance_min", 10))
         if att_type == "in":
-            late = max(0, _closest_on_clock(m, start) - (start + tol))
+            if night:
+                late = max(0, _closest_on_clock(m, start) - (start + tol))
+            else:
+                # shift siang: tanpa wrap-around; absen masuk larut malam tetap telat
+                late = max(0, m - (start + tol))
         else:
             overtime = max(0, _closest_on_clock(m, end) - end)
     except Exception:

@@ -291,3 +291,10 @@ Aplikasi absensi berbasis tablet kiosk + face recognition & liveness, geofence G
 - Fix: kedua file tes kini pakai fixture autouse `settings_guard` (snapshot pengaturan asli via API di awal modul, restore persis di akhir). Tes penutup hardcoded dihapus/diganti.
 - Pengaturan demo dipulihkan ke 07:00/15:00, toleransi 10, early 60, WIB, require_checkin=true.
 - Bukti regresi: snapshot settings SEBELUM == SESUDAH suite penuh (78 passed / 1 skipped).
+
+## 2026-09-19 — Fix: Absen larut malam tercatat "ok" untuk shift siang
+- Akar masalah: `_late_overtime` (routes_kiosk.py) memakai `_closest_on_clock` (wrap-around 24 jam) untuk SEMUA shift. Absen masuk 22:45 pada shift 07:00 dianggap "22:45 kemarin" -> late=0, status ok.
+- Fix: wrap-around hanya untuk shift malam (jam pulang <= jam masuk). Shift siang memakai selisih mentah -> absen 22:45 kini tercatat LATE 935 menit. Skenario shift malam (01:00/21:00) tetap utuh.
+- Tes regresi baru: test_scenario7_day_shift_night_checkin_marked_late di test_kiosk_clock.py.
+- Rekaman absen SUSIYANTO 2026-09-19 22:45 yang salah dikoreksi (status late, 935 menit).
+- Terverifikasi: pytest 79 passed / 1 skipped (semua skenario jam lama + baru hijau).

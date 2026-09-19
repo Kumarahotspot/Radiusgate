@@ -247,6 +247,17 @@ def test_scenario6_require_checkin_toggle(admin_token, temp_teacher, mongo):
     assert r.json().get("detail") == "no_checkin", r.text
 
 
+def test_scenario7_day_shift_night_checkin_marked_late(admin_token, temp_teacher, mongo):
+    """Shift siang 07:00/15:00/10 -> in 22:45 -> late 935 (bukan ok gara-gara wrap-around)."""
+    _set_settings(admin_token, "07:00", "15:00", 10, 60)
+    _clear_attendance(mongo, temp_teacher)
+    r = _attend("in", "2026-09-26T22:45:00")
+    assert r.status_code == 200, f"{r.status_code} {r.text}"
+    j = r.json()
+    assert j["status"] == "late", j
+    assert j["late_minutes"] == 935, j
+
+
 def test_susiyanto_record_ok(admin_token):
     """GET admin today should list Susiyanto's 23:36 check-in with status ok, late 0."""
     # Try /api/admin/today
