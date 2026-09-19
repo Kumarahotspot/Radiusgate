@@ -139,15 +139,21 @@ class TestOwner:
 
 
 # ------------------------------- INVOICES -------------------------------
+TEST_PERIOD = "2099-12"  # periode khusus tes; selalu dibersihkan di teardown TestInvoices
+
+
 @pytest.fixture(scope="session")
 def test_period():
-    # truly unique period per run (YYYY-MM-shaped); mod-12 microsecond collided across runs
-    import time
-    ts = int(time.time())
-    return f"{3000 + (ts % 900)}-{(ts % 12) + 1:02d}"
+    return TEST_PERIOD
 
 
 class TestInvoices:
+    @classmethod
+    def teardown_class(cls):
+        from dotenv import dotenv_values
+        from pymongo import MongoClient
+        env = dotenv_values("/app/backend/.env")
+        MongoClient(env["MONGO_URL"])[env["DB_NAME"]].invoices.delete_many({"period": TEST_PERIOD})
     def test_generate_invoices(self, owner_token, test_period):
         r = requests.post(
             f"{API}/owner/invoices/generate",

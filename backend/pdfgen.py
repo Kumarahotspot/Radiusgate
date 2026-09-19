@@ -7,6 +7,18 @@ INVOICE_DIR = os.path.join(os.path.dirname(__file__), "invoices")
 os.makedirs(INVOICE_DIR, exist_ok=True)
 
 
+_BULAN = ["", "Januari", "Februari", "Maret", "April", "Mei", "Juni",
+          "Juli", "Agustus", "September", "Oktober", "November", "Desember"]
+
+
+def periode_label(period: str) -> str:
+    try:
+        y, m = period.split("-")
+        return f"{_BULAN[int(m)]} {y}"
+    except Exception:
+        return period
+
+
 def rupiah(n: int) -> str:
     return f"Rp {int(n):,}".replace(",", ".")
 
@@ -42,7 +54,7 @@ def build_invoice_pdf(inv: dict, school: dict) -> str:
     c.drawString(20 * mm, h - 58 * mm, school.get("address", "") or "")
 
     c.drawRightString(w - 20 * mm, h - 45 * mm, f"No: {inv['invoice_no']}")
-    c.drawRightString(w - 20 * mm, h - 51 * mm, f"Periode: {inv['period']}")
+    c.drawRightString(w - 20 * mm, h - 51 * mm, f"Periode: {periode_label(inv['period'])}")
     status = "LUNAS" if inv["status"] == "paid" else "BELUM LUNAS"
     c.drawRightString(w - 20 * mm, h - 57 * mm, f"Status: {status}")
 

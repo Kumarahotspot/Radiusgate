@@ -258,3 +258,11 @@ Aplikasi absensi berbasis tablet kiosk + face recognition & liveness, geofence G
 - UI: tombol "Enroll Massal (ZIP)" + modal di halaman Admin > Siswa (Students.jsx), laporan di layar + unduh CSV. i18n ID/EN ditambah.
 - Fix kecil: overflow horizontal mobile di halaman Siswa (toolbar tombol kini flex-wrap).
 - Terverifikasi: e2e curl (2 sukses, 1 NIS tak dikenal, duplikat ditolak, mapping CSV jalan), screenshot UI desktop+mobile, pytest 79 passed.
+
+## 2026-09-19 — Fix Invoice Duplikat & Periode Aneh
+- Akar masalah: tes invoice di backend_test.py memakai periode acak (tahun 3000-3899) dan menulis ke DB preview live tanpa cleanup -> 78 invoice sampah di halaman Tagihan sekolah demo.
+- Fix: fixture test_period kini tetap ("2099-12") + teardown_class TestInvoices menghapus invoice tes via pymongo langsung.
+- Backend: validasi format periode di POST /owner/invoices/generate (regex ^(19|20)\d{2}-(0[1-9]|1[0-2])$, 422 jika salah).
+- PDF invoice kini menampilkan periode "September 2026" (nama bulan Indonesia) via periode_label() di pdfgen.py.
+- Cleanup DB: 75 invoice sampah dihapus + PDF yatim dibersihkan (dibuat ulang on-demand). Tersisa: 2026-06 (lunas) + 2026-09 per sekolah.
+- Terverifikasi: 422 untuk periode invalid, dedupe periode berjalan, pytest TestInvoices 6/6, halaman Tagihan bersih.

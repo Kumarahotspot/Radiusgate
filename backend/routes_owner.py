@@ -1,4 +1,5 @@
 import os
+import re
 import uuid
 from datetime import datetime, timezone
 from fastapi import APIRouter, HTTPException, Depends
@@ -154,8 +155,13 @@ async def list_invoices(period: str | None = None, user: dict = Depends(owner_de
     return invs
 
 
+PERIOD_RE = re.compile(r"^(19|20)\d{2}-(0[1-9]|1[0-2])$")
+
+
 @router.post("/owner/invoices/generate")
 async def generate_invoices(body: GenerateIn, user: dict = Depends(owner_dep)):
+    if not PERIOD_RE.fullmatch(body.period or ""):
+        raise HTTPException(status_code=422, detail="Format periode harus YYYY-MM (contoh: 2026-09)")
     schools = await db.schools.find({}, {"_id": 0}).to_list(1000)
     created, sent = [], 0
     seq = await db.invoices.count_documents({"period": body.period})
