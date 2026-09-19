@@ -347,3 +347,10 @@ Aplikasi absensi berbasis tablet kiosk + face recognition & liveness, geofence G
 - Settings baru `greeting_in` / `greeting_out` (SettingsIn + 2 input di halaman Pengaturan dengan placeholder = sapaan bawaan, ID/EN).
 - Kiosk.jsx: suara memakai sapaan kustom jika diisi, fallback ke bawaan jika kosong. Data mengalir via /kiosk/info (settings).
 - Terverifikasi: API simpan->kiosk/info membaca->kosongkan kembali ke bawaan; pytest 79 passed / 1 skipped; UI desktop+mobile OK.
+
+## 2026-09-20 — Laporan Kehadiran Siswa untuk Guru
+- Field baru `classes` (kelas yang diampu, mis. "X-1, X-2") di TeacherIn/TeacherPatch + input di form tambah & modal edit guru (admin).
+- Endpoint guru baru (routes_teacher.py): GET /teacher/my-classes, /teacher/report/attendance (harian), /teacher/report/recap (per siswa: hadir/telat/sakit/izin/alpha + hari efektif), /teacher/report/export (xlsx & pdf, reuse build_report_pdf). Semua dibatasi hanya kelas yang diampu; kelas di luar -> 403.
+- Portal guru (TeacherHome.jsx): kartu "Laporan Kehadiran Siswa" — filter kelas + rentang tanggal, tab Harian/Rekap, tombol unduh Excel/PDF. i18n ID/EN.
+- Kelas Budi (demo guru) dipasang "X-1, X-2" agar langsung bisa dicoba.
+- Terverifikasi: my-classes OK, rows hanya kelas diampu, X-9 -> 403, export xlsx/pdf 200, pytest 79 passed / 1 skipped, UI desktop+mobile.

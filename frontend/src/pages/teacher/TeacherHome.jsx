@@ -15,13 +15,49 @@ export default function TeacherHome() {
   const [studentStatuses, setStudentStatuses] = useState([]);
   const [ssForm, setSsForm] = useState({ student_id: "", status: "sakit", date: new Date().toISOString().slice(0, 10), note: "" });
 
+  const now = new Date();
+  const [repClasses, setRepClasses] = useState([]);
+  const [repClass, setRepClass] = useState("");
+  const [repFrom, setRepFrom] = useState(new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0, 10));
+  const [repTo, setRepTo] = useState(now.toISOString().slice(0, 10));
+  const [repTab, setRepTab] = useState("daily");
+  const [repRows, setRepRows] = useState([]);
+  const [recapRows, setRecapRows] = useState([]);
+  const [repLoaded, setRepLoaded] = useState(false);
+
   const load = () => {
     api.get("/teacher/attendance").then((r) => setHistory(r.data));
     api.get("/teacher/leaves").then((r) => setLeaves(r.data));
     api.get("/teacher/students").then((r) => setSsStudents(r.data));
     api.get("/teacher/student-status").then((r) => setStudentStatuses(r.data));
+    api.get("/teacher/my-classes").then((r) => setRepClasses(r.data.classes || []));
   };
   useEffect(() => { load(); }, []);
+
+  const loadReport = async () => {
+    const params = { date_from: repFrom, date_to: repTo, class_name: repClass || undefined };
+    try {
+      const [a, rc] = await Promise.all([
+        api.get("/teacher/report/attendance", { params }),
+        api.get("/teacher/report/recap", { params }),
+      ]);
+      setRepRows(a.data);
+      setRecapRows(rc.data);
+      setRepLoaded(true);
+    } catch (err) { toast.error(errMsg(err)); }
+  };
+
+  const repExport = async (fmt) => {
+    try {
+      const r = await api.get("/teacher/report/export", { params: { format: fmt, date_from: repFrom, date_to: repTo, class_name: repClass || undefined }, responseType: "blob" });
+      const url = URL.createObjectURL(new Blob([r.data]));
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = fmt === "xlsx" ? "laporan-siswa.xlsx" : "laporan-siswa.pdf";
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (err) { toast.error(errMsg(err)); }
+  };
 
   const markStatus = async (e) => {
     e.preventDefault();
@@ -139,6 +175,101 @@ export default function TeacherHome() {
               </div>
             ))}
           </div>
+        )}
+      </div>
+
+      <div className="bg-white rounded-2xl border border-slate-200 p-5" data-testid="student-report-card">
+        <p className="font-bold text-slate-800 text-sm mb-3">{t("report_students_title")}</p>
+        {repClasses.length === 0 ? (
+          <p className="text-xs text-slate-400" data-testid="no-classes-msg">{t("no_classes_assigned")}</p>
+        ) : (
+          <>
+            <div className="flex flex-wrap items-end gap-3">
+              <div>
+                <label className="text-xs font-semibold text-slate-500">{t("col_class")}</label>
+                <select data-testid="report-class" value={repClass} onChange={(e) => setRepClass(e.target.value)}
+                  className="mt-1 w-full sm:w-40 rounded-xl border border-slate-200 px-3 py-2.5 text-sm bg-white outline-none focus:border-teal-600">
+                  <option value="">{t("all_classes")}</option>
+                  {repClasses.map((c) => <option key={c} value={c}>{c}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="text-xs font-semibold text-slate-500">{t("date_from")}</label>
+                <input data-testid="report-from" type="date" value={repFrom} onChange={(e) => setRepFrom(e.target.value)}
+                  className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-teal-600" />
+              </div>
+              <div>
+                <label className="text-xs font-semibold text-slate-500">{t("date_to")}</label>
+                <input data-testid="report-to" type="date" value={repTo} onChange={(e) => setRepTo(e.target.value)}
+                  className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-teal-600" />
+              </div>
+              <button data-testid="report-load-btn" onClick={loadReport}
+                className="px-4 py-2.5 rounded-xl text-xs font-bold text-white bg-teal-700 hover:bg-teal-800 transition-colors">{t("load_report")}</button>
+              <button data-testid="report-export-xlsx" onClick={() => repExport("xlsx")}
+                className="px-4 py-2.5 rounded-xl text-xs font-bold text-teal-700 bg-teal-50 hover:bg-teal-100 transition-colors">{t("export_xlsx")}</button>
+              <button data-testid="report-export-pdf" onClick={() => repExport("pdf")}
+                className="px-4 py-2.5 rounded-xl text-xs font-bold text-teal-700 bg-teal-50 hover:bg-teal-100 transition-colors">{t("export_pdf")}</button>
+            </div>
+            {repLoaded && (
+              <>
+                <div className="mt-4 flex gap-2">
+                  <button data-testid="tab-daily" onClick={() => setRepTab("daily")}
+                    className={`px-4 py-1.5 rounded-full text-xs font-bold transition-colors ${repTab === "daily" ? "bg-teal-700 text-white" : "bg-slate-100 text-slate-600 hover:bg-slate-200"}`}>{t("tab_daily")}</button>
+                  <button data-testid="tab-recap" onClick={() => setRepTab("recap")}
+                    className={`px-4 py-1.5 rounded-full text-xs font-bold transition-colors ${repTab === "recap" ? "bg-teal-700 text-white" : "bg-slate-100 text-slate-600 hover:bg-slate-200"}`}>{t("tab_recap")}</button>
+                </div>
+                <div className="mt-3 overflow-x-auto">
+                  {repTab === "daily" ? (
+                    <table className="w-full text-sm" data-testid="report-daily-table">
+                      <thead><tr className="text-left text-xs uppercase tracking-wide text-slate-500 border-b bg-slate-50">
+                        <th className="px-4 py-3">{t("date_from")}</th><th className="px-4 py-3">{t("name")}</th><th className="px-4 py-3">{t("col_class")}</th>
+                        <th className="px-4 py-3">{t("time")}</th><th className="px-4 py-3">{t("status")}</th><th className="px-4 py-3">{t("telat")} (mnt)</th>
+                      </tr></thead>
+                      <tbody>
+                        {repRows.map((r) => {
+                          const st = r.att_status && r.att_status !== "present" ? r.att_status : r.status;
+                          return (
+                            <tr key={r.id} className="border-b last:border-0" data-testid={`report-row-${r.id}`}>
+                              <td className="px-4 py-2.5">{r.date}</td>
+                              <td className="px-4 py-2.5 font-semibold">{r.teacher_name}</td>
+                              <td className="px-4 py-2.5">{r.class}</td>
+                              <td className="px-4 py-2.5">{r.time}</td>
+                              <td className="px-4 py-2.5"><span className={`text-xs font-bold px-2 py-0.5 rounded-full ${st === "ok" ? "bg-emerald-100 text-emerald-700" : st === "late" ? "bg-amber-100 text-amber-700" : st === "sakit" ? "bg-red-100 text-red-600" : "bg-sky-100 text-sky-700"}`}>{st}</span></td>
+                              <td className="px-4 py-2.5">{r.late_minutes || 0}</td>
+                            </tr>
+                          );
+                        })}
+                        {repRows.length === 0 && <tr><td colSpan={6} className="px-4 py-8 text-center text-slate-400">{t("no_data")}</td></tr>}
+                      </tbody>
+                    </table>
+                  ) : (
+                    <table className="w-full text-sm" data-testid="report-recap-table">
+                      <thead><tr className="text-left text-xs uppercase tracking-wide text-slate-500 border-b bg-slate-50">
+                        <th className="px-4 py-3">{t("name")}</th><th className="px-4 py-3">{t("col_class")}</th><th className="px-4 py-3">{t("hadir")}</th>
+                        <th className="px-4 py-3">{t("telat")}</th><th className="px-4 py-3">{t("sakit")}</th><th className="px-4 py-3">{t("izin")}</th>
+                        <th className="px-4 py-3">{t("alpha")}</th><th className="px-4 py-3">{t("active_days")}</th>
+                      </tr></thead>
+                      <tbody>
+                        {recapRows.map((r) => (
+                          <tr key={r.id} className="border-b last:border-0" data-testid={`recap-row-${r.id}`}>
+                            <td className="px-4 py-2.5 font-semibold">{r.name}</td>
+                            <td className="px-4 py-2.5">{r.class}</td>
+                            <td className="px-4 py-2.5">{r.hadir}</td>
+                            <td className="px-4 py-2.5">{r.telat}</td>
+                            <td className="px-4 py-2.5">{r.sakit}</td>
+                            <td className="px-4 py-2.5">{r.izin}</td>
+                            <td className="px-4 py-2.5">{r.alpha}</td>
+                            <td className="px-4 py-2.5">{r.active_days}</td>
+                          </tr>
+                        ))}
+                        {recapRows.length === 0 && <tr><td colSpan={8} className="px-4 py-8 text-center text-slate-400">{t("no_data")}</td></tr>}
+                      </tbody>
+                    </table>
+                  )}
+                </div>
+              </>
+            )}
+          </>
         )}
       </div>
 

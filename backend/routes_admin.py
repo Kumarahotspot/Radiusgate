@@ -71,6 +71,7 @@ class TeacherIn(BaseModel):
     password: str
     nip: str = ""
     subject: str = ""
+    classes: str = ""
 
 
 class TeacherPatch(BaseModel):
@@ -78,6 +79,7 @@ class TeacherPatch(BaseModel):
     nip: str | None = None
     subject: str | None = None
     active: bool | None = None
+    classes: str | None = None
 
 
 @router.get("/admin/teachers")
@@ -102,7 +104,7 @@ async def create_teacher(body: TeacherIn, user: dict = Depends(admin_dep)):
     })
     teacher = {
         "id": str(uuid.uuid4()), "school_id": user["school_id"], "user_id": uid,
-        "name": body.name, "nip": body.nip, "subject": body.subject,
+        "name": body.name, "nip": body.nip, "subject": body.subject, "classes": body.classes,
         "embedding": None, "photo": None, "active": True, "created_at": now_iso(),
     }
     await db.teachers.insert_one(teacher)

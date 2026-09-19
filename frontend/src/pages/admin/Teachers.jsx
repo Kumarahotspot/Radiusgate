@@ -10,7 +10,7 @@ export default function Teachers() {
   const [teachers, setTeachers] = useState([]);
   const [showForm, setShowForm] = useState(false);
   const [enrollFor, setEnrollFor] = useState(null);
-  const [form, setForm] = useState({ name: "", email: "", password: "", nip: "", subject: "" });
+  const [form, setForm] = useState({ name: "", email: "", password: "", nip: "", subject: "", classes: "" });
   const [busy, setBusy] = useState(false);
   const [editFor, setEditFor] = useState(null);
   const [query, setQuery] = useState("");
@@ -27,7 +27,7 @@ export default function Teachers() {
     setBusy(true);
     try {
       await api.patch(`/admin/teachers/${editFor.id}`, {
-        name: editFor.name, nip: editFor.nip, subject: editFor.subject, active: !!editFor.active,
+        name: editFor.name, nip: editFor.nip, subject: editFor.subject, active: !!editFor.active, classes: editFor.classes || "",
       });
       toast.success(t("save"));
       setEditFor(null);
@@ -82,6 +82,7 @@ export default function Teachers() {
           <In label={t("password")} testid="teacher-password" v={form.password} set={(v) => setForm({ ...form, password: v })} req />
           <In label={t("nip")} testid="teacher-nip" v={form.nip} set={(v) => setForm({ ...form, nip: v })} />
           <In label={t("subject")} testid="teacher-subject" v={form.subject} set={(v) => setForm({ ...form, subject: v })} />
+          <In label={t("teacher_classes")} testid="teacher-classes" v={form.classes} set={(v) => setForm({ ...form, classes: v })} ph="X-1, X-2" />
           <div className="flex items-end gap-2">
             <button type="button" onClick={() => setShowForm(false)} className="px-4 py-2.5 rounded-xl text-xs font-bold text-slate-600 bg-slate-100 hover:bg-slate-200">{t("cancel")}</button>
             <button data-testid="teacher-submit" disabled={busy} className="px-4 py-2.5 rounded-xl text-xs font-bold text-white bg-teal-700 hover:bg-teal-800 disabled:opacity-50">{t("save")}</button>
@@ -169,6 +170,7 @@ export default function Teachers() {
             <In label={t("name")} testid="edit-teacher-name" v={editFor.name} set={(v) => setEditFor({ ...editFor, name: v })} req />
             <In label={t("nip")} testid="edit-teacher-nip" v={editFor.nip || ""} set={(v) => setEditFor({ ...editFor, nip: v })} />
             <In label={t("subject")} testid="edit-teacher-subject" v={editFor.subject || ""} set={(v) => setEditFor({ ...editFor, subject: v })} />
+            <In label={t("teacher_classes")} testid="edit-teacher-classes" v={editFor.classes || ""} set={(v) => setEditFor({ ...editFor, classes: v })} ph="X-1, X-2" />
             <label className="flex items-center gap-2 text-sm text-slate-600 self-end pb-2.5">
               <input data-testid="edit-teacher-active" type="checkbox" checked={!!editFor.active} onChange={(e) => setEditFor({ ...editFor, active: e.target.checked })} className="accent-teal-700 w-4 h-4" />
               {t("active")}
