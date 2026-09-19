@@ -4,6 +4,7 @@ import { initReactI18next } from "react-i18next";
 const id = {
   app_name: "EduGateID",
   app_tagline: "Gerbang Absensi Digital Sekolah Masa Kini.",
+  company_name: "PT. Pusaka Kreasi Mandiri",
   tagline: "Absensi wajah + GPS untuk sekolah modern",
   login: "Masuk",
   logout: "Keluar",
@@ -240,6 +241,7 @@ const id = {
 const en = {
   app_name: "EduGateID",
   app_tagline: "The Modern Digital School Attendance Gateway.",
+  company_name: "PT. Pusaka Kreasi Mandiri",
   tagline: "Face + GPS attendance for modern schools",
   login: "Sign In",
   logout: "Sign Out",

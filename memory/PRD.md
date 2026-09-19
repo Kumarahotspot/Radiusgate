@@ -176,6 +176,10 @@ Aplikasi absensi berbasis tablet kiosk + face recognition & liveness, geofence G
 - Penyebutan nama lama di backend ikut diganti: header PDF laporan & invoice (pdfgen), EMAIL_FROM_NAME & default smtp_from_name (emailer/notif), pesan tes email/WA (routes_notif), pesan tagihan WA owner (routes_owner).
 - Terverifikasi screenshot login: nama + tagline + title baru tampil, nama lama hilang.
 
+## Update 2026-09-19 (iterasi 28 — nama perusahaan)
+- Nama perusahaan **PT. Pusaka Kreasi Mandiri** ditambahkan: footer halaman Login ("EduGateID oleh PT. Pusaka Kreasi Mandiri · SaaS Multi-Tenant · v1 Pilot"), key i18n `company_name` (ID=EN), header PDF laporan ("EduGateID · PT. Pusaka Kreasi Mandiri"), footer PDF invoice.
+- Terverifikasi: screenshot login (company name tampil), generate PDF invoice + laporan via python langsung OK.
+
 ## Backlog Prioritas
 - P0: Kunci Tripay asli dari user + uji webhook; tablet React Native (kiosk native, embedding cache on-device)
 - P1: Absen siswa (v2), geofence penuh untuk absen via HP pribadi guru
