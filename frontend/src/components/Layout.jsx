@@ -34,9 +34,12 @@ const menus = {
   employee: [
     { to: "/karyawan", icon: ScanFace, key: "my_attendance", end: true },
   ],
+  parent: [
+    { to: "/ortu", icon: GraduationCap, key: "child_activity", end: true },
+  ],
 };
 
-const portalKey = { owner: "owner_portal", school_admin: "admin_portal", teacher: "teacher_portal", employee: "employee_portal" };
+const portalKey = { owner: "owner_portal", school_admin: "admin_portal", teacher: "teacher_portal", employee: "employee_portal", parent: "parent_portal" };
 
 export default function Layout() {
   const { t } = useTranslation();

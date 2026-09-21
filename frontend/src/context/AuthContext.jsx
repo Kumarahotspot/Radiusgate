@@ -34,4 +34,4 @@ export function AuthProvider({ children }) {
 export const useAuth = () => useContext(Ctx);
 
 export const homeFor = (role) =>
-  role === "owner" ? "/owner" : role === "school_admin" ? "/admin" : role === "employee" ? "/karyawan" : "/guru";
+  role === "owner" ? "/owner" : role === "school_admin" ? "/admin" : role === "employee" ? "/karyawan" : role === "parent" ? "/ortu" : "/guru";

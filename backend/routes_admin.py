@@ -17,6 +17,7 @@ from auth import require_roles, hash_password
 from faceutil import embed, cos_sim, NoFaceError, MATCH_SIM_THRESHOLD
 from starlette.concurrency import run_in_threadpool
 from pdfgen import build_report_pdf, build_kiosk_poster_pdf
+from notif import normalize_phone
 
 router = APIRouter(tags=["admin"])
 admin_dep = require_roles("school_admin")
@@ -375,6 +376,7 @@ class StudentIn(BaseModel):
     nisn: str = ""
     gender: str = ""
     class_name: str = ""
+    parent_phone: str = ""
 
 
 def _norm_gender(v: str) -> str:
@@ -400,7 +402,8 @@ async def list_students(user: dict = Depends(admin_dep)):
 async def add_student(body: StudentIn, user: dict = Depends(admin_dep)):
     st = {"id": str(uuid.uuid4()), "school_id": user["school_id"],
           "name": body.name, "nis": body.nis, "nisn": body.nisn,
-          "gender": _norm_gender(body.gender), "class": body.class_name, "status": "aktif"}
+          "gender": _norm_gender(body.gender), "class": body.class_name, "status": "aktif",
+          "parent_phone": normalize_phone(body.parent_phone)}
     await db.students.insert_one(st)
     st.pop("_id", None)
     return st
@@ -486,6 +489,7 @@ class StudentPatch(BaseModel):
     nisn: str | None = None
     gender: str | None = None
     class_name: str | None = None
+    parent_phone: str | None = None
 
 
 class BulkDeleteIn(BaseModel):
@@ -497,17 +501,25 @@ async def update_student(stid: str, body: StudentPatch, user: dict = Depends(adm
     upd = {k: v for k, v in body.model_dump(exclude_unset=True).items()}
     if "class_name" in upd:
         upd["class"] = upd.pop("class_name")
+    if "parent_phone" in upd:
+        upd["parent_phone"] = normalize_phone(upd["parent_phone"])
     if not upd:
         raise HTTPException(status_code=400, detail="Tidak ada perubahan")
     res = await db.students.update_one({"id": stid, "school_id": user["school_id"]}, {"$set": upd})
     if res.matched_count == 0:
         raise HTTPException(status_code=404, detail="Siswa tidak ditemukan")
+    if "parent_phone" in upd:
+        await db.users.update_one({"role": "parent", "student_id": stid},
+                                  {"$set": {"phone": upd["parent_phone"],
+                                            "email": f"ortu+{upd['parent_phone']}@edugateid.local"}})
     return {"ok": True}
 
 
 @router.post("/admin/students/bulk-delete")
 async def bulk_delete_students(body: BulkDeleteIn, user: dict = Depends(admin_dep)):
-    res = await db.students.delete_many({"id": {"$in": body.ids[:1000]}, "school_id": user["school_id"]})
+    ids = body.ids[:1000]
+    res = await db.students.delete_many({"id": {"$in": ids}, "school_id": user["school_id"]})
+    await db.users.delete_many({"role": "parent", "student_id": {"$in": ids}})
     return {"deleted": res.deleted_count}
 
 
@@ -571,7 +583,38 @@ async def promote_year(body: YearActionIn, user: dict = Depends(admin_dep)):
 @router.delete("/admin/students/{stid}")
 async def delete_student(stid: str, user: dict = Depends(admin_dep)):
     await db.students.delete_one({"id": stid, "school_id": user["school_id"]})
+    await db.users.delete_many({"role": "parent", "student_id": stid})
     return {"ok": True}
+
+
+@router.post("/admin/students/create-parent-accounts")
+async def create_parent_accounts(user: dict = Depends(admin_dep)):
+    """Buat akun orang tua massal dari no. HP di data siswa. Login: no. HP, password awal: NIS anak."""
+    sid = user["school_id"]
+    students = await db.students.find(
+        {"school_id": sid, "status": {"$ne": "lulus"}, "parent_phone": {"$nin": [None, ""]}},
+        {"_id": 0, "embedding": 0, "photo": 0}).to_list(5000)
+    created, skipped = 0, []
+    for s in students:
+        phone = normalize_phone(s.get("parent_phone", ""))
+        if not phone:
+            skipped.append({"name": s["name"], "reason": "hp_kosong"})
+            continue
+        if await db.users.find_one({"role": "parent", "student_id": s["id"]}):
+            skipped.append({"name": s["name"], "reason": "sudah_ada"})
+            continue
+        if await db.users.find_one({"role": "parent", "phone": phone}):
+            skipped.append({"name": s["name"], "reason": "hp_dipakai"})
+            continue
+        await db.users.insert_one({
+            "id": str(uuid.uuid4()), "email": f"ortu+{phone}@edugateid.local",
+            "name": f"Orang Tua {s['name']}", "role": "parent", "phone": phone,
+            "student_id": s["id"], "school_id": sid,
+            "password_hash": hash_password(s.get("nis") or phone[-6:]),
+            "created_at": now_iso(),
+        })
+        created += 1
+    return {"created": created, "skipped": skipped}
 
 
 @router.post("/admin/students/import/preview")
@@ -597,6 +640,8 @@ async def import_preview(file: UploadFile = File(...), user: dict = Depends(admi
             colmap["class"] = c
         elif "jk" in c or "kelamin" in c or "gender" in c or "l/p" in c:
             colmap["gender"] = c
+        elif "ortu" in c or "wali" in c or "parent" in c or "hp" in c or "telp" in c:
+            colmap["parent_phone"] = c
     if "name" not in colmap:
         raise HTTPException(status_code=400, detail="Kolom 'name'/'nama' wajib ada")
     valid, errors = [], []
@@ -614,7 +659,8 @@ async def import_preview(file: UploadFile = File(...), user: dict = Depends(admi
                 errors.append({"row": int(i) + 2, "message": "Nama kosong"})
             continue
         valid.append({"name": nm, "nis": val("nis"), "nisn": val("nisn"),
-                      "gender": _norm_gender(val("gender")), "class": val("class")})
+                      "gender": _norm_gender(val("gender")), "class": val("class"),
+                      "parent_phone": normalize_phone(val("parent_phone"))})
     return {"valid": valid, "errors": errors, "total": len(df)}
 
 
@@ -634,6 +680,7 @@ async def import_commit(body: CommitIn, user: dict = Depends(admin_dep)):
         docs.append({"id": str(uuid.uuid4()), "school_id": sid, "name": str(r.get("name", "")).strip(),
                      "nis": nis, "nisn": str(r.get("nisn", "")).strip(),
                      "gender": _norm_gender(str(r.get("gender", ""))), "class": str(r.get("class", "")).strip(),
+                     "parent_phone": normalize_phone(str(r.get("parent_phone", ""))),
                      "status": "aktif"})
         if nis:
             existing.add(nis)
@@ -648,6 +695,7 @@ async def export_students(format: str = "xlsx", user: dict = Depends(admin_dep))
     df = pd.DataFrame([{
         "Nama": s.get("name", ""), "NIS": s.get("nis", ""), "NISN": s.get("nisn", ""),
         "L/P": s.get("gender", ""), "Kelas": s.get("class", ""),
+        "HP Ortu": s.get("parent_phone", ""),
         "Enroll Wajah": "Terdaftar" if s.get("enrolled") else "Belum",
     } for s in students])
     buf = io.BytesIO()

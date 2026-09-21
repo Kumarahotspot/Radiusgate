@@ -111,10 +111,10 @@ export default function Login() {
           <h2 className="text-white text-2xl font-bold">{t("login_title")}</h2>
           <form onSubmit={submit} className="mt-6 space-y-4" data-testid="login-form">
             <div>
-              <label className="text-xs font-semibold text-slate-400 uppercase tracking-wide">{t("email")}</label>
+              <label className="text-xs font-semibold text-slate-400 uppercase tracking-wide">{t("login_identifier")}</label>
               <input
                 data-testid="login-email"
-                type="email" required value={email} onChange={(e) => setEmail(e.target.value)}
+                type="text" required value={email} onChange={(e) => setEmail(e.target.value)}
                 className="mt-1.5 w-full rounded-xl bg-white/5 border border-white/10 px-4 py-3 text-white text-sm outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 transition"
               />
             </div>

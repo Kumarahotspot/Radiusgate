@@ -27,6 +27,7 @@ import TeacherReports from "@/pages/teacher/TeacherReports";
 import Employees from "@/pages/admin/Employees";
 import Overtime from "@/pages/admin/Overtime";
 import EmployeeHome from "@/pages/employee/EmployeeHome";
+import ParentHome from "@/pages/parent/ParentHome";
 
 function Guard({ roles, children }) {
   const { user, loading } = useAuth();
@@ -72,6 +73,9 @@ function App() {
           </Route>
           <Route element={<Guard roles={["employee"]}><Layout /></Guard>}>
             <Route path="/karyawan" element={<EmployeeHome />} />
+          </Route>
+          <Route element={<Guard roles={["parent"]}><Layout /></Guard>}>
+            <Route path="/ortu" element={<ParentHome />} />
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

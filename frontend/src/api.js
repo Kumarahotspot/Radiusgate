@@ -18,6 +18,7 @@ const CODE_KEYS = {
   email_taken: "email_taken",
   invalid_or_expired: "reset_invalid",
   password_too_short: "password_too_short",
+  wrong_current_password: "wrong_current_password",
 };
 
 export const errMsg = (e, fallback = "Terjadi kesalahan") => {

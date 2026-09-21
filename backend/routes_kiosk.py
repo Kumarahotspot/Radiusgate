@@ -1,3 +1,4 @@
+import asyncio
 import math
 import uuid
 import logging
@@ -9,6 +10,7 @@ from typing import List
 from pymongo.errors import DuplicateKeyError
 from db import db
 from faceutil import embed, cos_sim, NoFaceError, MATCH_SIM_THRESHOLD, MATCH_MARGIN
+from notif import send_whatsapp, normalize_phone
 from starlette.concurrency import run_in_threadpool
 
 logger = logging.getLogger(__name__)
@@ -193,6 +195,23 @@ async def _record(school, teacher_id, teacher_name, att_type, ts_device, lat, ln
     return doc
 
 
+async def _notify_parent(school: dict, student: dict, doc: dict):
+    """Notifikasi WA ke orang tua saat siswa absen. Tanpa Wablas aktif, send_whatsapp hanya
+    mengembalikan mode 'link' (tidak mengirim apa pun)."""
+    try:
+        phone = normalize_phone(student.get("parent_phone", ""))
+        if not phone:
+            return
+        jenis = "masuk" if doc["type"] == "in" else "pulang"
+        st_txt = f"terlambat {doc.get('late_minutes', 0)} menit" if doc["status"] == "late" else "tepat waktu"
+        msg = (f"EduGateID - {school.get('name', '')}\n"
+               f"Ananda *{student['name']}* telah absen {jenis} pukul {doc['time_local']} ({doc['date']}). "
+               f"Status: {st_txt}.")
+        await send_whatsapp(phone, msg)
+    except Exception:
+        logger.exception("notifikasi WA orang tua gagal")
+
+
 @router.post("/kiosk/attend")
 async def attend(body: AttendIn, request: Request):
     school = await school_by_token(request)
@@ -201,7 +220,7 @@ async def attend(body: AttendIn, request: Request):
         {"_id": 0, "id": 1, "name": 1, "embedding": 1}).to_list(1000)
     students = await db.students.find(
         {"school_id": school["id"], "embedding": {"$ne": None}, "status": {"$ne": "lulus"}},
-        {"_id": 0, "id": 1, "name": 1, "class": 1, "embedding": 1}).to_list(5000)
+        {"_id": 0, "id": 1, "name": 1, "class": 1, "embedding": 1, "parent_phone": 1}).to_list(5000)
     employees = await db.employees.find(
         {"school_id": school["id"], "active": True, "embedding": {"$ne": None}},
         {"_id": 0, "id": 1, "name": 1, "department": 1, "embedding": 1}).to_list(2000)
@@ -254,6 +273,8 @@ async def attend(body: AttendIn, request: Request):
         extra = {"person_type": "employee", "department": best.get("department", "")}
     doc = await _record(school, best["id"], best["name"], body.type, body.ts_device,
                         body.lat, body.lng, body.photo, body.client_uuid, offline=False, extra=extra)
+    if best_type == "student":
+        asyncio.create_task(_notify_parent(school, best, doc))
     return {"ok": True, "teacher_name": best["name"], "person_type": best_type, "status": doc["status"],
             "late_minutes": doc["late_minutes"], "overtime_minutes": doc["overtime_minutes"],
             "match_sim": round(best_s, 3)}
@@ -278,6 +299,7 @@ async def attend_student(body: AttendStudentIn, request: Request):
         doc = await _record(school, student["id"], student["name"], "in", body.ts_device,
                             body.lat, body.lng, "", body.client_uuid, offline=False,
                             extra={"person_type": "student", "class": student.get("class", ""), "att_status": att_status})
+        asyncio.create_task(_notify_parent(school, student, doc))
         return {"ok": True, "student_name": student["name"], "name": student["name"], "status": doc["status"],
                 "att_status": att_status, "late_minutes": doc["late_minutes"]}
     emp = await db.employees.find_one({"school_id": school["id"], "nip": nis, "active": True})

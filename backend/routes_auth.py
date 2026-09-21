@@ -12,6 +12,7 @@ from pydantic import BaseModel, EmailStr
 from db import db
 from auth import verify_password, hash_password, create_token, get_current_user
 from emailer import send_email
+from notif import normalize_phone
 
 router = APIRouter(tags=["auth"])
 logger = logging.getLogger(__name__)
@@ -24,13 +25,17 @@ def now_iso():
 
 
 class LoginIn(BaseModel):
-    email: EmailStr
+    email: str  # email, atau no. HP untuk akun orang tua
     password: str
 
 
 @router.post("/auth/login")
 async def login(body: LoginIn):
-    user = await db.users.find_one({"email": body.email.lower()})
+    ident = body.email.strip()
+    if "@" in ident:
+        user = await db.users.find_one({"email": ident.lower()})
+    else:
+        user = await db.users.find_one({"phone": normalize_phone(ident), "role": "parent"})
     if not user or not verify_password(body.password, user["password_hash"]):
         raise HTTPException(status_code=401, detail="Email atau password salah")
     if user.get("school_id"):
@@ -45,6 +50,22 @@ async def login(body: LoginIn):
 @router.get("/auth/me")
 async def me(user: dict = Depends(get_current_user)):
     return user
+
+
+class ChangePasswordIn(BaseModel):
+    current_password: str
+    new_password: str
+
+
+@router.post("/auth/change-password")
+async def change_password(body: ChangePasswordIn, user: dict = Depends(get_current_user)):
+    if len(body.new_password) < 6:
+        raise HTTPException(status_code=422, detail="password_too_short")
+    full = await db.users.find_one({"id": user["id"]})
+    if not full or not verify_password(body.current_password, full["password_hash"]):
+        raise HTTPException(status_code=400, detail="wrong_current_password")
+    await db.users.update_one({"id": user["id"]}, {"$set": {"password_hash": hash_password(body.new_password)}})
+    return {"ok": True}
 
 
 class ForgotIn(BaseModel):
