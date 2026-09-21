@@ -1,6 +1,8 @@
 import base64
+import calendar
 import io
 import os
+import re
 import uuid
 import zipfile
 from datetime import datetime, timezone
@@ -693,6 +695,7 @@ class EmployeeIn(BaseModel):
     department: str = ""
     position: str = ""
     overtime_rate: int | None = None
+    base_salary: int | None = None
 
 
 class EmployeePatch(BaseModel):
@@ -702,6 +705,7 @@ class EmployeePatch(BaseModel):
     position: str | None = None
     active: bool | None = None
     overtime_rate: int | None = None
+    base_salary: int | None = None
 
 
 @router.get("/admin/employees")
@@ -729,7 +733,7 @@ async def create_employee(body: EmployeeIn, user: dict = Depends(admin_dep)):
     emp = {
         "id": str(uuid.uuid4()), "school_id": user["school_id"], "user_id": uid,
         "name": body.name, "nip": body.nip, "department": body.department, "position": body.position,
-        "overtime_rate": body.overtime_rate,
+        "overtime_rate": body.overtime_rate, "base_salary": body.base_salary,
         "embedding": None, "photo": None, "active": True, "created_at": now_iso(),
     }
     await db.employees.insert_one(emp)
@@ -747,8 +751,9 @@ async def update_employee(eid: str, body: EmployeePatch, user: dict = Depends(ad
     update = {}
     if upd:
         update["$set"] = upd
-    if "overtime_rate" in body.model_fields_set and body.overtime_rate is None:
-        update["$unset"] = {"overtime_rate": ""}
+    unset = {f: "" for f in ("overtime_rate", "base_salary") if f in body.model_fields_set and getattr(body, f) is None}
+    if unset:
+        update["$unset"] = unset
     if not update:
         raise HTTPException(status_code=400, detail="Tidak ada perubahan")
     await db.employees.update_one({"id": eid, "school_id": user["school_id"]}, update)
@@ -839,6 +844,7 @@ async def _overtime_recap(sid: str, date_from: str, date_to: str) -> list:
             "department": e.get("department", ""), "position": e.get("position", ""),
             "overtime_rate": rate, "overtime_minutes": tot_actual,
             "paid_minutes": tot_paid, "overtime_pay": round(tot_paid / 60 * rate),
+            "base_salary": e.get("base_salary"),
         })
     recap.sort(key=lambda r: r["name"])
     return recap
@@ -864,6 +870,57 @@ async def report_overtime_export(date_from: str, date_to: str, user: dict = Depe
         buf,
         media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         headers={"Content-Disposition": "attachment; filename=laporan-lembur.xlsx"})
+
+
+# ---------- Payroll (Penggajian) ----------
+async def _payroll_rows(sid: str, period: str) -> list:
+    y, m = int(period[:4]), int(period[5:7])
+    date_from = f"{period}-01"
+    date_to = f"{period}-{calendar.monthrange(y, m)[1]:02d}"
+    recap = await _overtime_recap(sid, date_from, date_to)
+    ins = await db.attendance.find(
+        {"school_id": sid, "person_type": "employee", "type": "in",
+         "date": {"$gte": date_from, "$lte": date_to}},
+        {"_id": 0, "employee_id": 1, "date": 1}).to_list(20000)
+    days = {}
+    for r in ins:
+        days.setdefault(r.get("employee_id"), set()).add(r["date"])
+    rows = []
+    for r in recap:
+        base = r.get("base_salary") or 0
+        rows.append({**r, "base_salary": base, "present_days": len(days.get(r["id"], set())),
+                     "total_pay": base + r["overtime_pay"]})
+    return rows
+
+
+def _check_period(period: str):
+    if not re.match(r"^(19|20)\d{2}-(0[1-9]|1[0-2])$", period):
+        raise HTTPException(status_code=422, detail="Periode tidak valid")
+
+
+@router.get("/admin/reports/payroll")
+async def report_payroll(period: str, user: dict = Depends(admin_dep)):
+    _check_period(period)
+    return await _payroll_rows(user["school_id"], period)
+
+
+@router.get("/admin/reports/payroll/export")
+async def report_payroll_export(period: str, user: dict = Depends(admin_dep)):
+    _check_period(period)
+    rows = await _payroll_rows(user["school_id"], period)
+    df = pd.DataFrame([{
+        "Nama": r["name"], "NIP": r["nip"], "Departemen": r["department"], "Jabatan": r["position"],
+        "Hadir (hari)": r["present_days"], "Lembur Disetujui (mnt)": r["paid_minutes"],
+        "Tarif Lembur/Jam (Rp)": r["overtime_rate"], "Upah Lembur (Rp)": r["overtime_pay"],
+        "Gaji Pokok (Rp)": r["base_salary"], "Total (Rp)": r["total_pay"],
+    } for r in rows])
+    buf = io.BytesIO()
+    df.to_excel(buf, index=False)
+    buf.seek(0)
+    return StreamingResponse(
+        buf,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": f"attachment; filename=penggajian-{period}.xlsx"})
 
 
 # ---------- Reports ----------

@@ -5,7 +5,7 @@ import api, { errMsg } from "../../api";
 import CameraCapture from "../../components/CameraCapture";
 import { Plus, ScanFace, Trash2, CheckCircle2, Circle, Pencil, Search, ChevronLeft, ChevronRight } from "lucide-react";
 
-const EMPTY = { name: "", email: "", password: "", nip: "", department: "", position: "", overtime_rate: "" };
+const EMPTY = { name: "", email: "", password: "", nip: "", department: "", position: "", overtime_rate: "", base_salary: "" };
 
 export default function Employees() {
   const { t } = useTranslation();
@@ -35,7 +35,11 @@ export default function Employees() {
     e.preventDefault();
     setBusy(true);
     try {
-      await api.post("/admin/employees", { ...form, overtime_rate: form.overtime_rate === "" ? null : Number(form.overtime_rate) });
+      await api.post("/admin/employees", {
+        ...form,
+        overtime_rate: form.overtime_rate === "" ? null : Number(form.overtime_rate),
+        base_salary: form.base_salary === "" ? null : Number(form.base_salary),
+      });
       toast.success(t("save"));
       setShowForm(false);
       setForm(EMPTY);
@@ -51,6 +55,7 @@ export default function Employees() {
         name: editFor.name, nip: editFor.nip, department: editFor.department || "",
         position: editFor.position || "", active: !!editFor.active,
         overtime_rate: editFor.overtime_rate === null || editFor.overtime_rate === "" ? null : Number(editFor.overtime_rate),
+        base_salary: editFor.base_salary === null || editFor.base_salary === "" ? null : Number(editFor.base_salary),
       });
       toast.success(t("save"));
       setEditFor(null);
@@ -95,6 +100,7 @@ export default function Employees() {
             <In label={t("overtime_rate")} testid="emp-otrate" type="number" v={form.overtime_rate} set={(v) => setForm({ ...form, overtime_rate: v })} />
             <p className="mt-1 text-[11px] text-slate-400">{t("overtime_rate_hint")}</p>
           </div>
+          <In label={t("base_salary")} testid="emp-salary" type="number" v={form.base_salary} set={(v) => setForm({ ...form, base_salary: v })} />
           <div className="flex items-end gap-2">
             <button type="button" onClick={() => setShowForm(false)} className="px-4 py-2.5 rounded-xl text-xs font-bold text-slate-600 bg-slate-100 hover:bg-slate-200">{t("cancel")}</button>
             <button data-testid="emp-submit" disabled={busy} className="px-4 py-2.5 rounded-xl text-xs font-bold text-white bg-teal-700 hover:bg-teal-800 disabled:opacity-50">{t("save")}</button>
@@ -127,6 +133,7 @@ export default function Employees() {
                 <th className="px-4 py-3">{t("department")}</th>
                 <th className="px-4 py-3">{t("position")}</th>
                 <th className="px-4 py-3">{t("overtime_rate")}</th>
+                <th className="px-4 py-3">{t("base_salary")}</th>
                 <th className="px-4 py-3">{t("enroll_face")}</th>
                 <th className="px-4 py-3">{t("actions")}</th>
               </tr>
@@ -139,6 +146,7 @@ export default function Employees() {
                   <td className="px-4 py-3">{emp.department || <span className="text-slate-300">—</span>}</td>
                   <td className="px-4 py-3">{emp.position || <span className="text-slate-300">—</span>}</td>
                   <td className="px-4 py-3 text-slate-600">{emp.overtime_rate != null ? `Rp ${Number(emp.overtime_rate).toLocaleString("id-ID")}` : <span className="text-slate-300">—</span>}</td>
+                  <td className="px-4 py-3 text-slate-600">{emp.base_salary != null ? `Rp ${Number(emp.base_salary).toLocaleString("id-ID")}` : <span className="text-slate-300">—</span>}</td>
                   <td className="px-4 py-3">
                     <span data-testid={`enroll-status-${emp.id}`} className={`inline-flex items-center gap-1 text-xs font-bold ${emp.enrolled ? "text-emerald-600" : "text-slate-400"}`}>
                       {emp.enrolled ? <CheckCircle2 className="w-4 h-4" /> : <Circle className="w-4 h-4" />}
@@ -151,7 +159,7 @@ export default function Employees() {
                         className="flex items-center gap-1 text-xs font-bold text-teal-700 hover:bg-teal-50 px-2 py-1.5 rounded-lg transition-colors">
                         <ScanFace className="w-4 h-4" /> {t("enroll_face")}
                       </button>
-                      <button data-testid={`edit-employee-${emp.id}`} onClick={() => setEditFor({ ...emp, overtime_rate: emp.overtime_rate ?? "" })}
+                      <button data-testid={`edit-employee-${emp.id}`} onClick={() => setEditFor({ ...emp, overtime_rate: emp.overtime_rate ?? "", base_salary: emp.base_salary ?? "" })}
                         className="flex items-center gap-1 text-xs font-bold text-sky-600 hover:bg-sky-50 px-2 py-1.5 rounded-lg transition-colors">
                         <Pencil className="w-4 h-4" /> {t("edit")}
                       </button>
@@ -163,7 +171,7 @@ export default function Employees() {
                   </td>
                 </tr>
               ))}
-              {paged.length === 0 && <tr><td colSpan={7} className="px-4 py-8 text-center text-slate-400">{t("no_data")}</td></tr>}
+              {paged.length === 0 && <tr><td colSpan={8} className="px-4 py-8 text-center text-slate-400">{t("no_data")}</td></tr>}
             </tbody>
           </table>
         </div>
@@ -195,6 +203,7 @@ export default function Employees() {
               <In label={t("overtime_rate")} testid="edit-emp-otrate" type="number" v={editFor.overtime_rate} set={(v) => setEditFor({ ...editFor, overtime_rate: v })} />
               <p className="mt-1 text-[11px] text-slate-400">{t("overtime_rate_hint")}</p>
             </div>
+            <In label={t("base_salary")} testid="edit-emp-salary" type="number" v={editFor.base_salary} set={(v) => setEditFor({ ...editFor, base_salary: v })} />
             <label className="flex items-center gap-2 text-sm text-slate-600 self-end pb-2.5">
               <input data-testid="edit-emp-active" type="checkbox" checked={!!editFor.active} onChange={(e) => setEditFor({ ...editFor, active: e.target.checked })} className="accent-teal-700 w-4 h-4" />
               {t("active")}
