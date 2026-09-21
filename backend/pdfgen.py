@@ -118,3 +118,47 @@ def build_report_pdf(path: str, school_name: str, date_from: str, date_to: str, 
         y -= 5 * mm
     c.save()
     return path
+
+
+def build_kiosk_poster_pdf(school: dict, pair_url: str) -> str:
+    import qrcode
+    token = school.get("kiosk_token", "")
+    path = os.path.join(INVOICE_DIR, f"kiosk_poster_{token}.pdf")
+    qr_path = os.path.join(INVOICE_DIR, f"kiosk_qr_{token}.png")
+    qrcode.make(pair_url).save(qr_path)
+
+    c = canvas.Canvas(path, pagesize=A4)
+    w, h = A4
+    teal = (0.059, 0.463, 0.431)
+    c.setFillColorRGB(*teal)
+    c.rect(0, h - 40 * mm, w, 40 * mm, stroke=0, fill=1)
+    logo_path = os.path.join(os.path.dirname(__file__), "assets", "logo.png")
+    if os.path.exists(logo_path):
+        c.setFillColorRGB(1, 1, 1)
+        c.roundRect(w / 2 - 12 * mm, h - 30 * mm, 24 * mm, 24 * mm, 4 * mm, stroke=0, fill=1)
+        c.drawImage(logo_path, w / 2 - 10 * mm, h - 28 * mm, width=20 * mm, height=20 * mm, mask="auto")
+    c.setFillColorRGB(1, 1, 1)
+    c.setFont("Helvetica-Bold", 15)
+    c.drawCentredString(w / 2, h - 37 * mm, "EduGateID · Kiosk Absensi")
+
+    c.setFillColorRGB(0.1, 0.1, 0.1)
+    c.setFont("Helvetica-Bold", 20)
+    c.drawCentredString(w / 2, h - 60 * mm, school.get("name", "")[:55])
+
+    c.drawImage(qr_path, w / 2 - 40 * mm, h - 155 * mm, width=80 * mm, height=80 * mm)
+
+    c.setFillColorRGB(*teal)
+    c.roundRect(w / 2 - 45 * mm, h - 172 * mm, 90 * mm, 11 * mm, 2 * mm, stroke=0, fill=1)
+    c.setFillColorRGB(1, 1, 1)
+    c.setFont("Courier-Bold", 15)
+    c.drawCentredString(w / 2, h - 168.5 * mm, token)
+
+    c.setFillColorRGB(0.35, 0.35, 0.35)
+    c.setFont("Helvetica", 11)
+    c.drawCentredString(w / 2, h - 185 * mm, "Arahkan kamera tablet/HP ke QR code ini untuk pairing kiosk otomatis,")
+    c.drawCentredString(w / 2, h - 191 * mm, "atau buka halaman Kiosk lalu masukkan kode di atas secara manual.")
+
+    c.setFont("Helvetica", 9)
+    c.drawCentredString(w / 2, 20 * mm, "EduGateID · PT. Pusaka Kreasi Mandiri")
+    c.save()
+    return path

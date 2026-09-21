@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import api, { errMsg } from "../../api";
-import { MapPin, Plus, Trash2, Crosshair, Copy, Pencil, X, Check } from "lucide-react";
+import { MapPin, Plus, Trash2, Crosshair, Copy, Pencil, X, Check, QrCode } from "lucide-react";
 
 const TEMPLATES = {
   SD: {
@@ -36,11 +36,13 @@ export default function SettingsPage() {
   const [masterClasses, setMasterClasses] = useState([]);
   const [masterSubjects, setMasterSubjects] = useState([]);
   const [masterMajors, setMasterMajors] = useState([]);
+  const [masterDepartments, setMasterDepartments] = useState([]);
 
   const loadMaster = () => api.get("/admin/meta/options").then((r) => {
     setMasterClasses(r.data.classes || []);
     setMasterSubjects(r.data.subjects || []);
     setMasterMajors(r.data.majors || []);
+    setMasterDepartments(r.data.departments || []);
   });
 
   const load = () => api.get("/admin/settings").then((r) => {
@@ -57,10 +59,12 @@ export default function SettingsPage() {
     } catch (err) { toast.error(errMsg(err)); }
   };
 
+  const LIST_STATE = { class: [masterClasses, "class_list"], subject: [masterSubjects, "subject_list"], major: [masterMajors, "major_list"], department: [masterDepartments, "department_list"] };
+
   const addItem = (kind, v) => {
-    const list = kind === "class" ? masterClasses : kind === "subject" ? masterSubjects : masterMajors;
+    const [list, key] = LIST_STATE[kind];
     if (list.includes(v)) return;
-    saveList(kind === "class" ? "class_list" : kind === "subject" ? "subject_list" : "major_list", [...list, v].sort());
+    saveList(key, [...list, v].sort());
   };
 
   const deleteItem = async (kind, v) => {
@@ -71,6 +75,7 @@ export default function SettingsPage() {
       const d = err.response?.data?.detail || "";
       if (d.startsWith("class_in_use")) toast.error(t("class_in_use", { count: d.split(":")[1] }));
       else if (d === "subject_in_use") toast.error(t("subject_in_use"));
+      else if (d.startsWith("department_in_use")) toast.error(t("department_in_use", { count: d.split(":")[1] }));
       else toast.error(errMsg(err));
     }
   };
@@ -102,7 +107,10 @@ export default function SettingsPage() {
   const saveSettings = async (e) => {
     e.preventDefault();
     try {
-      await api.put("/admin/settings", { ...settings, late_tolerance_min: Number(settings.late_tolerance_min), early_checkin_min: Number(settings.early_checkin_min ?? 60) });
+      const payload = { ...settings, late_tolerance_min: Number(settings.late_tolerance_min), early_checkin_min: Number(settings.early_checkin_min ?? 60) };
+      if (settings.overtime_rate === "" || settings.overtime_rate == null) delete payload.overtime_rate;
+      else payload.overtime_rate = Number(settings.overtime_rate);
+      await api.put("/admin/settings", payload);
       toast.success(t("save"));
     } catch (err) { toast.error(errMsg(err)); }
   };
@@ -131,6 +139,18 @@ export default function SettingsPage() {
     load();
   };
 
+  const downloadPoster = async () => {
+    try {
+      const res = await api.get("/admin/kiosk-poster", { responseType: "blob" });
+      const url = URL.createObjectURL(res.data);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `poster-kiosk-${school.kiosk_token}.pdf`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (err) { toast.error(errMsg(err)); }
+  };
+
   return (
     <div data-testid="settings-page" className="space-y-6">
       {school && (
@@ -139,10 +159,16 @@ export default function SettingsPage() {
             <p className="text-xs uppercase tracking-wide text-teal-200">{t("kiosk_code")}</p>
             <p data-testid="kiosk-token" className="font-mono font-bold text-lg">{school.kiosk_token}</p>
           </div>
-          <button data-testid="copy-kiosk-btn" onClick={() => { navigator.clipboard.writeText(school.kiosk_token); toast.success(school.kiosk_token); }}
-            className="flex items-center gap-1.5 bg-white/10 hover:bg-white/20 px-4 py-2 rounded-xl text-xs font-bold transition-colors">
-            <Copy className="w-4 h-4" /> {t("kiosk_code")}
-          </button>
+          <div className="flex flex-wrap gap-2">
+            <button data-testid="copy-kiosk-btn" onClick={() => { navigator.clipboard.writeText(school.kiosk_token); toast.success(school.kiosk_token); }}
+              className="flex items-center gap-1.5 bg-white/10 hover:bg-white/20 px-4 py-2 rounded-xl text-xs font-bold transition-colors">
+              <Copy className="w-4 h-4" /> {t("kiosk_code")}
+            </button>
+            <button data-testid="poster-kiosk-btn" onClick={downloadPoster}
+              className="flex items-center gap-1.5 bg-white/10 hover:bg-white/20 px-4 py-2 rounded-xl text-xs font-bold transition-colors">
+              <QrCode className="w-4 h-4" /> {t("kiosk_poster")}
+            </button>
+          </div>
         </div>
       )}
 
@@ -185,6 +211,12 @@ export default function SettingsPage() {
             className="accent-teal-700 w-4 h-4" />
           <span>{t("require_checkin")} <span className="text-xs text-slate-400">({t("require_checkin_hint")})</span></span>
         </label>
+        <div className="mt-3 max-w-xs">
+          <label className="text-xs font-semibold text-slate-500">{t("default_overtime_rate")}</label>
+          <input data-testid="default-overtime-rate" type="number" min={0} value={settings.overtime_rate ?? ""}
+            onChange={(e) => setSettings({ ...settings, overtime_rate: e.target.value })}
+            className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-teal-600" />
+        </div>
         <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-3xl">
           <div>
             <label className="text-xs font-semibold text-slate-500">{t("greeting_in_setting")}</label>
@@ -233,6 +265,8 @@ export default function SettingsPage() {
           )}
           <MasterList title={t("master_subjects")} testid="master-subject" items={masterSubjects}
             onAdd={(v) => addItem("subject", v)} onDelete={(v) => deleteItem("subject", v)} onRename={(f2, t2) => renameItem("subject", f2, t2)} t={t} />
+          <MasterList title={t("department_list")} testid="master-department" items={masterDepartments}
+            onAdd={(v) => addItem("department", v)} onDelete={(v) => deleteItem("department", v)} onRename={(f2, t2) => renameItem("department", f2, t2)} t={t} />
         </div>
       </div>
 

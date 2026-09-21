@@ -24,6 +24,9 @@ import Billing from "@/pages/admin/Billing";
 import TeacherHome from "@/pages/teacher/TeacherHome";
 import TeacherStudentStatus from "@/pages/teacher/TeacherStudentStatus";
 import TeacherReports from "@/pages/teacher/TeacherReports";
+import Employees from "@/pages/admin/Employees";
+import Overtime from "@/pages/admin/Overtime";
+import EmployeeHome from "@/pages/employee/EmployeeHome";
 
 function Guard({ roles, children }) {
   const { user, loading } = useAuth();
@@ -55,6 +58,8 @@ function App() {
             <Route path="/admin" element={<AdminDashboard />} />
             <Route path="/admin/teachers" element={<Teachers />} />
             <Route path="/admin/students" element={<Students />} />
+            <Route path="/admin/employees" element={<Employees />} />
+            <Route path="/admin/overtime" element={<Overtime />} />
             <Route path="/admin/settings" element={<SettingsPage />} />
             <Route path="/admin/leaves" element={<Leaves />} />
             <Route path="/admin/reports" element={<Reports />} />
@@ -64,6 +69,9 @@ function App() {
             <Route path="/guru" element={<TeacherHome />} />
             <Route path="/guru/izin" element={<TeacherStudentStatus />} />
             <Route path="/guru/laporan" element={<TeacherReports />} />
+          </Route>
+          <Route element={<Guard roles={["employee"]}><Layout /></Guard>}>
+            <Route path="/karyawan" element={<EmployeeHome />} />
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

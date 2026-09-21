@@ -109,7 +109,9 @@ class TestOwner:
         schools = r.json()
         assert any(s.get("kiosk_token") == KIOSK_CODE for s in schools)
         demo = next(s for s in schools if s["kiosk_token"] == KIOSK_CODE)
-        assert demo["student_count"] >= 120
+        # student_count bisa berasal dari student_count_manual (billing) — jangan bergantung pada jumlah data hidup
+        assert demo["student_count"] > 0
+        assert demo.get("student_count_source") in ("manual", "data")
 
     def test_forbidden_for_non_owner(self, admin_token):
         r = requests.get(f"{API}/owner/overview", headers=h(admin_token))

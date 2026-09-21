@@ -394,3 +394,26 @@ Aplikasi absensi berbasis tablet kiosk + face recognition & liveness, geofence G
 - OwnerDashboard: modal Ubah Sekolah punya dropdown Tipe Sekolah + checklist Jurusan (prefill dari data tersimpan, merge dengan daftar opsi agar jurusan lama tidak hilang) + input "Jurusan lain".
 - Data: SMK Perwira Bangsa diset tipe SMK + jurusan [TAV, Tata Boga] (diturunkan dari kelas riilnya). Sekolah demo SMA Nusantara berisi daftar bidang keahlian yang diinput user via Data Master.
 - Terverifikasi: PATCH owner -> settings tenant berubah, modal edit prefill benar, pytest 79 passed / 1 skipped.
+
+## 2026-09-20 — Tabel Absensi Hari Ini: grup per orang
+- AdminDashboard.jsx: tabel digrup per orang (kunci student_id/teacher_id/nama). Kolom: Nama, Masuk (jam + telat), Pulang (jam), Status ringkasan (Komplit / Masuk Saja / Pulang Saja / Sakit / Izin), chevron expand.
+- Klik baris -> panel detail 2 kartu (Absen Masuk & Absen Pulang): jam, status, menit telat, GPS, catatan, tombol hapus per rekaman.
+- Pagination kini per orang (bukan per rekaman). i18n: att_sum_complete/in_only/out_only (ID/EN).
+
+## 2026-09-21 — Poster QR Kiosk (auto-pairing)
+- `pdfgen.py`: `build_kiosk_poster_pdf(school, pair_url)` — poster A4: header teal + logo, nama sekolah, QR besar (lib `qrcode` 8.2, ditambah ke requirements.txt), kode kiosk, instruksi ID.
+- Endpoint `GET /api/admin/kiosk-poster` (routes_admin.py) → FileResponse PDF `poster-kiosk-<token>.pdf`; pair_url = `{FRONTEND_URL}/kiosk?pair=<kiosk_token>`.
+- Kiosk.jsx: auto-pair dari query `?pair=` (loadInfo → simpan token, URL dibersihkan via replaceState; kode invalid → pesan error).
+- SettingsPage: tombol "Unduh Poster QR" di kartu kode kiosk (unduh blob). i18n `kiosk_poster` ID/EN.
+- Terverifikasi: curl 200 application/pdf, analisis PDF (logo/nama/QR/kode/instruksi OK), screenshot auto-pair `/kiosk?pair=KIOSK-C55BFCE1` langsung masuk kiosk SMK Perwira Bangsa tanpa form pairing, mobile aman.
+
+## 2026-09-21 — Tipe orang baru: Karyawan + sistem Lembur
+- Koleksi `employees`: {id, school_id, user_id (role "employee"), name, nip, department, position, overtime_rate (null = ikut default), embedding, photo, active}. Koleksi `overtime_requests`: {id, school_id, employee_id, employee_name, date, minutes, reason, status pending/approved/rejected, decided_by/at}.
+- routes_admin.py: CRUD `/admin/employees` + `/admin/employees/{id}/enroll` (anti-duplikat wajah lintas guru+siswa+karyawan); PATCH dengan $unset overtime_rate saat dikosongkan. Settings baru `overtime_rate` (default Rp/jam) & `department_list`; meta options/rename/delete mendukung kind "department" (propagasi ke employees.department, hapus diblokir `department_in_use:N`). Stats dasbor + employees_present/total_employees/pending_overtime.
+- routes_employee.py (baru, role "employee"): GET /employee/me (tarif efektif), /employee/attendance, GET+POST /employee/overtime (validasi 15-720 menit).
+- Persetujuan: GET /admin/overtime (?status), POST /admin/overtime/{id}/decision (hanya pending, pola DecisionIn seperti cuti).
+- Laporan lembur: GET /admin/reports/overtime + /export (xlsx). Aturan upah: menit dibayar = min(lembur aktual dari absen pulang, menit disetujui) per tanggal; tanpa persetujuan = 0. Upah = menit/60 × tarif (override karyawan atau default sekolah).
+- Kiosk: pencocokan wajah kini guru+siswa+karyawan (person_type=employee, dup field employee_id); input manual NIS menerima NIP karyawan (respons `name` + tetap `student_name` utk kompat); sync offline fallback NIP.
+- Frontend: halaman admin Employees.jsx (CRUD + enroll + DeptSelect dropdown/baru + search/pagination), Overtime.jsx (tab Persetujuan + tab Laporan Lembur dgn total Rp + ekspor), portal EmployeeHome.jsx (/karyawan: profil+tarif, form ajukan lembur, riwayat pengajuan, riwayat presensi). Menu Layout + homeFor employee. Badge "Karyawan" di tabel dasbor. i18n ID/EN lengkap; label kiosk NIS → "NIS / NIP".
+- Fix tes: backend_test.py::test_list_schools tidak lagi hardcode >=120 siswa (sekolah demo memakai student_count_manual=100 untuk billing) → assert count>0 + source valid.
+- Terverifikasi: e2e curl (buat karyawan → login role employee → ajukan lembur → admin approve → absen NIP di kiosk 200 → duplikat 409 → recap → ekspor xlsx → rename departemen propagasi → hapus departemen dipakai diblokir → cleanup bersih), pytest full suite, screenshot UI (menu + kedua halaman, mobile OK).

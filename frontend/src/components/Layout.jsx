@@ -5,6 +5,7 @@ import LangSwitch from "./LangSwitch";
 import {
   LayoutDashboard, School, FileText, Users, GraduationCap, Settings,
   CalendarClock, BarChart3, CreditCard, LogOut, ScanFace, MonitorSmartphone, Bell, Inbox,
+  Briefcase, Timer,
 } from "lucide-react";
 
 const menus = {
@@ -18,6 +19,8 @@ const menus = {
     { to: "/admin", icon: LayoutDashboard, key: "dashboard", end: true },
     { to: "/admin/teachers", icon: Users, key: "teachers" },
     { to: "/admin/students", icon: GraduationCap, key: "students" },
+    { to: "/admin/employees", icon: Briefcase, key: "employees" },
+    { to: "/admin/overtime", icon: Timer, key: "overtime" },
     { to: "/admin/settings", icon: Settings, key: "settings" },
     { to: "/admin/leaves", icon: CalendarClock, key: "leaves" },
     { to: "/admin/reports", icon: BarChart3, key: "reports" },
@@ -28,9 +31,12 @@ const menus = {
     { to: "/guru/izin", icon: CalendarClock, key: "student_status_menu" },
     { to: "/guru/laporan", icon: BarChart3, key: "student_report_menu" },
   ],
+  employee: [
+    { to: "/karyawan", icon: ScanFace, key: "my_attendance", end: true },
+  ],
 };
 
-const portalKey = { owner: "owner_portal", school_admin: "admin_portal", teacher: "teacher_portal" };
+const portalKey = { owner: "owner_portal", school_admin: "admin_portal", teacher: "teacher_portal", employee: "employee_portal" };
 
 export default function Layout() {
   const { t } = useTranslation();

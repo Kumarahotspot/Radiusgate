@@ -1,5 +1,6 @@
 import base64
 import io
+import os
 import uuid
 import zipfile
 from datetime import datetime, timezone
@@ -13,7 +14,7 @@ from db import db
 from auth import require_roles, hash_password
 from faceutil import embed, cos_sim, NoFaceError, MATCH_SIM_THRESHOLD
 from starlette.concurrency import run_in_threadpool
-from pdfgen import build_report_pdf
+from pdfgen import build_report_pdf, build_kiosk_poster_pdf
 
 router = APIRouter(tags=["admin"])
 admin_dep = require_roles("school_admin")
@@ -46,6 +47,9 @@ async def stats(user: dict = Depends(admin_dep)):
         "pending_leaves": await db.leaves.count_documents({"school_id": sid, "status": "pending"}),
         "total_teachers": await db.teachers.count_documents({"school_id": sid, "active": True}),
         "total_students": await db.students.count_documents({"school_id": sid, "status": {"$ne": "lulus"}}),
+        "employees_present": len({a.get("employee_id") for a in today_att if a.get("person_type") == "employee"}),
+        "total_employees": await db.employees.count_documents({"school_id": sid, "active": True}),
+        "pending_overtime": await db.overtime_requests.count_documents({"school_id": sid, "status": "pending"}),
     }
 
 
@@ -72,6 +76,9 @@ def _split_csv(s) -> list:
 async def _derived_list(sid: str, kind: str) -> list:
     if kind == "major":
         return []
+    if kind == "department":
+        raw = await db.employees.distinct("department", {"school_id": sid})
+        return sorted(d for d in raw if d)
     if kind == "class":
         raw = await db.students.distinct("class", {"school_id": sid, "status": {"$ne": "lulus"}})
         return sorted(c for c in raw if c)
@@ -80,7 +87,7 @@ async def _derived_list(sid: str, kind: str) -> list:
 
 
 async def _effective_list(sid: str, kind: str) -> tuple[list, str]:
-    key = {"class": "class_list", "subject": "subject_list", "major": "major_list"}[kind]
+    key = {"class": "class_list", "subject": "subject_list", "major": "major_list", "department": "department_list"}[kind]
     st = await db.settings.find_one({"school_id": sid}, {"_id": 0, key: 1}) or {}
     if st.get(key) is not None:
         return list(st[key]), key
@@ -93,7 +100,8 @@ async def meta_options(user: dict = Depends(admin_dep)):
     classes, _ = await _effective_list(user["school_id"], "class")
     subjects, _ = await _effective_list(user["school_id"], "subject")
     majors, _ = await _effective_list(user["school_id"], "major")
-    return {"classes": classes, "subjects": subjects, "majors": majors}
+    departments, _ = await _effective_list(user["school_id"], "department")
+    return {"classes": classes, "subjects": subjects, "majors": majors, "departments": departments}
 
 
 class MetaRenameIn(BaseModel):
@@ -109,8 +117,8 @@ class MetaDeleteIn(BaseModel):
 
 @router.post("/admin/meta/rename")
 async def meta_rename(body: MetaRenameIn, user: dict = Depends(admin_dep)):
-    """Ganti nama kelas/mapel, otomatis diterapkan ke siswa, absensi, dan guru."""
-    if body.kind not in ("class", "subject", "major"):
+    """Ganti nama kelas/mapel/departemen, otomatis diterapkan ke siswa, absensi, guru, karyawan."""
+    if body.kind not in ("class", "subject", "major", "department"):
         raise HTTPException(status_code=400, detail="kind tidak valid")
     fv, tv = body.from_value.strip(), body.to_value.strip()
     if not fv or not tv or fv == tv:
@@ -132,6 +140,8 @@ async def meta_rename(body: MetaRenameIn, user: dict = Depends(admin_dep)):
             if fv in parts:
                 await db.teachers.update_one({"id": tch["id"]},
                                              {"$set": {"classes": ", ".join(tv if p == fv else p for p in parts)}})
+    elif body.kind == "department":
+        await db.employees.update_many({"school_id": sid, "department": fv}, {"$set": {"department": tv}})
     else:
         teachers = await db.teachers.find({"school_id": sid}, {"_id": 0, "id": 1, "subject": 1}).to_list(2000)
         for tch in teachers:
@@ -144,8 +154,8 @@ async def meta_rename(body: MetaRenameIn, user: dict = Depends(admin_dep)):
 
 @router.post("/admin/meta/delete")
 async def meta_delete(body: MetaDeleteIn, user: dict = Depends(admin_dep)):
-    """Hapus kelas/mapel dari daftar master; ditolak jika masih dipakai data siswa/guru."""
-    if body.kind not in ("class", "subject", "major"):
+    """Hapus item master; ditolak jika masih dipakai data siswa/guru/karyawan."""
+    if body.kind not in ("class", "subject", "major", "department"):
         raise HTTPException(status_code=400, detail="kind tidak valid")
     v = body.value.strip()
     sid = user["school_id"]
@@ -153,6 +163,10 @@ async def meta_delete(body: MetaDeleteIn, user: dict = Depends(admin_dep)):
         used = await db.students.count_documents({"school_id": sid, "class": v, "status": {"$ne": "lulus"}})
         if used:
             raise HTTPException(status_code=400, detail=f"class_in_use:{used}")
+    elif body.kind == "department":
+        used = await db.employees.count_documents({"school_id": sid, "department": v})
+        if used:
+            raise HTTPException(status_code=400, detail=f"department_in_use:{used}")
     elif body.kind == "subject":
         teachers = await db.teachers.find({"school_id": sid}, {"_id": 0, "subject": 1}).to_list(2000)
         if any(v in _split_csv(tch.get("subject")) for tch in teachers):
@@ -249,6 +263,9 @@ async def _face_dup_name(school_id: str, emb, exclude_id: str):
     others += await db.students.find(
         {"school_id": school_id, "id": {"$ne": exclude_id}, "embedding": {"$type": "array"}},
         {"_id": 0, "name": 1, "embedding": 1}).to_list(5000)
+    others += await db.employees.find(
+        {"school_id": school_id, "id": {"$ne": exclude_id}, "embedding": {"$type": "array"}},
+        {"_id": 0, "name": 1, "embedding": 1}).to_list(2000)
     for o in others:
         if cos_sim(emb, o["embedding"]) >= MATCH_SIM_THRESHOLD:
             return o["name"]
@@ -291,6 +308,8 @@ class SettingsIn(BaseModel):
     subject_list: list[str] | None = None
     major_list: list[str] | None = None
     school_type: str | None = None
+    department_list: list[str] | None = None
+    overtime_rate: int | None = None
 
 
 @router.get("/admin/settings")
@@ -308,6 +327,16 @@ async def put_settings(body: SettingsIn, user: dict = Depends(admin_dep)):
         raise HTTPException(status_code=400, detail="Tidak ada perubahan")
     await db.settings.update_one({"school_id": user["school_id"]}, {"$set": upd}, upsert=True)
     return {"ok": True}
+
+
+@router.get("/admin/kiosk-poster")
+async def kiosk_poster(user: dict = Depends(admin_dep)):
+    school = await db.schools.find_one({"id": user["school_id"]}, {"_id": 0})
+    if not school or not school.get("kiosk_token"):
+        raise HTTPException(status_code=404, detail="Sekolah tidak ditemukan")
+    pair_url = f"{os.environ.get('FRONTEND_URL', '')}/kiosk?pair={school['kiosk_token']}"
+    path = await run_in_threadpool(build_kiosk_poster_pdf, school, pair_url)
+    return FileResponse(path, media_type="application/pdf", filename=f"poster-kiosk-{school['kiosk_token']}.pdf")
 
 
 class LocationIn(BaseModel):
@@ -653,6 +682,188 @@ async def decide_leave(lid: str, body: DecisionIn, user: dict = Depends(admin_de
     if res.matched_count == 0:
         raise HTTPException(status_code=404, detail="Pengajuan tidak ditemukan")
     return {"ok": True}
+
+
+# ---------- Employees (Karyawan) ----------
+class EmployeeIn(BaseModel):
+    name: str
+    email: EmailStr
+    password: str
+    nip: str = ""
+    department: str = ""
+    position: str = ""
+    overtime_rate: int | None = None
+
+
+class EmployeePatch(BaseModel):
+    name: str | None = None
+    nip: str | None = None
+    department: str | None = None
+    position: str | None = None
+    active: bool | None = None
+    overtime_rate: int | None = None
+
+
+@router.get("/admin/employees")
+async def list_employees(user: dict = Depends(admin_dep)):
+    emps = await db.employees.find({"school_id": user["school_id"]}, {"_id": 0, "embedding": 0, "photo": 0}).to_list(2000)
+    enrolled_ids = {e["id"] for e in await db.employees.find(
+        {"school_id": user["school_id"], "embedding": {"$type": "array"}}, {"_id": 0, "id": 1}).to_list(2000)}
+    uids = [e["user_id"] for e in emps if e.get("user_id")]
+    users = {u["id"]: u["email"] for u in await db.users.find({"id": {"$in": uids}}, {"_id": 0, "id": 1, "email": 1}).to_list(2000)}
+    for e in emps:
+        e["email"] = users.get(e.get("user_id"), "")
+        e["enrolled"] = e["id"] in enrolled_ids
+    return emps
+
+
+@router.post("/admin/employees")
+async def create_employee(body: EmployeeIn, user: dict = Depends(admin_dep)):
+    if await db.users.find_one({"email": body.email.lower()}):
+        raise HTTPException(status_code=400, detail="Email sudah dipakai")
+    uid = str(uuid.uuid4())
+    await db.users.insert_one({
+        "id": uid, "email": body.email.lower(), "name": body.name, "role": "employee",
+        "password_hash": hash_password(body.password), "school_id": user["school_id"], "created_at": now_iso(),
+    })
+    emp = {
+        "id": str(uuid.uuid4()), "school_id": user["school_id"], "user_id": uid,
+        "name": body.name, "nip": body.nip, "department": body.department, "position": body.position,
+        "overtime_rate": body.overtime_rate,
+        "embedding": None, "photo": None, "active": True, "created_at": now_iso(),
+    }
+    await db.employees.insert_one(emp)
+    emp.pop("_id", None)
+    emp.pop("embedding", None)
+    emp.pop("photo", None)
+    emp["email"] = body.email.lower()
+    emp["enrolled"] = False
+    return emp
+
+
+@router.patch("/admin/employees/{eid}")
+async def update_employee(eid: str, body: EmployeePatch, user: dict = Depends(admin_dep)):
+    upd = {k: v for k, v in body.model_dump().items() if v is not None}
+    update = {}
+    if upd:
+        update["$set"] = upd
+    if "overtime_rate" in body.model_fields_set and body.overtime_rate is None:
+        update["$unset"] = {"overtime_rate": ""}
+    if not update:
+        raise HTTPException(status_code=400, detail="Tidak ada perubahan")
+    await db.employees.update_one({"id": eid, "school_id": user["school_id"]}, update)
+    if "name" in upd:
+        e = await db.employees.find_one({"id": eid}, {"_id": 0, "user_id": 1})
+        if e:
+            await db.users.update_one({"id": e["user_id"]}, {"$set": {"name": upd["name"]}})
+    return {"ok": True}
+
+
+@router.delete("/admin/employees/{eid}")
+async def delete_employee(eid: str, user: dict = Depends(admin_dep)):
+    e = await db.employees.find_one({"id": eid, "school_id": user["school_id"]})
+    if not e:
+        raise HTTPException(status_code=404, detail="Karyawan tidak ditemukan")
+    await db.employees.delete_one({"id": eid})
+    await db.users.delete_one({"id": e["user_id"]})
+    return {"ok": True}
+
+
+@router.post("/admin/employees/{eid}/enroll")
+async def enroll_employee_face(eid: str, body: EnrollIn, user: dict = Depends(admin_dep)):
+    e = await db.employees.find_one({"id": eid, "school_id": user["school_id"]})
+    if not e:
+        raise HTTPException(status_code=404, detail="Karyawan tidak ditemukan")
+    try:
+        emb = await run_in_threadpool(embed, body.photo)
+    except NoFaceError as exc:
+        raise HTTPException(status_code=422, detail=str(exc))
+    except Exception:
+        raise HTTPException(status_code=400, detail="Foto tidak valid")
+    await _face_dup_check(user["school_id"], emb, eid)
+    await db.employees.update_one({"id": eid}, {"$set": {"embedding": emb, "embedding_model": "buffalo_s", "photo": body.photo, "enrolled_at": now_iso()}})
+    return {"ok": True, "enrolled": True}
+
+
+# ---------- Overtime (Lembur) ----------
+@router.get("/admin/overtime")
+async def list_overtime(status: str | None = None, user: dict = Depends(admin_dep)):
+    q = {"school_id": user["school_id"]}
+    if status in ("pending", "approved", "rejected"):
+        q["status"] = status
+    return await db.overtime_requests.find(q, {"_id": 0}).sort("created_at", -1).to_list(500)
+
+
+@router.post("/admin/overtime/{oid}/decision")
+async def decide_overtime(oid: str, body: DecisionIn, user: dict = Depends(admin_dep)):
+    if body.status not in ("approved", "rejected"):
+        raise HTTPException(status_code=400, detail="Status tidak valid")
+    res = await db.overtime_requests.update_one(
+        {"id": oid, "school_id": user["school_id"], "status": "pending"},
+        {"$set": {"status": body.status, "decided_by": user["id"], "decided_at": now_iso()}})
+    if res.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Pengajuan tidak ditemukan")
+    return {"ok": True}
+
+
+async def _overtime_recap(sid: str, date_from: str, date_to: str) -> list:
+    settings = await db.settings.find_one({"school_id": sid}, {"_id": 0, "overtime_rate": 1}) or {}
+    default_rate = int(settings.get("overtime_rate") or 0)
+    emps = await db.employees.find({"school_id": sid}, {"_id": 0, "embedding": 0, "photo": 0}).to_list(2000)
+    outs = await db.attendance.find(
+        {"school_id": sid, "person_type": "employee", "type": "out",
+         "date": {"$gte": date_from, "$lte": date_to}, "overtime_minutes": {"$gt": 0}},
+        {"_id": 0, "employee_id": 1, "date": 1, "overtime_minutes": 1}).to_list(20000)
+    actual = {}
+    for r in outs:
+        k = (r.get("employee_id"), r["date"])
+        actual[k] = actual.get(k, 0) + r.get("overtime_minutes", 0)
+    reqs = await db.overtime_requests.find(
+        {"school_id": sid, "status": "approved", "date": {"$gte": date_from, "$lte": date_to}},
+        {"_id": 0, "employee_id": 1, "date": 1, "minutes": 1}).to_list(20000)
+    approved = {}
+    for r in reqs:
+        k = (r["employee_id"], r["date"])
+        approved[k] = approved.get(k, 0) + r.get("minutes", 0)
+    recap = []
+    for e in emps:
+        rate = e.get("overtime_rate") if e.get("overtime_rate") is not None else default_rate
+        tot_actual = tot_paid = 0
+        for (eid, d), mins in actual.items():
+            if eid != e["id"]:
+                continue
+            tot_actual += mins
+            tot_paid += min(mins, approved.get((eid, d), 0))
+        recap.append({
+            "id": e["id"], "name": e["name"], "nip": e.get("nip", ""),
+            "department": e.get("department", ""), "position": e.get("position", ""),
+            "overtime_rate": rate, "overtime_minutes": tot_actual,
+            "paid_minutes": tot_paid, "overtime_pay": round(tot_paid / 60 * rate),
+        })
+    recap.sort(key=lambda r: r["name"])
+    return recap
+
+
+@router.get("/admin/reports/overtime")
+async def report_overtime(date_from: str, date_to: str, user: dict = Depends(admin_dep)):
+    return await _overtime_recap(user["school_id"], date_from, date_to)
+
+
+@router.get("/admin/reports/overtime/export")
+async def report_overtime_export(date_from: str, date_to: str, user: dict = Depends(admin_dep)):
+    recap = await _overtime_recap(user["school_id"], date_from, date_to)
+    df = pd.DataFrame([{
+        "Nama": r["name"], "NIP": r["nip"], "Departemen": r["department"], "Jabatan": r["position"],
+        "Lembur Aktual (mnt)": r["overtime_minutes"], "Lembur Disetujui (mnt)": r["paid_minutes"],
+        "Tarif/Jam (Rp)": r["overtime_rate"], "Upah Lembur (Rp)": r["overtime_pay"],
+    } for r in recap])
+    buf = io.BytesIO()
+    df.to_excel(buf, index=False)
+    buf.seek(0)
+    return StreamingResponse(
+        buf,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": "attachment; filename=laporan-lembur.xlsx"})
 
 
 # ---------- Reports ----------

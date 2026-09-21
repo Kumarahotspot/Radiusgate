@@ -124,7 +124,7 @@ async def _record(school, teacher_id, teacher_name, att_type, ts_device, lat, ln
     tz_name = (settings or {}).get("timezone", "Asia/Jakarta")
     date, minutes, hhmm = _localize(ts_device, tz_name)
     ptype = (extra or {}).get("person_type", "teacher")
-    dup_field = "student_id" if ptype == "student" else "teacher_id"
+    dup_field = {"student": "student_id", "employee": "employee_id"}.get(ptype, "teacher_id")
     dup = await db.attendance.find_one({dup_field: teacher_id, "date": date, "type": att_type})
     if dup:
         raise HTTPException(status_code=409, detail="already_recorded")
@@ -182,6 +182,8 @@ async def _record(school, teacher_id, teacher_name, att_type, ts_device, lat, ln
     }
     if ptype == "student":
         doc["student_id"] = doc.pop("teacher_id")
+    elif ptype == "employee":
+        doc["employee_id"] = doc.pop("teacher_id")
     if extra:
         doc.update({k: v for k, v in extra.items() if k != "person_type"})
     try:
@@ -200,7 +202,10 @@ async def attend(body: AttendIn, request: Request):
     students = await db.students.find(
         {"school_id": school["id"], "embedding": {"$ne": None}, "status": {"$ne": "lulus"}},
         {"_id": 0, "id": 1, "name": 1, "class": 1, "embedding": 1}).to_list(5000)
-    if not teachers and not students:
+    employees = await db.employees.find(
+        {"school_id": school["id"], "active": True, "embedding": {"$ne": None}},
+        {"_id": 0, "id": 1, "name": 1, "department": 1, "embedding": 1}).to_list(2000)
+    if not teachers and not students and not employees:
         raise HTTPException(status_code=422, detail="no_enrolled")
     try:
         cap = await run_in_threadpool(embed, body.photo)
@@ -225,18 +230,28 @@ async def attend(body: AttendIn, request: Request):
             second_s, best, best_s, best_type = best_s, s, sc, "student"
         elif sc > second_s:
             second_s = sc
+    for e in employees:
+        if not isinstance(e.get("embedding"), list):
+            continue
+        sc = cos_sim(cap, e["embedding"])
+        if sc > best_s:
+            second_s, best, best_s, best_type = best_s, e, sc, "employee"
+        elif sc > second_s:
+            second_s = sc
     if best is None or best_s < MATCH_SIM_THRESHOLD or (second_s >= 0 and best_s - second_s < MATCH_MARGIN):
         logger.warning("face match gagal: best=%.3f second=%.3f", best_s, second_s)
         raise HTTPException(status_code=422, detail="face_not_found")
     logger.info("face match: %s=%s sim=%.3f", best_type, best["name"], best_s)
     ksettings = await db.settings.find_one({"school_id": school["id"]}, {"_id": 0, "timezone": 1})
     date, _, _ = _localize(body.ts_device, (ksettings or {}).get("timezone", "Asia/Jakarta"))
-    dup_field = "teacher_id" if best_type == "teacher" else "student_id"
+    dup_field = {"teacher": "teacher_id", "student": "student_id", "employee": "employee_id"}[best_type]
     if await db.attendance.find_one({dup_field: best["id"], "date": date, "type": body.type}):
         raise HTTPException(status_code=409, detail=f"already_recorded:{best['name']}")
     extra = None
     if best_type == "student":
         extra = {"person_type": "student", "class": best.get("class", ""), "att_status": "present"}
+    elif best_type == "employee":
+        extra = {"person_type": "employee", "department": best.get("department", "")}
     doc = await _record(school, best["id"], best["name"], body.type, body.ts_device,
                         body.lat, body.lng, body.photo, body.client_uuid, offline=False, extra=extra)
     return {"ok": True, "teacher_name": best["name"], "person_type": best_type, "status": doc["status"],
@@ -256,15 +271,23 @@ class AttendStudentIn(BaseModel):
 @router.post("/kiosk/attend-student")
 async def attend_student(body: AttendStudentIn, request: Request):
     school = await school_by_token(request)
-    student = await db.students.find_one({"school_id": school["id"], "nis": body.nis.strip(), "status": {"$ne": "lulus"}})
-    if not student:
+    nis = body.nis.strip()
+    student = await db.students.find_one({"school_id": school["id"], "nis": nis, "status": {"$ne": "lulus"}})
+    if student:
+        att_status = body.status if body.status in ("present", "sakit", "izin") else "present"
+        doc = await _record(school, student["id"], student["name"], "in", body.ts_device,
+                            body.lat, body.lng, "", body.client_uuid, offline=False,
+                            extra={"person_type": "student", "class": student.get("class", ""), "att_status": att_status})
+        return {"ok": True, "student_name": student["name"], "name": student["name"], "status": doc["status"],
+                "att_status": att_status, "late_minutes": doc["late_minutes"]}
+    emp = await db.employees.find_one({"school_id": school["id"], "nip": nis, "active": True})
+    if not emp:
         raise HTTPException(status_code=422, detail="student_not_found")
-    att_status = body.status if body.status in ("present", "sakit", "izin") else "present"
-    doc = await _record(school, student["id"], student["name"], "in", body.ts_device,
+    doc = await _record(school, emp["id"], emp["name"], "in", body.ts_device,
                         body.lat, body.lng, "", body.client_uuid, offline=False,
-                        extra={"person_type": "student", "class": student.get("class", ""), "att_status": att_status})
-    return {"ok": True, "student_name": student["name"], "status": doc["status"],
-            "att_status": att_status, "late_minutes": doc["late_minutes"]}
+                        extra={"person_type": "employee", "department": emp.get("department", "")})
+    return {"ok": True, "student_name": emp["name"], "name": emp["name"], "status": doc["status"],
+            "att_status": "present", "late_minutes": doc["late_minutes"]}
 
 
 class SyncIn(BaseModel):
@@ -280,12 +303,29 @@ async def sync(body: SyncIn, request: Request):
             if r.get("person_type") == "student":
                 st = await db.students.find_one({"school_id": school["id"], "nis": str(r.get("nis", "")).strip(), "status": {"$ne": "lulus"}}, {"_id": 0})
                 if not st:
+                    e = await db.employees.find_one({"school_id": school["id"], "nip": str(r.get("nis", "")).strip(), "active": True}, {"_id": 0})
+                    if e:
+                        doc = await _record(school, e["id"], e["name"], "in", r["ts_device"], r["lat"], r["lng"],
+                                            "", r["client_uuid"], offline=True,
+                                            extra={"person_type": "employee", "department": e.get("department", "")})
+                        results.append({"client_uuid": r.get("client_uuid"), "ok": True, "status": doc["status"]})
+                        continue
                     results.append({"client_uuid": r.get("client_uuid"), "ok": False, "reason": "student_not_found"})
                     continue
                 doc = await _record(school, st["id"], st["name"], "in", r["ts_device"], r["lat"], r["lng"],
                                     "", r["client_uuid"], offline=True,
                                     extra={"person_type": "student", "class": st.get("class", ""),
                                            "att_status": r.get("status", "present")})
+                results.append({"client_uuid": r["client_uuid"], "ok": True, "status": doc["status"]})
+                continue
+            if r.get("person_type") == "employee":
+                e = await db.employees.find_one({"school_id": school["id"], "nip": str(r.get("nis", "")).strip(), "active": True}, {"_id": 0})
+                if not e:
+                    results.append({"client_uuid": r.get("client_uuid"), "ok": False, "reason": "employee_not_found"})
+                    continue
+                doc = await _record(school, e["id"], e["name"], r.get("type", "in"), r["ts_device"], r["lat"], r["lng"],
+                                    "", r["client_uuid"], offline=True,
+                                    extra={"person_type": "employee", "department": e.get("department", "")})
                 results.append({"client_uuid": r["client_uuid"], "ok": True, "status": doc["status"]})
                 continue
             t = await db.teachers.find_one({"id": r.get("teacher_id"), "school_id": school["id"]}, {"_id": 0})

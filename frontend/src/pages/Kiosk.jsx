@@ -65,6 +65,23 @@ export default function Kiosk() {
     if (token) loadInfo(token).then((ok) => { if (!ok) { setToken(""); localStorage.removeItem(T_KEY); } });
   }, [token, loadInfo]);
 
+  // auto-pair via QR poster (?pair=KODE)
+  useEffect(() => {
+    const p = new URLSearchParams(window.location.search).get("pair");
+    if (!p) return;
+    window.history.replaceState({}, "", "/kiosk");
+    if (token) return;
+    loadInfo(p.trim()).then((ok) => {
+      if (ok) {
+        localStorage.setItem(T_KEY, p.trim());
+        setToken(p.trim());
+      } else {
+        setPairError(t("kiosk_invalid_code"));
+      }
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   useEffect(() => {
     const on = () => setOnline(true);
     const off = () => setOnline(false);
@@ -201,8 +218,9 @@ export default function Kiosk() {
       }
       try {
         const { data } = await axios.post(`${API}/kiosk/attend-student`, payload, { headers: { "X-Kiosk-Token": token }, timeout: 20000 });
-        setResult({ ok: true, name: data.student_name, message: data.status === "late" ? `${t("kiosk_success")} · +${data.late_minutes}m` : t("kiosk_success") });
-        speak(`${t("kiosk_success")}. ${data.student_name}`);
+        const nm = data.name || data.student_name;
+        setResult({ ok: true, name: nm, message: data.status === "late" ? `${t("kiosk_success")} · +${data.late_minutes}m` : t("kiosk_success") });
+        speak(`${t("kiosk_success")}. ${nm}`);
         setNisInput("");
       } catch (err) {
         const d = err.response?.data?.detail || "";
