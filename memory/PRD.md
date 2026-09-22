@@ -487,4 +487,5 @@ Aplikasi absensi berbasis tablet kiosk + face recognition & liveness, geofence G
 ## 2026-09-22 — Kartu statistik Dasbor bisa diklik
 - Kartu Hadir Hari Ini / Siswa Hadir / Telat Hari Ini / Karyawan Hadir = toggle filter tabel "Absensi Hari Ini" di halaman yang sama (state `flt`: teacher/student/late/employee; chip filter aktif dengan tombol X, tabel auto-scroll ke tabel, klik ulang = hapus filter; dukung query `?f=`). Kartu Pengajuan Menunggu → /admin/leaves, Total Guru → /admin/teachers, Total Siswa → /admin/students.
 - Kartu kini <button> dengan hover lift + ring teal saat aktif. Terverifikasi screenshot: chip "Telat Hari Ini ×" muncul + ring aktif, toggle off menghilangkan chip, navigasi kartu ke halaman siswa/izin berfungsi.
+- **Urutan dasbor (atas permintaan user)**: tabel "Absensi Hari Ini" kini TAMPIL DULUAN, kartu "Kelengkapan Data Orang Tua" di bawahnya. Terverifikasi screenshot: urutan DOM TABLE_FIRST, klik bar kelas tetap berfungsi, tanpa overflow mobile.
 - Terverifikasi screenshot (urutan testid terukur benar di kedua form, tanpa overflow mobile).
