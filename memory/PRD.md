@@ -476,4 +476,5 @@ Aplikasi absensi berbasis tablet kiosk + face recognition & liveness, geofence G
 ## 2026-09-22 — UX: field Alamat diperlebar jadi textarea + urutan form dirapikan
 - Atas masukan user (field alamat terlalu sempit): Alamat di form tambah siswa kini textarea 2 baris selebar penuh form (w-full, ~1214px desktop); di modal Ubah Siswa textarea lebar penuh modal (sm:col-span-2, ~408px). Testid tetap student-address / edit-student-address.
 - Atas masukan user: urutan field form tambah & modal edit siswa kini Nama → NIS → NISN → **Jenis Kelamin → Kelas** → No. HP Ortu → Nama Ortu → Email Ortu → Alamat → tombol simpan.
+- **Validasi form siswa (atas permintaan user)**: Jenis Kelamin & Kelas WAJIB (required + cek JS toast `required_gender_class`) di form tambah & modal edit; format No. HP ortu divalidasi regex `^(\+?62|0)8\d{7,12}$` (toast `invalid_phone`); format email ortu divalidasi (toast `invalid_email`). ClassSelect kini menerima prop req. Backend sengaja tetap lentur agar impor massal tanpa JK/kelas tidak putus.
 - Terverifikasi screenshot (urutan testid terukur benar di kedua form, tanpa overflow mobile).

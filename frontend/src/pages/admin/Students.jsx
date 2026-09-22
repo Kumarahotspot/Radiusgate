@@ -5,12 +5,12 @@ import api, { errMsg } from "../../api";
 import CameraCapture from "../../components/CameraCapture";
 import { Plus, Upload, Download, Trash2, X, Pencil, ScanFace, CheckCircle2, Circle, Search, ChevronLeft, ChevronRight, GraduationCap, FileDown, MessageCircle } from "lucide-react";
 
-function ClassSelect({ testid, value, onChange, options, t }) {
+function ClassSelect({ testid, value, onChange, options, t, req }) {
   const [isNew, setIsNew] = useState(false);
   return (
     <div>
       <label className="text-xs font-semibold text-slate-500">{t("class")}</label>
-      <select data-testid={testid} value={isNew ? "__new__" : value}
+      <select data-testid={testid} required={req} value={isNew ? "__new__" : value}
         onChange={(e) => { if (e.target.value === "__new__") { setIsNew(true); onChange(""); } else { setIsNew(false); onChange(e.target.value); } }}
         className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm bg-white outline-none focus:border-teal-600">
         <option value="">—</option>
@@ -35,8 +35,18 @@ export default function Students() {
   const [busy, setBusy] = useState(false);
   const [editFor, setEditFor] = useState(null);
 
+  const PHONE_RE = /^(\+?62|0)8\d{7,12}$/;
+  const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const validContacts = (phone, email) => {
+    if (phone && !PHONE_RE.test(phone.replace(/[\s.\-]/g, ""))) { toast.error(t("invalid_phone")); return false; }
+    if (email && !EMAIL_RE.test(email)) { toast.error(t("invalid_email")); return false; }
+    return true;
+  };
+
   const saveEdit = async (e) => {
     e.preventDefault();
+    if (!editFor.gender || !editFor.class) { toast.error(t("required_gender_class")); return; }
+    if (!validContacts(editFor.parent_phone, editFor.parent_email)) return;
     setBusy(true);
     try {
       const { data } = await api.patch(`/admin/students/${editFor.id}`, { name: editFor.name, nis: editFor.nis, nisn: editFor.nisn, gender: editFor.gender, class_name: editFor.class, parent_phone: editFor.parent_phone || "", parent_name: editFor.parent_name || "", parent_email: editFor.parent_email || "", address: editFor.address || "" });
@@ -85,6 +95,8 @@ export default function Students() {
 
   const add = async (e) => {
     e.preventDefault();
+    if (!form.gender || !form.class_name) { toast.error(t("required_gender_class")); return; }
+    if (!validContacts(form.parent_phone, form.parent_email)) return;
     try {
       const { data } = await api.post("/admin/students", form);
       if (data.parent_account === "created") toast.success(t("parent_account_created"));
@@ -323,14 +335,14 @@ export default function Students() {
         <In label={t("nisn")} testid="student-nisn" v={form.nisn} set={(v) => setForm({ ...form, nisn: v })} />
         <div>
           <label className="text-xs font-semibold text-slate-500">{t("gender")}</label>
-          <select data-testid="student-gender" value={form.gender} onChange={(e) => setForm({ ...form, gender: e.target.value })}
+          <select data-testid="student-gender" required value={form.gender} onChange={(e) => setForm({ ...form, gender: e.target.value })}
             className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-600/15 transition bg-white">
             <option value="">-</option>
             <option value="L">{t("gender_l")}</option>
             <option value="P">{t("gender_p")}</option>
           </select>
         </div>
-        <ClassSelect testid="student-class" value={form.class_name} onChange={(v) => setForm({ ...form, class_name: v })} options={classes} t={t} />
+        <ClassSelect testid="student-class" value={form.class_name} onChange={(v) => setForm({ ...form, class_name: v })} options={classes} t={t} req />
         <In label={t("parent_phone")} testid="student-parent-phone" v={form.parent_phone} set={(v) => setForm({ ...form, parent_phone: v })} />
         <In label={t("parent_name")} testid="student-parent-name" v={form.parent_name} set={(v) => setForm({ ...form, parent_name: v })} />
         <In label={t("parent_email")} testid="student-parent-email" type="email" v={form.parent_email} set={(v) => setForm({ ...form, parent_email: v })} />
@@ -602,14 +614,14 @@ export default function Students() {
               <In label={t("nisn")} testid="edit-student-nisn" v={editFor.nisn || ""} set={(v) => setEditFor({ ...editFor, nisn: v })} grow />
               <div>
                 <label className="text-xs font-semibold text-slate-500">{t("gender")}</label>
-                <select data-testid="edit-student-gender" value={editFor.gender || ""} onChange={(e) => setEditFor({ ...editFor, gender: e.target.value })}
+                <select data-testid="edit-student-gender" required value={editFor.gender || ""} onChange={(e) => setEditFor({ ...editFor, gender: e.target.value })}
                   className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-600/15 transition bg-white">
                   <option value="">-</option>
                   <option value="L">{t("gender_l")}</option>
                   <option value="P">{t("gender_p")}</option>
                 </select>
               </div>
-              <ClassSelect testid="edit-student-class" value={editFor.class || ""} onChange={(v) => setEditFor({ ...editFor, class: v })} options={classes} t={t} />
+              <ClassSelect testid="edit-student-class" value={editFor.class || ""} onChange={(v) => setEditFor({ ...editFor, class: v })} options={classes} t={t} req />
               <In label={t("parent_phone")} testid="edit-student-parent-phone" v={editFor.parent_phone || ""} set={(v) => setEditFor({ ...editFor, parent_phone: v })} grow />
               <In label={t("parent_name")} testid="edit-student-parent-name" v={editFor.parent_name || ""} set={(v) => setEditFor({ ...editFor, parent_name: v })} grow />
               <In label={t("parent_email")} testid="edit-student-parent-email" type="email" v={editFor.parent_email || ""} set={(v) => setEditFor({ ...editFor, parent_email: v })} grow />
