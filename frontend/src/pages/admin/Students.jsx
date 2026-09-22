@@ -29,7 +29,7 @@ function ClassSelect({ testid, value, onChange, options, t }) {
 export default function Students() {
   const { t } = useTranslation();
   const [students, setStudents] = useState([]);
-  const [form, setForm] = useState({ name: "", nis: "", nisn: "", gender: "", class_name: "", parent_phone: "" });
+  const [form, setForm] = useState({ name: "", nis: "", nisn: "", gender: "", class_name: "", parent_phone: "", parent_name: "", parent_email: "", address: "" });
   const [metaClasses, setMetaClasses] = useState(null);
   const [preview, setPreview] = useState(null);
   const [busy, setBusy] = useState(false);
@@ -39,7 +39,7 @@ export default function Students() {
     e.preventDefault();
     setBusy(true);
     try {
-      const { data } = await api.patch(`/admin/students/${editFor.id}`, { name: editFor.name, nis: editFor.nis, nisn: editFor.nisn, gender: editFor.gender, class_name: editFor.class, parent_phone: editFor.parent_phone || "" });
+      const { data } = await api.patch(`/admin/students/${editFor.id}`, { name: editFor.name, nis: editFor.nis, nisn: editFor.nisn, gender: editFor.gender, class_name: editFor.class, parent_phone: editFor.parent_phone || "", parent_name: editFor.parent_name || "", parent_email: editFor.parent_email || "", address: editFor.address || "" });
       if (data.parent_account === "created") toast.success(t("parent_account_created"));
       if (data.parent_account === "phone_used") toast.error(t("parent_phone_used"));
       toast.success(t("save"));
@@ -89,7 +89,7 @@ export default function Students() {
       const { data } = await api.post("/admin/students", form);
       if (data.parent_account === "created") toast.success(t("parent_account_created"));
       if (data.parent_account === "phone_used") toast.error(t("parent_phone_used"));
-      setForm({ name: "", nis: "", nisn: "", gender: "", class_name: "", parent_phone: "" });
+      setForm({ name: "", nis: "", nisn: "", gender: "", class_name: "", parent_phone: "", parent_name: "", parent_email: "", address: "" });
       toast.success(t("save"));
       load();
     } catch (err) { toast.error(errMsg(err)); }
@@ -185,7 +185,7 @@ export default function Students() {
   };
 
   const downloadTemplate = () => {
-    const csv = "nama,nis,nisn,jk,kelas,hp_ortu\nAhmad Contoh,1001,0012345678,L,X-1,081234567890\nSiti Contoh,1002,0012345679,P,X-1,\n";
+    const csv = "nama,nis,nisn,jk,kelas,hp_ortu,nama_ortu,email_ortu,alamat\nAhmad Contoh,1001,0012345678,L,X-1,081234567890,Budi Contoh,budi@mail.com,Jl. Merdeka 1\nSiti Contoh,1002,0012345679,P,X-1,,,,\n";
     const url = URL.createObjectURL(new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8" }));
     const a = document.createElement("a");
     a.href = url;
@@ -322,6 +322,9 @@ export default function Students() {
         <In label={t("nis")} testid="student-nis" v={form.nis} set={(v) => setForm({ ...form, nis: v })} />
         <In label={t("nisn")} testid="student-nisn" v={form.nisn} set={(v) => setForm({ ...form, nisn: v })} />
         <In label={t("parent_phone")} testid="student-parent-phone" v={form.parent_phone} set={(v) => setForm({ ...form, parent_phone: v })} />
+        <In label={t("parent_name")} testid="student-parent-name" v={form.parent_name} set={(v) => setForm({ ...form, parent_name: v })} />
+        <In label={t("parent_email")} testid="student-parent-email" type="email" v={form.parent_email} set={(v) => setForm({ ...form, parent_email: v })} />
+        <In label={t("address")} testid="student-address" v={form.address} set={(v) => setForm({ ...form, address: v })} />
         <div>
           <label className="text-xs font-semibold text-slate-500">{t("gender")}</label>
           <select data-testid="student-gender" value={form.gender} onChange={(e) => setForm({ ...form, gender: e.target.value })}
@@ -393,6 +396,7 @@ export default function Students() {
                   <td className="px-4 py-2.5">
                     {s.parent_phone ? (
                       <>
+                        {s.parent_name && <p className="text-xs font-semibold text-slate-700 font-sans">{s.parent_name}</p>}
                         <p className="font-mono text-xs">{s.parent_phone}</p>
                         <span data-testid={`parent-account-${s.id}`} className={`inline-flex items-center gap-0.5 text-[10px] font-bold ${s.has_parent_account ? "text-emerald-600" : "text-slate-400"}`}>
                           {s.has_parent_account ? <><CheckCircle2 className="w-3 h-3" /> {t("parent_account_active")}</> : <><Circle className="w-3 h-3" /> {t("parent_account_none")}</>}
@@ -593,6 +597,9 @@ export default function Students() {
               <In label={t("nis")} testid="edit-student-nis" v={editFor.nis || ""} set={(v) => setEditFor({ ...editFor, nis: v })} grow />
               <In label={t("nisn")} testid="edit-student-nisn" v={editFor.nisn || ""} set={(v) => setEditFor({ ...editFor, nisn: v })} grow />
               <In label={t("parent_phone")} testid="edit-student-parent-phone" v={editFor.parent_phone || ""} set={(v) => setEditFor({ ...editFor, parent_phone: v })} grow />
+              <In label={t("parent_name")} testid="edit-student-parent-name" v={editFor.parent_name || ""} set={(v) => setEditFor({ ...editFor, parent_name: v })} grow />
+              <In label={t("parent_email")} testid="edit-student-parent-email" type="email" v={editFor.parent_email || ""} set={(v) => setEditFor({ ...editFor, parent_email: v })} grow />
+              <In label={t("address")} testid="edit-student-address" v={editFor.address || ""} set={(v) => setEditFor({ ...editFor, address: v })} grow />
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
@@ -632,10 +639,10 @@ export default function Students() {
                 </div>
               )}
               <table className="w-full text-sm">
-                <thead><tr className="text-left text-xs uppercase text-slate-500 border-b"><th className="py-2 pr-3">{t("name")}</th><th className="py-2 pr-3">{t("nis")}</th><th className="py-2 pr-3">{t("nisn")}</th><th className="py-2 pr-3">{t("gender_short")}</th><th className="py-2 pr-3">{t("class")}</th><th className="py-2">{t("parent_phone")}</th></tr></thead>
+                <thead><tr className="text-left text-xs uppercase text-slate-500 border-b"><th className="py-2 pr-3">{t("name")}</th><th className="py-2 pr-3">{t("nis")}</th><th className="py-2 pr-3">{t("nisn")}</th><th className="py-2 pr-3">{t("gender_short")}</th><th className="py-2 pr-3">{t("class")}</th><th className="py-2 pr-3">{t("parent_phone")}</th><th className="py-2">{t("parent_name")}</th></tr></thead>
                 <tbody>
                   {preview.valid.slice(0, 100).map((r, i) => (
-                    <tr key={i} className="border-b last:border-0"><td className="py-1.5 pr-3">{r.name}</td><td className="py-1.5 pr-3 font-mono text-xs">{r.nis}</td><td className="py-1.5 pr-3 font-mono text-xs">{r.nisn || "-"}</td><td className="py-1.5 pr-3">{r.gender || "-"}</td><td className="py-1.5 pr-3">{r.class}</td><td className="py-1.5 font-mono text-xs">{r.parent_phone || "-"}</td></tr>
+                    <tr key={i} className="border-b last:border-0"><td className="py-1.5 pr-3">{r.name}</td><td className="py-1.5 pr-3 font-mono text-xs">{r.nis}</td><td className="py-1.5 pr-3 font-mono text-xs">{r.nisn || "-"}</td><td className="py-1.5 pr-3">{r.gender || "-"}</td><td className="py-1.5 pr-3">{r.class}</td><td className="py-1.5 pr-3 font-mono text-xs">{r.parent_phone || "-"}</td><td className="py-1.5">{r.parent_name || "-"}</td></tr>
                   ))}
                 </tbody>
               </table>

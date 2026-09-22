@@ -377,6 +377,9 @@ class StudentIn(BaseModel):
     gender: str = ""
     class_name: str = ""
     parent_phone: str = ""
+    parent_name: str = ""
+    parent_email: str = ""
+    address: str = ""
 
 
 def _norm_gender(v: str) -> str:
@@ -406,7 +409,9 @@ async def add_student(body: StudentIn, user: dict = Depends(admin_dep)):
     st = {"id": str(uuid.uuid4()), "school_id": user["school_id"],
           "name": body.name, "nis": body.nis, "nisn": body.nisn,
           "gender": _norm_gender(body.gender), "class": body.class_name, "status": "aktif",
-          "parent_phone": normalize_phone(body.parent_phone)}
+          "parent_phone": normalize_phone(body.parent_phone),
+          "parent_name": body.parent_name.strip(), "parent_email": body.parent_email.strip().lower(),
+          "address": body.address.strip()}
     await db.students.insert_one(st)
     st.pop("_id", None)
     st["parent_account"] = await _ensure_parent_account(user["school_id"], st)
@@ -494,6 +499,9 @@ class StudentPatch(BaseModel):
     gender: str | None = None
     class_name: str | None = None
     parent_phone: str | None = None
+    parent_name: str | None = None
+    parent_email: str | None = None
+    address: str | None = None
 
 
 class BulkDeleteIn(BaseModel):
@@ -606,7 +614,7 @@ async def _ensure_parent_account(sid: str, st: dict) -> str | None:
         return "phone_used"
     await db.users.insert_one({
         "id": str(uuid.uuid4()), "email": f"ortu+{phone}@edugateid.local",
-        "name": f"Orang Tua {st['name']}", "role": "parent", "phone": phone,
+        "name": st.get("parent_name") or f"Orang Tua {st['name']}", "role": "parent", "phone": phone,
         "student_id": st["id"], "school_id": sid,
         "password_hash": hash_password(st.get("nis") or phone[-6:]),
         "created_at": now_iso(),
@@ -664,7 +672,7 @@ async def create_parent_accounts(user: dict = Depends(admin_dep)):
             continue
         await db.users.insert_one({
             "id": str(uuid.uuid4()), "email": f"ortu+{phone}@edugateid.local",
-            "name": f"Orang Tua {s['name']}", "role": "parent", "phone": phone,
+            "name": s.get("parent_name") or f"Orang Tua {s['name']}", "role": "parent", "phone": phone,
             "student_id": s["id"], "school_id": sid,
             "password_hash": hash_password(s.get("nis") or phone[-6:]),
             "created_at": now_iso(),
@@ -690,14 +698,20 @@ async def import_preview(file: UploadFile = File(...), user: dict = Depends(admi
             colmap["nisn"] = c
         elif "nis" in c:
             colmap["nis"] = c
+        elif "email" in c:
+            colmap["parent_email"] = c
+        elif "alamat" in c or "address" in c:
+            colmap["address"] = c
+        elif "hp" in c or "telp" in c or "phone" in c:
+            colmap["parent_phone"] = c
+        elif "ortu" in c or "wali" in c or "parent" in c:
+            colmap["parent_name"] = c
         elif "nama" in c or "name" in c:
             colmap["name"] = c
         elif "kelas" in c or "class" in c or "rombel" in c:
             colmap["class"] = c
         elif "jk" in c or "kelamin" in c or "gender" in c or "l/p" in c:
             colmap["gender"] = c
-        elif "ortu" in c or "wali" in c or "parent" in c or "hp" in c or "telp" in c:
-            colmap["parent_phone"] = c
     if "name" not in colmap:
         raise HTTPException(status_code=400, detail="Kolom 'name'/'nama' wajib ada")
     valid, errors = [], []
@@ -716,7 +730,9 @@ async def import_preview(file: UploadFile = File(...), user: dict = Depends(admi
             continue
         valid.append({"name": nm, "nis": val("nis"), "nisn": val("nisn"),
                       "gender": _norm_gender(val("gender")), "class": val("class"),
-                      "parent_phone": normalize_phone(val("parent_phone"))})
+                      "parent_phone": normalize_phone(val("parent_phone")),
+                      "parent_name": val("parent_name"), "parent_email": val("parent_email").lower(),
+                      "address": val("address")})
     return {"valid": valid, "errors": errors, "total": len(df)}
 
 
@@ -737,6 +753,9 @@ async def import_commit(body: CommitIn, user: dict = Depends(admin_dep)):
                      "nis": nis, "nisn": str(r.get("nisn", "")).strip(),
                      "gender": _norm_gender(str(r.get("gender", ""))), "class": str(r.get("class", "")).strip(),
                      "parent_phone": normalize_phone(str(r.get("parent_phone", ""))),
+                     "parent_name": str(r.get("parent_name", "")).strip(),
+                     "parent_email": str(r.get("parent_email", "")).strip().lower(),
+                     "address": str(r.get("address", "")).strip(),
                      "status": "aktif"})
         if nis:
             existing.add(nis)
@@ -751,7 +770,8 @@ async def export_students(format: str = "xlsx", user: dict = Depends(admin_dep))
     df = pd.DataFrame([{
         "Nama": s.get("name", ""), "NIS": s.get("nis", ""), "NISN": s.get("nisn", ""),
         "L/P": s.get("gender", ""), "Kelas": s.get("class", ""),
-        "HP Ortu": s.get("parent_phone", ""),
+        "HP Ortu": s.get("parent_phone", ""), "Nama Ortu": s.get("parent_name", ""),
+        "Email Ortu": s.get("parent_email", ""), "Alamat": s.get("address", ""),
         "Enroll Wajah": "Terdaftar" if s.get("enrolled") else "Belum",
     } for s in students])
     buf = io.BytesIO()
