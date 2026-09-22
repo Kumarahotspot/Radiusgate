@@ -515,4 +515,17 @@ Aplikasi absensi berbasis tablet kiosk + face recognition & liveness, geofence G
 - Konsistensi: rekap guru (`teacher_report_recap`) ikut dikoreksi ke hitungan tanggal unik (sebelumnya absen masuk+pulang terhitung 2× hadir).
 - Frontend Reports.jsx: tab baru "Per Siswa" (tab-students) — filter Dari/Sampai/Kelas + tombol Export Excel/PDF (mengikuti sub-tab aktif: rekap-kehadiran-siswa.* atau laporan-siswa.*), sub-tab Harian/Rekap dengan jumlah, tabel status ber-badge. Kolom Jam menampilkan "-" untuk sakit/izin. i18n: student_att_tab (ID/EN), sisanya reuse.
 - Terverifikasi: curl e2e (23 baris harian, filter X TB 1 → 12, rekap 22 siswa dgn angka benar, 4 kombinasi export valid, PDF berkop, regresi guru OK); testing agent frontend 100% (/app/test_reports/iteration_10.json: semua flow + export filename + mobile 390 tanpa overflow + regresi tab lain & laporan guru & dasbor).
+
+## 2026-09-22 — Laporan Guru & Karyawan di Admin (generalisasi laporan per orang)
+- Permintaan user (screenshot dengan 2 slot tab kosong): tab "Per Guru" dan "Per Karyawan" di Admin → Laporan, pola sama dengan Per Siswa.
+- Backend digeneralisasi: `PEOPLE_REPORT_CFG` (student/teacher/employee → koleksi, field id, ref NIS/NIP, grup Kelas/Mapel/Departemen, label, slug file). Endpoint lama `/admin/reports/students*` DIGANTI: GET /admin/reports/people, /admin/reports/people/recap, /admin/reports/people/export (param person, 422 bila invalid). Rekap per tanggal unik (hadir/telat/sakit/izin/alpha + hari efektif), guru/karyawan hanya yang active.
+- `build_recap_pdf` kini berparameter person_label & grp_label (kop+logo tetap). Export xlsx harian kini menyertakan kolom Tipe & Lembur + NIS/NIP (join ke data orang); nama file rekap-kehadiran-{siswa|guru|karyawan}.* dan laporan-{siswa|guru|karyawan}.*.
+- Frontend Reports.jsx ditulis ulang: komponen bersama `PersonReport` (prefix testid st/tc/emp) untuk 3 tab; tab bar kini 5 tab dengan flex-wrap (mobile aman). Tabel harian PersonReport punya kolom Tipe & Lembur (mnt). i18n baru: teacher_att_tab, employee_att_tab (ID/EN).
+- Data demo: sekolah demo hanya punya 1 guru aktif (Budi) & 1 karyawan ('lembur') → angka rekap 0 adalah expected (belum ada absensi dalam rentang).
+- Terverifikasi: curl e2e (3 person + invalid 422 + 4 export valid), testing agent frontend 100% (/app/test_reports/iteration_11.json: 7/7 flow, unduhan benar, regresi bersih, mobile 390 tanpa overflow).
+
+## 2026-09-22 — Fix filter tab Harian Laporan: tipe orang (Semua/Siswa/Guru)
+- Laporan user (screenshot): dropdown filter di tab Harian sebelumnya memfilter per nama guru ("Semua Guru" + daftar nama) — seharusnya filter tipe orang: **Semua / Siswa / Guru**.
+- Backend: `report_attendance` & `report_export` menerima param `person` (student/teacher/employee → q person_type; teacher_id lama tetap didukung). Frontend Reports.jsx: dropdown guru diganti select `report-person` (label "Tipe", opsi Semua/Siswa/Guru); fetch /admin/teachers dihapus (tidak dipakai lagi); export mengikuti filter aktif. i18n baru: all_people (ID "Semua" / EN "All").
+- Terverifikasi: curl (semua=25, siswa=23, guru=2, employee=0; export xlsx terfilter 23 baris) + screenshot UI (opsi benar, filter bekerja, mobile 390 tanpa overflow).
 - P2: Tablet React Native (kiosk native); laporan grafik SPP; kuitansi PDF cetak; impor data tagihan lama; Midtrans/Duitku

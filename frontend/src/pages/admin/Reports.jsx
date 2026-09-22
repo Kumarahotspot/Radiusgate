@@ -169,8 +169,7 @@ export default function Reports() {
   const monthAgo = new Date(Date.now() - 29 * 864e5).toISOString().slice(0, 10);
   const [from, setFrom] = useState(monthAgo);
   const [to, setTo] = useState(today);
-  const [teacherId, setTeacherId] = useState("");
-  const [teachers, setTeachers] = useState([]);
+  const [person, setPerson] = useState("");
   const [rows, setRows] = useState([]);
   const [tab, setTab] = useState("daily");
   const [opts, setOpts] = useState({ classes: [], subjects: [] });
@@ -179,13 +178,12 @@ export default function Reports() {
   const [saRows, setSaRows] = useState([]);
 
   useEffect(() => {
-    api.get("/admin/teachers").then((r) => setTeachers(r.data));
     api.get("/admin/meta/options").then((r) => setOpts(r.data));
   }, []);
 
-  const load = () => api.get("/admin/reports/attendance", { params: { date_from: from, date_to: to, teacher_id: teacherId || undefined } })
+  const load = () => api.get("/admin/reports/attendance", { params: { date_from: from, date_to: to, person: person || undefined } })
     .then((r) => setRows(r.data));
-  useEffect(() => { load(); }, [from, to, teacherId]);
+  useEffect(() => { load(); }, [from, to, person]);
 
   useEffect(() => {
     if (tab !== "subject") return;
@@ -195,7 +193,7 @@ export default function Reports() {
   }, [tab, from, to, saClass, saSubject]);
 
   const doExport = async (fmt) => {
-    const r = await api.get("/admin/reports/export", { params: { format: fmt, date_from: from, date_to: to }, responseType: "blob" });
+    const r = await api.get("/admin/reports/export", { params: { format: fmt, date_from: from, date_to: to, person: person || undefined }, responseType: "blob" });
     const url = URL.createObjectURL(r.data);
     const a = document.createElement("a");
     a.href = url;
@@ -234,11 +232,12 @@ export default function Reports() {
             className="mt-1 block rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-teal-600" />
         </div>
         <div>
-          <label className="text-xs font-semibold text-slate-500">{t("teachers")}</label>
-          <select data-testid="report-teacher" value={teacherId} onChange={(e) => setTeacherId(e.target.value)}
+          <label className="text-xs font-semibold text-slate-500">{t("type")}</label>
+          <select data-testid="report-person" value={person} onChange={(e) => setPerson(e.target.value)}
             className="mt-1 block rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-teal-600 bg-white">
-            <option value="">{t("all_teachers")}</option>
-            {teachers.map((tc) => <option key={tc.id} value={tc.id}>{tc.name}</option>)}
+            <option value="">{t("all_people")}</option>
+            <option value="student">{t("students")}</option>
+            <option value="teacher">{t("teachers")}</option>
           </select>
         </div>
         <div className="flex gap-2 ml-auto">

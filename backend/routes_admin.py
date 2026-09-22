@@ -1086,10 +1086,12 @@ async def report_payroll_export(period: str, user: dict = Depends(admin_dep)):
 # ---------- Reports ----------
 @router.get("/admin/reports/attendance")
 async def report_attendance(date_from: str, date_to: str, teacher_id: str | None = None,
-                            user: dict = Depends(admin_dep)):
+                            person: str | None = None, user: dict = Depends(admin_dep)):
     q = {"school_id": user["school_id"], "date": {"$gte": date_from, "$lte": date_to}}
     if teacher_id:
         q["teacher_id"] = teacher_id
+    if person in ("student", "teacher", "employee"):
+        q["person_type"] = person
     rows = await db.attendance.find(q, {"_id": 0, "photo": 0}).sort([("date", 1), ("ts_server", 1)]).to_list(10000)
     students = {s["id"]: s for s in await db.students.find(
         {"school_id": user["school_id"]}, {"_id": 0, "id": 1, "nisn": 1, "gender": 1}).to_list(10000)}
@@ -1103,8 +1105,9 @@ async def report_attendance(date_from: str, date_to: str, teacher_id: str | None
 
 
 @router.get("/admin/reports/export")
-async def report_export(format: str, date_from: str, date_to: str, user: dict = Depends(admin_dep)):
-    rows = await report_attendance(date_from, date_to, None, user)
+async def report_export(format: str, date_from: str, date_to: str, person: str | None = None,
+                        user: dict = Depends(admin_dep)):
+    rows = await report_attendance(date_from, date_to, None, person, user)
     if format == "xlsx":
         df = pd.DataFrame([{
             "Tanggal": r.get("date"), "Nama": r.get("teacher_name"), "NISN": r.get("nisn", ""),
