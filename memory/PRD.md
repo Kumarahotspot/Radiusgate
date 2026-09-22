@@ -533,4 +533,11 @@ Aplikasi absensi berbasis tablet kiosk + face recognition & liveness, geofence G
 - Keluhan user (screenshot): form tambah siswa selalu tampil di atas halaman Siswa, memakan banyak ruang. Diminta field hanya muncul saat klik "Tambah Siswa", mengikuti pola halaman Guru & Karyawan (state showForm).
 - Students.jsx: state baru `showForm` (default false); tombol "+ Tambah Siswa" (testid add-student-btn, solid teal) di header men-toggle form; form dibungkus `{showForm && ...}`; form otomatis tertutup setelah submit sukses. Testid form & field tidak berubah (add-student-form, student-name, dst).
 - Terverifikasi screenshot: default tersembunyi, klik → tampil (semua field utuh), klik lagi → tertutup, mobile 390 tanpa overflow.
+
+## 2026-09-22 — CRUD Izin/Cuti di tabel admin + bersih-bersih data uji
+- Permintaan user (screenshot tabel Izin/Cuti penuh data sampah "TEST leave"): tambahkan CRUD di tabel.
+- Backend (routes_admin.py): POST /admin/leaves (admin buat atas nama guru, status langsung approved, 404 guru salah sekolah, 400 tipe invalid), PATCH /admin/leaves/{lid} (type/date_from/date_to/reason, 400 bila kosong/tipe invalid, 404), DELETE /admin/leaves/{lid} (404 bila tak ada). Semua scoped school_id.
+- Frontend Leaves.jsx ditulis ulang: tombol "+ Tambah Izin/Cuti" (toggle form: pilih guru, tipe izin/sakit/cuti, dari–sampai, alasan), tombol Edit (modal) & Hapus di SETIAP baris (bukan hanya pending), approve/reject tetap untuk pending. i18n baru: add_leave, edit_leave (ID/EN).
+- **Fix akar masalah data sampah (isu berulang dari fork sebelumnya)**: TestLeaves di backend_test.py membuat leave "TEST leave" tanpa cleanup — kini ada test_zz_cleanup yang menghapus via DELETE endpoint baru. 50 record sampah di DB preview dibersihkan (sisa 1 record asli: Susiyanto sakit).
+- Terverifikasi: curl e2e (create→approved, patch, 400/404, delete, list konsisten), screenshot UI (form toggle, opsi guru, modal edit, tombol per baris, mobile 390 tanpa overflow).
 - P2: Tablet React Native (kiosk native); laporan grafik SPP; kuitansi PDF cetak; impor data tagihan lama; Midtrans/Duitku

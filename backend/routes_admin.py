@@ -833,6 +833,60 @@ async def decide_leave(lid: str, body: DecisionIn, user: dict = Depends(admin_de
     return {"ok": True}
 
 
+class LeaveAdminIn(BaseModel):
+    teacher_id: str
+    type: str  # izin | sakit | cuti
+    date_from: str
+    date_to: str
+    reason: str = ""
+
+
+@router.post("/admin/leaves")
+async def create_leave_admin(body: LeaveAdminIn, user: dict = Depends(admin_dep)):
+    if body.type not in ("izin", "sakit", "cuti"):
+        raise HTTPException(status_code=400, detail="Tipe tidak valid")
+    t = await db.teachers.find_one({"id": body.teacher_id, "school_id": user["school_id"]}, {"_id": 0, "name": 1})
+    if not t:
+        raise HTTPException(status_code=404, detail="Guru tidak ditemukan")
+    doc = {
+        "id": str(uuid.uuid4()), "school_id": user["school_id"], "teacher_id": body.teacher_id,
+        "teacher_name": t["name"], "type": body.type, "date_from": body.date_from,
+        "date_to": body.date_to, "reason": body.reason, "status": "approved",
+        "decided_by": user["id"], "decided_at": now_iso(), "created_at": now_iso(),
+    }
+    await db.leaves.insert_one(doc)
+    doc.pop("_id", None)
+    return doc
+
+
+class LeavePatch(BaseModel):
+    type: str | None = None
+    date_from: str | None = None
+    date_to: str | None = None
+    reason: str | None = None
+
+
+@router.patch("/admin/leaves/{lid}")
+async def update_leave(lid: str, body: LeavePatch, user: dict = Depends(admin_dep)):
+    upd = body.model_dump(exclude_unset=True)
+    if "type" in upd and upd["type"] not in ("izin", "sakit", "cuti"):
+        raise HTTPException(status_code=400, detail="Tipe tidak valid")
+    if not upd:
+        raise HTTPException(status_code=400, detail="Tidak ada perubahan")
+    res = await db.leaves.update_one({"id": lid, "school_id": user["school_id"]}, {"$set": upd})
+    if res.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Pengajuan tidak ditemukan")
+    return {"ok": True}
+
+
+@router.delete("/admin/leaves/{lid}")
+async def delete_leave(lid: str, user: dict = Depends(admin_dep)):
+    res = await db.leaves.delete_one({"id": lid, "school_id": user["school_id"]})
+    if res.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Pengajuan tidak ditemukan")
+    return {"ok": True}
+
+
 # ---------- Absensi Mapel (admin, read-only) ----------
 @router.get("/admin/subject-attendance")
 async def admin_subject_attendance(date_from: str, date_to: str, class_name: str | None = None,

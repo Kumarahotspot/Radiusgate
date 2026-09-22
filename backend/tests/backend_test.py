@@ -389,6 +389,12 @@ class TestLeaves:
         approved = [l for l in r.json() if l["id"] == TestLeaves.leave_id]
         assert approved and approved[0]["status"] == "approved"
 
+    def test_zz_cleanup(self, admin_token):
+        # bersihkan data uji agar tidak menumpuk di DB preview live
+        assert TestLeaves.leave_id
+        r = requests.delete(f"{API}/admin/leaves/{TestLeaves.leave_id}", headers=h(admin_token))
+        assert r.status_code == 200
+
 
 # ------------------------------- REPORTS -------------------------------
 class TestReports:
