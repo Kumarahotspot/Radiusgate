@@ -9,7 +9,7 @@ from zoneinfo import ZoneInfo
 from fastapi import APIRouter, HTTPException, Request
 
 from db import db
-from emailer import invoice_email_html
+from emailer import invoice_email_html, send_email
 from notif import send_email_unified, send_whatsapp
 from routes_owner import generate_for_period
 
@@ -203,13 +203,13 @@ async def cron_weekly_parent_summary(request: Request):
 
 
 async def _run_spp_reminders(run_id: str):
-    """Pengingat WA tagihan SPP mendekati jatuh tempo (H-3 & H-1) ke orang tua.
-    Tanpa Wablas aktif dihitung not_sent."""
+    """Pengingat tagihan SPP mendekati jatuh tempo (H-3 & H-1) ke ortu via WA + email.
+    WA no-op tanpa Wablas; email terkirim bila ortu punya email."""
     try:
         from notif import get_notif_settings
         from datetime import date as _date
         wablas_on = (await get_notif_settings()).get("wa_provider") == "wablas"
-        sent = not_sent = failed = 0
+        wa_sent = wa_not_sent = email_sent = failed = 0
         today = datetime.now(timezone.utc).date()
         bills = await db.bills.find(
             {"$expr": {"$lt": ["$paid_amount", "$amount"]},
@@ -219,24 +219,45 @@ async def _run_spp_reminders(run_id: str):
             days_left = (_date.fromisoformat(bill["due_date"]) - today).days
             if days_left in bill.get("reminded_for", []):
                 continue
-            st = await db.students.find_one({"id": bill["student_id"]}, {"_id": 0, "parent_phone": 1})
-            if not st or not st.get("parent_phone"):
+            st = await db.students.find_one({"id": bill["student_id"]},
+                                            {"_id": 0, "parent_phone": 1, "parent_email": 1, "parent_name": 1})
+            if not st or (not st.get("parent_phone") and not st.get("parent_email")):
                 continue
-            sisa = bill["amount"] - bill.get("paid_amount", 0)
-            msg = (f"PENGINGAT Tagihan Sekolah\n"
-                   f"Siswa: *{bill['student_name']}*\nTagihan: {bill['title']}\n"
-                   f"Sisa: Rp {sisa:,}\nJatuh tempo: {bill['due_date']} (H-{days_left})".replace(",", "."))
-            if not wablas_on:
-                not_sent += 1
-            else:
+            sisa = f"Rp {(bill['amount'] - bill.get('paid_amount', 0)):,}".replace(",", ".")
+            school = await db.schools.find_one({"id": bill["school_id"]}, {"_id": 0, "name": 1})
+            sname = (school or {}).get("name", "")
+            if st.get("parent_phone"):
+                if not wablas_on:
+                    wa_not_sent += 1
+                else:
+                    try:
+                        await send_whatsapp(st["parent_phone"], (
+                            f"PENGINGAT Tagihan Sekolah - {sname}\n"
+                            f"Siswa: *{bill['student_name']}*\nTagihan: {bill['title']}\n"
+                            f"Sisa: {sisa}\nJatuh tempo: {bill['due_date']} (H-{days_left})"))
+                        wa_sent += 1
+                    except Exception as e:
+                        failed += 1
+                        logger.warning("Pengingat SPP WA %s gagal: %s", bill["id"], e)
+            if st.get("parent_email"):
                 try:
-                    await send_whatsapp(st["parent_phone"], msg)
-                    sent += 1
+                    html = (f"<h3>Pengingat Tagihan Sekolah - {sname}</h3>"
+                            f"<p>Yth. {st.get('parent_name') or 'Orang Tua/Wali'},</p>"
+                            f"<p>Tagihan berikut akan jatuh tempo <b>H-{days_left}</b> ({bill['due_date']}):</p>"
+                            f"<table cellpadding='6'>"
+                            f"<tr><td>Siswa</td><td><b>{bill['student_name']}</b></td></tr>"
+                            f"<tr><td>Tagihan</td><td>{bill['title']}</td></tr>"
+                            f"<tr><td>Sisa Tagihan</td><td><b>{sisa}</b></td></tr></table>"
+                            f"<p>Silakan bayar via Portal Orang Tua atau ke bendahara sekolah.<br>EduGateID</p>")
+                    await send_email(to=st["parent_email"],
+                                     subject=f"Pengingat Tagihan {bill['title']} - {sname}", html=html)
+                    email_sent += 1
                 except Exception as e:
                     failed += 1
-                    logger.warning("Pengingat SPP %s gagal: %s", bill["id"], e)
+                    logger.warning("Pengingat SPP email %s gagal: %s", bill["id"], e)
             await db.bills.update_one({"id": bill["id"]}, {"$addToSet": {"reminded_for": days_left}})
-        await _finish_run(run_id, {"sent": sent, "not_sent": not_sent, "send_failed": failed})
+        await _finish_run(run_id, {"wa_sent": wa_sent, "wa_not_sent": wa_not_sent,
+                                   "email_sent": email_sent, "send_failed": failed})
     except Exception as e:
         await _finish_run(run_id, error=str(e))
 

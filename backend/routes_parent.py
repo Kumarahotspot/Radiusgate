@@ -1,3 +1,4 @@
+import asyncio
 import uuid
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -6,6 +7,7 @@ from pydantic import BaseModel
 from auth import require_roles
 from db import db
 from routes_kiosk import _record
+from routes_spp import _receipt_notify
 
 router = APIRouter(tags=["parent"])
 parent_dep = require_roles("parent")
@@ -97,4 +99,5 @@ async def pay_bill(body: SppPayIn, user: dict = Depends(parent_dep)):
     await db.spp_payments.insert_one(pay)
     pay.pop("_id", None)
     await db.bills.update_one({"id": bill["id"]}, {"$inc": {"paid_amount": body.amount}})
+    asyncio.create_task(_receipt_notify(user["school_id"], bill, body.amount, ref))
     return {"ok": True, "reference": ref, "mode": "demo"}

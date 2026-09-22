@@ -13,6 +13,7 @@ from pydantic import BaseModel
 
 from auth import require_roles
 from db import db
+from emailer import send_email
 from notif import send_whatsapp
 
 router = APIRouter(tags=["spp"])
@@ -48,22 +49,38 @@ async def _seed_categories(sid: str):
         for n in DEFAULT_CATEGORIES])
 
 
-async def _receipt_wa(sid: str, bill: dict, amount: int, reference: str):
-    """Kuitansi WA ke orang tua setelah pembayaran tercatat. No-op jika Wablas belum aktif."""
+async def _receipt_notify(sid: str, bill: dict, amount: int, reference: str):
+    """Kuitansi pembayaran ke orang tua via WA + email. Masing-masing no-op aman jika gateway
+    belum aktif / kontak ortu kosong."""
     try:
-        st = await db.students.find_one({"id": bill["student_id"]}, {"_id": 0, "parent_phone": 1, "name": 1})
-        if not st or not st.get("parent_phone"):
+        st = await db.students.find_one({"id": bill["student_id"]},
+                                        {"_id": 0, "parent_phone": 1, "parent_email": 1, "parent_name": 1})
+        if not st:
             return
         school = await db.schools.find_one({"id": sid}, {"_id": 0, "name": 1})
+        sname = (school or {}).get("name", "")
         lunas = bill.get("paid_amount", 0) + amount >= bill["amount"]
-        msg = (f"EduGateID - {(school or {}).get('name', '')}\n"
-               f"Kuitansi Pembayaran\n"
-               f"Siswa: *{bill['student_name']}*\nTagihan: {bill['title']}\n"
-               f"Bayar: Rp {amount:,}\nRef: {reference}\n"
-               f"Status: {'LUNAS' if lunas else 'Cicilan tercatat'}".replace(",", "."))
-        await send_whatsapp(st["parent_phone"], msg)
+        status_txt = "LUNAS" if lunas else "Cicilan tercatat"
+        nominal = f"Rp {amount:,}".replace(",", ".")
+        if st.get("parent_phone"):
+            msg = (f"EduGateID - {sname}\nKuitansi Pembayaran\n"
+                   f"Siswa: *{bill['student_name']}*\nTagihan: {bill['title']}\n"
+                   f"Bayar: {nominal}\nRef: {reference}\nStatus: {status_txt}")
+            await send_whatsapp(st["parent_phone"], msg)
+        if st.get("parent_email"):
+            html = (f"<h3>Kuitansi Pembayaran - {sname}</h3>"
+                    f"<p>Yth. {st.get('parent_name') or 'Orang Tua/Wali'},</p>"
+                    f"<table cellpadding='6'>"
+                    f"<tr><td>Siswa</td><td><b>{bill['student_name']}</b></td></tr>"
+                    f"<tr><td>Tagihan</td><td>{bill['title']}</td></tr>"
+                    f"<tr><td>Jumlah Bayar</td><td><b>{nominal}</b></td></tr>"
+                    f"<tr><td>Referensi</td><td>{reference}</td></tr>"
+                    f"<tr><td>Status</td><td><b>{status_txt}</b></td></tr></table>"
+                    f"<p>Terima kasih.<br>EduGateID</p>")
+            await send_email(to=st["parent_email"],
+                             subject=f"Kuitansi Pembayaran {bill['title']} - {sname}", html=html)
     except Exception:
-        logger.exception("kuitansi WA SPP gagal")
+        logger.exception("kuitansi SPP gagal")
 
 
 # ---------- Kategori ----------
@@ -237,7 +254,7 @@ async def _record_payment(sid: str, bill: dict, amount: int, method: str, channe
     await db.spp_payments.insert_one(pay)
     pay.pop("_id", None)
     await db.bills.update_one({"id": bill["id"]}, {"$inc": {"paid_amount": amount}})
-    asyncio.create_task(_receipt_wa(sid, bill, amount, reference))
+    asyncio.create_task(_receipt_notify(sid, bill, amount, reference))
     return pay
 
 

@@ -466,3 +466,9 @@ Aplikasi absensi berbasis tablet kiosk + face recognition & liveness, geofence G
 - students: field `parent_name`, `parent_email`, `address` — form tambah/edit siswa, PATCH StudentPatch, ekspor XLSX (kolom Nama Ortu/Email Ortu/Alamat), tabel menampilkan nama ortu di atas No. HP. Nama akun ortu kini memakai parent_name jika diisi (bukan "Orang Tua <siswa>").
 - Impor CSV/XLSX: mapping kolom diurutkan ulang agar header gaya aplikasi SPP lama (`nis,nama_siswa,kelas,nama_wali,email_wali,no_hp,alamat`) terbaca benar — email/alamat/hp dicek SEBELUM ortu/wali/parent (nama), dan ortu/wali/parent sebelum nama generik (mencegah `nama_wali` tertukar jadi nama siswa). Preview impor menampilkan kolom Nama Ortu. Template CSV diperbarui dengan 3 kolom baru.
 - Terverifikasi: curl add student (3 field tersimpan + akun ortu bernama "Bambang Uji"), import-preview header aplikasi lama terpetakan sempurna, ekspor 10 kolom, form UI menampilkan 4 field ortu/alamat, pytest 79 passed / 1 skipped, cleanup bersih.
+
+## 2026-09-22 — Notifikasi SPP via Email Ortu (selain WA)
+- `_receipt_notify` (routes_spp.py, menggantikan _receipt_wa): kuitansi pembayaran terkirim via WA **dan** email HTML ke parent_email (kuitansi mencakup siswa, tagihan, nominal, referensi, status LUNAS/Cicilan). Dipakai pembayaran manual admin & pembayaran demo ortu.
+- Cron `spp-reminders` kini mengirim email pengingat H-3/H-1 (HTML) selain WA; hasil run memisahkan wa_sent/wa_not_sent/email_sent/send_failed; dedupe reminded_for tetap.
+- Temuan lingkungan: proxy email Emergent (Resend) memblokir alamat undeliverable (mis. example.com) dengan 422 `undeliverable_recipient` — kegagalan ditangani graceful (dicatat, dihitung send_failed). Untuk pengujian email gunakan `delivered@resend.dev`.
+- Terverifikasi: kuitansi email terkirim tanpa error, cron pengingat email_sent=1 & send_failed=0 (alamat resend.dev), dedupe run kedua 0 kirim, cleanup bersih, pytest 79 passed / 1 skipped.
