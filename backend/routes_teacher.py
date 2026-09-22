@@ -118,14 +118,14 @@ async def teacher_report_recap(date_from: str, date_to: str, class_name: str | N
     recap = []
     for s in students:
         rs = [r for r in rows if r.get("student_id") == s["id"]]
-        hadir = len([r for r in rs if r.get("att_status", "present") == "present"])
-        telat = len([r for r in rs if r.get("att_status", "present") == "present" and r.get("late_minutes", 0) > 0])
-        sakit = len([r for r in rs if r.get("att_status") == "sakit"])
-        izin = len([r for r in rs if r.get("att_status") == "izin"])
-        alpha = max(0, len(active_days) - hadir - sakit - izin)
+        hadir = {r["date"] for r in rs if r.get("att_status", "present") == "present"}
+        telat = {r["date"] for r in rs if r.get("att_status", "present") == "present" and r.get("late_minutes", 0) > 0}
+        sakit = {r["date"] for r in rs if r.get("att_status") == "sakit"}
+        izin = {r["date"] for r in rs if r.get("att_status") == "izin"}
+        alpha = max(0, len(active_days) - len(hadir | sakit | izin))
         recap.append({"id": s["id"], "name": s["name"], "nis": s.get("nis", ""), "class": s.get("class", ""),
-                      "hadir": hadir, "telat": telat, "sakit": sakit, "izin": izin, "alpha": alpha,
-                      "active_days": len(active_days)})
+                      "hadir": len(hadir), "telat": len(telat), "sakit": len(sakit), "izin": len(izin),
+                      "alpha": alpha, "active_days": len(active_days)})
     recap.sort(key=lambda r: (r["class"], r["name"]))
     return recap
 

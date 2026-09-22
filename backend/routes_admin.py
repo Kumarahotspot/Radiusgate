@@ -16,7 +16,7 @@ from db import db
 from auth import require_roles, hash_password
 from faceutil import embed, cos_sim, NoFaceError, MATCH_SIM_THRESHOLD
 from starlette.concurrency import run_in_threadpool
-from pdfgen import build_report_pdf, build_kiosk_poster_pdf
+from pdfgen import build_report_pdf, build_kiosk_poster_pdf, build_recap_pdf
 from notif import normalize_phone, send_whatsapp
 
 router = APIRouter(tags=["admin"])
@@ -1122,3 +1122,92 @@ async def report_export(format: str, date_from: str, date_to: str, user: dict = 
     school = await db.schools.find_one({"id": user["school_id"]}, {"_id": 0, "name": 1})
     path = build_report_pdf(f"/tmp/report_{user['school_id']}.pdf", school["name"], date_from, date_to, rows)
     return FileResponse(path, media_type="application/pdf", filename="laporan-absensi.pdf")
+
+
+
+# ---------- Laporan kehadiran per siswa (admin) ----------
+async def _student_report_rows(sid: str, date_from: str, date_to: str, class_name: str | None):
+    q = {"school_id": sid, "person_type": "student", "date": {"$gte": date_from, "$lte": date_to}}
+    if class_name:
+        q["class"] = class_name
+    rows = await db.attendance.find(q, {"_id": 0, "photo": 0}).sort([("date", 1), ("ts_server", 1)]).to_list(10000)
+    for r in rows:
+        r["time"] = r.get("time_local") or r.get("ts_device", r.get("ts_server", ""))[11:16]
+    sq = {"school_id": sid, "status": {"$ne": "lulus"}}
+    if class_name:
+        sq["class"] = class_name
+    students = await db.students.find(sq, {"_id": 0, "id": 1, "name": 1, "nis": 1, "class": 1}).to_list(5000)
+    return rows, students
+
+
+def _student_recap(rows: list, students: list) -> list:
+    active_days = {r["date"] for r in rows}
+    recap = []
+    for s in students:
+        rs = [r for r in rows if r.get("student_id") == s["id"]]
+        hadir = {r["date"] for r in rs if r.get("att_status", "present") == "present"}
+        telat = {r["date"] for r in rs if r.get("att_status", "present") == "present" and r.get("late_minutes", 0) > 0}
+        sakit = {r["date"] for r in rs if r.get("att_status") == "sakit"}
+        izin = {r["date"] for r in rs if r.get("att_status") == "izin"}
+        alpha = max(0, len(active_days) - len(hadir | sakit | izin))
+        recap.append({"id": s["id"], "name": s["name"], "nis": s.get("nis", ""), "class": s.get("class", ""),
+                      "hadir": len(hadir), "telat": len(telat), "sakit": len(sakit), "izin": len(izin),
+                      "alpha": alpha, "active_days": len(active_days)})
+    recap.sort(key=lambda r: (r["class"], r["name"]))
+    return recap
+
+
+@router.get("/admin/reports/students")
+async def report_students_daily(date_from: str, date_to: str, class_name: str | None = None,
+                                user: dict = Depends(admin_dep)):
+    rows, _ = await _student_report_rows(user["school_id"], date_from, date_to, class_name)
+    return rows
+
+
+@router.get("/admin/reports/students/recap")
+async def report_students_recap(date_from: str, date_to: str, class_name: str | None = None,
+                                user: dict = Depends(admin_dep)):
+    rows, students = await _student_report_rows(user["school_id"], date_from, date_to, class_name)
+    return _student_recap(rows, students)
+
+
+@router.get("/admin/reports/students/export")
+async def report_students_export(format: str, kind: str, date_from: str, date_to: str,
+                                 class_name: str | None = None, user: dict = Depends(admin_dep)):
+    rows, students = await _student_report_rows(user["school_id"], date_from, date_to, class_name)
+    school = await db.schools.find_one({"id": user["school_id"]}, {"_id": 0, "name": 1})
+    if kind == "recap":
+        data = _student_recap(rows, students)
+        if format == "xlsx":
+            df = pd.DataFrame([{
+                "Nama": r["name"], "NIS": r["nis"], "Kelas": r["class"], "Hadir": r["hadir"],
+                "Telat": r["telat"], "Sakit": r["sakit"], "Izin": r["izin"], "Alpha": r["alpha"],
+                "Hari Efektif": r["active_days"],
+            } for r in data])
+            buf = io.BytesIO()
+            df.to_excel(buf, index=False)
+            buf.seek(0)
+            return StreamingResponse(
+                buf,
+                media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                headers={"Content-Disposition": "attachment; filename=rekap-kehadiran-siswa.xlsx"})
+        path = build_recap_pdf(f"/tmp/recap_students_{user['school_id']}.pdf", school["name"],
+                               date_from, date_to, data, class_name)
+        return FileResponse(path, media_type="application/pdf", filename="rekap-kehadiran-siswa.pdf")
+    if format == "xlsx":
+        df = pd.DataFrame([{
+            "Tanggal": r.get("date"), "Nama": r.get("teacher_name"), "Kelas": r.get("class", ""),
+            "NIS": r.get("student_nis", ""), "Jam": r.get("time"),
+            "Status": (r.get("att_status") if r.get("att_status") not in (None, "present") else r.get("status")),
+            "Telat (mnt)": r.get("late_minutes", 0),
+            "Offline": "Ya" if r.get("offline") else "Tidak",
+        } for r in rows])
+        buf = io.BytesIO()
+        df.to_excel(buf, index=False)
+        buf.seek(0)
+        return StreamingResponse(
+            buf,
+            media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            headers={"Content-Disposition": "attachment; filename=laporan-siswa.xlsx"})
+    path = build_report_pdf(f"/tmp/report_students_{user['school_id']}.pdf", school["name"], date_from, date_to, rows)
+    return FileResponse(path, media_type="application/pdf", filename="laporan-siswa.pdf")

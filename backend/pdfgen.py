@@ -120,6 +120,45 @@ def build_report_pdf(path: str, school_name: str, date_from: str, date_to: str, 
     return path
 
 
+def build_recap_pdf(path: str, school_name: str, date_from: str, date_to: str, rows: list,
+                    class_name: str | None = None) -> str:
+    c = canvas.Canvas(path, pagesize=A4)
+    w, h = A4
+    tx = 20 * mm
+    logo_path = os.path.join(os.path.dirname(__file__), "assets", "logo.png")
+    if os.path.exists(logo_path):
+        c.drawImage(logo_path, 20 * mm, h - 27 * mm, width=14 * mm, height=14 * mm, mask="auto")
+        tx = 37 * mm
+    c.setFont("Helvetica-Bold", 14)
+    c.drawString(tx, h - 20 * mm, f"Rekap Kehadiran Siswa - {school_name}")
+    c.setFont("Helvetica", 10)
+    subtitle = f"Periode: {date_from} s/d {date_to}"
+    if class_name:
+        subtitle += f"  |  Kelas: {class_name}"
+    c.drawString(20 * mm, h - 27 * mm, subtitle)
+    y = h - 40 * mm
+    c.setFont("Helvetica-Bold", 9)
+    headers = ["Nama", "Kelas", "Hadir", "Telat", "Sakit", "Izin", "Alpha", "Hari Efektif"]
+    xs = [20, 78, 104, 119, 134, 149, 164, 180]
+    for x, hd in zip(xs, headers):
+        c.drawString(x * mm, y, hd)
+    y -= 6 * mm
+    c.setFont("Helvetica", 9)
+    for r in rows[:400]:
+        if y < 20 * mm:
+            c.showPage()
+            y = h - 20 * mm
+            c.setFont("Helvetica", 9)
+        vals = [r.get("name", "")[:30], (r.get("class", "") or "")[:12], str(r.get("hadir", 0)),
+                str(r.get("telat", 0)), str(r.get("sakit", 0)), str(r.get("izin", 0)),
+                str(r.get("alpha", 0)), str(r.get("active_days", 0))]
+        for x, v in zip(xs, vals):
+            c.drawString(x * mm, y, v)
+        y -= 5.5 * mm
+    c.save()
+    return path
+
+
 def build_kiosk_poster_pdf(school: dict, pair_url: str) -> str:
     import qrcode
     token = school.get("kiosk_token", "")
