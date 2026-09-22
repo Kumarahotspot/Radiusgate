@@ -39,7 +39,9 @@ export default function Students() {
     e.preventDefault();
     setBusy(true);
     try {
-      await api.patch(`/admin/students/${editFor.id}`, { name: editFor.name, nis: editFor.nis, nisn: editFor.nisn, gender: editFor.gender, class_name: editFor.class, parent_phone: editFor.parent_phone || "" });
+      const { data } = await api.patch(`/admin/students/${editFor.id}`, { name: editFor.name, nis: editFor.nis, nisn: editFor.nisn, gender: editFor.gender, class_name: editFor.class, parent_phone: editFor.parent_phone || "" });
+      if (data.parent_account === "created") toast.success(t("parent_account_created"));
+      if (data.parent_account === "phone_used") toast.error(t("parent_phone_used"));
       toast.success(t("save"));
       setEditFor(null);
       load();
@@ -84,7 +86,9 @@ export default function Students() {
   const add = async (e) => {
     e.preventDefault();
     try {
-      await api.post("/admin/students", form);
+      const { data } = await api.post("/admin/students", form);
+      if (data.parent_account === "created") toast.success(t("parent_account_created"));
+      if (data.parent_account === "phone_used") toast.error(t("parent_phone_used"));
       setForm({ name: "", nis: "", nisn: "", gender: "", class_name: "", parent_phone: "" });
       toast.success(t("save"));
       load();

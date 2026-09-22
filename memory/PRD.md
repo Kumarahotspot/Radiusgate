@@ -447,3 +447,9 @@ Aplikasi absensi berbasis tablet kiosk + face recognition & liveness, geofence G
 - Fix dari testing agent (iteration_8): modal Kelola Kategori tidak bisa ditutup → komponen Modal kini punya tombol X + tutup via klik backdrop.
 - **Testing**: e2e curl 16 langkah lolos; testing agent UI 9/9 flow lolos (buat tagihan, massal 123 siswa anti-duplikat, cicilan→lunas, blokir hapus kategori terpakai, login ortu via HP + bayar demo, regresi + mobile OK); pytest 79 passed / 1 skipped. Data uji (125 tagihan, 3 pembayaran, siswa+akun ortu uji) dibersihkan.
 - Backlog SPP dari aplikasi lama yang BELUM dipindah: laporan grafik (chart per kategori/bulan), kuitansi PDF cetak, import/migrasi data tagihan lama, Midtrans.
+
+## 2026-09-22 — Fix UX: akun ortu otomatis dibuat saat No. HP disimpan
+- Masalah: user mengisi No. HP Ortu di form siswa lalu mencoba login → gagal, karena akun ortu sebelumnya hanya dibuat via tombol "Buat Akun Ortu".
+- Fix: `_ensure_parent_account()` dipanggil otomatis saat tambah siswa (add_student) dan edit siswa (update_student, jika belum ada akun). Respons menyertakan parent_account (created/exists/phone_used) → toast info di Students.jsx. Edit No. HP tetap menyinkronkan akun yang ada. No. HP yang sudah dipakai akun ortu lain ditolak dengan toast jelas.
+- Akun siswa Arto (6282112393993) langsung dibuatkan via bulk endpoint (idempoten).
+- Terverifikasi: login 6282112393993/696969 OK (role parent); auto-create saat tambah siswa; ganti No. HP → login HP baru OK, HP lama ditolak; duplikat HP → phone_used; pytest 79 passed / 1 skipped.

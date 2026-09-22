@@ -406,6 +406,7 @@ async def add_student(body: StudentIn, user: dict = Depends(admin_dep)):
           "parent_phone": normalize_phone(body.parent_phone)}
     await db.students.insert_one(st)
     st.pop("_id", None)
+    st["parent_account"] = await _ensure_parent_account(user["school_id"], st)
     return st
 
 
@@ -509,9 +510,13 @@ async def update_student(stid: str, body: StudentPatch, user: dict = Depends(adm
     if res.matched_count == 0:
         raise HTTPException(status_code=404, detail="Siswa tidak ditemukan")
     if "parent_phone" in upd:
-        await db.users.update_one({"role": "parent", "student_id": stid},
-                                  {"$set": {"phone": upd["parent_phone"],
-                                            "email": f"ortu+{upd['parent_phone']}@edugateid.local"}})
+        sync = await db.users.update_one({"role": "parent", "student_id": stid},
+                                         {"$set": {"phone": upd["parent_phone"],
+                                                   "email": f"ortu+{upd['parent_phone']}@edugateid.local"}})
+        if sync.matched_count:
+            return {"ok": True, "parent_account": "exists"}
+        st2 = await db.students.find_one({"id": stid}, {"_id": 0, "id": 1, "name": 1, "nis": 1, "parent_phone": 1})
+        return {"ok": True, "parent_account": await _ensure_parent_account(user["school_id"], st2)}
     return {"ok": True}
 
 
@@ -585,6 +590,25 @@ async def delete_student(stid: str, user: dict = Depends(admin_dep)):
     await db.students.delete_one({"id": stid, "school_id": user["school_id"]})
     await db.users.delete_many({"role": "parent", "student_id": stid})
     return {"ok": True}
+
+
+async def _ensure_parent_account(sid: str, st: dict) -> str | None:
+    """Buat akun ortu otomatis saat parent_phone diisi. Return 'created'|'exists'|'phone_used'|None."""
+    phone = st.get("parent_phone", "")
+    if not phone:
+        return None
+    if await db.users.find_one({"role": "parent", "student_id": st["id"]}):
+        return "exists"
+    if await db.users.find_one({"role": "parent", "phone": phone}):
+        return "phone_used"
+    await db.users.insert_one({
+        "id": str(uuid.uuid4()), "email": f"ortu+{phone}@edugateid.local",
+        "name": f"Orang Tua {st['name']}", "role": "parent", "phone": phone,
+        "student_id": st["id"], "school_id": sid,
+        "password_hash": hash_password(st.get("nis") or phone[-6:]),
+        "created_at": now_iso(),
+    })
+    return "created"
 
 
 @router.post("/admin/students/create-parent-accounts")
