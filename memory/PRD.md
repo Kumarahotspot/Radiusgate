@@ -456,3 +456,8 @@ Aplikasi absensi berbasis tablet kiosk + face recognition & liveness, geofence G
 
 ## 2026-09-22 — Indikator "Akun Ortu" di tabel Data Siswa
 - `list_students` menyertakan `has_parent_account` (lookup satu query ke users role=parent). Sel "No. HP Orang Tua" kini menampilkan badge: hijau "✓ Akun Aktif" / abu "Belum Ada Akun" (testid parent-account-<id>). i18n parent_account_active/none (ID/EN).
+
+## 2026-09-22 — Tombol "Kirim Info Login WA" per siswa
+- Endpoint `POST /admin/students/{id}/send-parent-login`: memastikan akun ortu ada (auto-create), menyusun pesan info login (portal FRONTEND_URL + No. HP + password NIS) lalu kirim via send_whatsapp. **Password hanya di-reset ke NIS jika WA benar-benar terkirim (Wablas aktif)** — jika gateway belum aktif, respons berisi wa_link (wa.me) untuk kirim manual dan password TIDAK diubah (ortu tidak terkunci).
+- Frontend Students.jsx: tombol ikon WA hijau per baris (hanya jika ada No. HP), dialog konfirmasi menjelaskan reset password, fallback buka WhatsApp manual. i18n send_parent_login* (ID/EN).
+- Terverifikasi: e2e (auto akun, ganti password → kirim info login mode link: sent=False, password_reset=False, wa_link valid, password lama tetap berlaku, NIS ditolak), tombol tampil di UI (screenshot), cleanup bersih, pytest 79 passed / 1 skipped.

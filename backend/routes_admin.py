@@ -17,7 +17,7 @@ from auth import require_roles, hash_password
 from faceutil import embed, cos_sim, NoFaceError, MATCH_SIM_THRESHOLD
 from starlette.concurrency import run_in_threadpool
 from pdfgen import build_report_pdf, build_kiosk_poster_pdf
-from notif import normalize_phone
+from notif import normalize_phone, send_whatsapp
 
 router = APIRouter(tags=["admin"])
 admin_dep = require_roles("school_admin")
@@ -612,6 +612,35 @@ async def _ensure_parent_account(sid: str, st: dict) -> str | None:
         "created_at": now_iso(),
     })
     return "created"
+
+
+@router.post("/admin/students/{stid}/send-parent-login")
+async def send_parent_login(stid: str, user: dict = Depends(admin_dep)):
+    """Kirim info login portal ortu via WA. Password di-reset ke NIS anak HANYA jika WA benar-benar
+    terkirim (Wablas aktif); jika gateway belum aktif, kembalikan wa_link untuk kirim manual."""
+    sid = user["school_id"]
+    st = await db.students.find_one({"id": stid, "school_id": sid}, {"_id": 0, "embedding": 0, "photo": 0})
+    if not st:
+        raise HTTPException(status_code=404, detail="Siswa tidak ditemukan")
+    phone = normalize_phone(st.get("parent_phone", ""))
+    if not phone:
+        raise HTTPException(status_code=422, detail="Siswa belum punya No. HP orang tua")
+    acct = await _ensure_parent_account(sid, st)
+    if acct == "phone_used":
+        raise HTTPException(status_code=400, detail="No. HP sudah dipakai akun ortu lain")
+    password = st.get("nis") or phone[-6:]
+    school = await db.schools.find_one({"id": sid}, {"_id": 0, "name": 1})
+    portal = os.environ.get("FRONTEND_URL", "")
+    msg = (f"EduGateID - {(school or {}).get('name', '')}\n"
+           f"Info Login Portal Orang Tua untuk memantau absensi & tagihan Ananda *{st['name']}*:\n\n"
+           f"Portal: {portal}\nLogin: {phone}\nPassword: {password}\n\n"
+           f"Segera ganti password setelah masuk (menu Ganti Password).")
+    res = await send_whatsapp(phone, msg)
+    sent = res.get("mode") == "wablas" and not res.get("error")
+    if sent:
+        await db.users.update_one({"role": "parent", "student_id": stid},
+                                  {"$set": {"password_hash": hash_password(password)}})
+    return {"ok": True, "sent": sent, "password_reset": sent, "wa_link": res.get("wa_link"), "account": acct or "exists"}
 
 
 @router.post("/admin/students/create-parent-accounts")

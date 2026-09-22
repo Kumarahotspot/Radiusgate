@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import api, { errMsg } from "../../api";
 import CameraCapture from "../../components/CameraCapture";
-import { Plus, Upload, Download, Trash2, X, Pencil, ScanFace, CheckCircle2, Circle, Search, ChevronLeft, ChevronRight, GraduationCap, FileDown } from "lucide-react";
+import { Plus, Upload, Download, Trash2, X, Pencil, ScanFace, CheckCircle2, Circle, Search, ChevronLeft, ChevronRight, GraduationCap, FileDown, MessageCircle } from "lucide-react";
 
 function ClassSelect({ testid, value, onChange, options, t }) {
   const [isNew, setIsNew] = useState(false);
@@ -252,6 +252,21 @@ export default function Students() {
     URL.revokeObjectURL(url);
   };
 
+  const sendLogin = async (s) => {
+    if (!window.confirm(t("send_parent_login_confirm"))) return;
+    try {
+      const { data } = await api.post(`/admin/students/${s.id}/send-parent-login`);
+      if (data.sent) {
+        toast.success(t("parent_login_sent"));
+      } else if (data.wa_link && window.confirm(t("parent_login_not_sent"))) {
+        window.open(data.wa_link, "_blank");
+      } else if (!data.wa_link) {
+        toast.error(t("parent_login_not_sent"));
+      }
+      load();
+    } catch (err) { toast.error(errMsg(err)); }
+  };
+
   const createParents = async () => {
     if (!window.confirm(t("parent_accounts_info"))) return;
     setBusy(true);
@@ -395,6 +410,7 @@ export default function Students() {
                     <div className="flex gap-1">
                       <button data-testid={`enroll-student-${s.id}`} onClick={() => setEnrollFor(s)} className="p-1.5 text-teal-700 hover:bg-teal-50 rounded-lg" title={t("enroll_face")}><ScanFace className="w-4 h-4" /></button>
                       <button data-testid={`edit-student-${s.id}`} onClick={() => setEditFor({ ...s })} className="p-1.5 text-sky-600 hover:bg-sky-50 rounded-lg" title={t("edit")}><Pencil className="w-4 h-4" /></button>
+                      {s.parent_phone && <button data-testid={`send-login-${s.id}`} onClick={() => sendLogin(s)} className="p-1.5 text-emerald-600 hover:bg-emerald-50 rounded-lg" title={t("send_parent_login")}><MessageCircle className="w-4 h-4" /></button>}
                       <button data-testid={`delete-student-${s.id}`} onClick={() => del(s.id)} className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg" title={t("delete")}><Trash2 className="w-4 h-4" /></button>
                     </div>
                   </td>
