@@ -34,6 +34,7 @@ export default function Students() {
   const [preview, setPreview] = useState(null);
   const [busy, setBusy] = useState(false);
   const [editFor, setEditFor] = useState(null);
+  const [showForm, setShowForm] = useState(false);
 
   const PHONE_RE = /^(\+?62|0)8\d{7,12}$/;
   const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -109,6 +110,7 @@ export default function Students() {
       if (data.parent_account === "phone_used") toast.error(t("parent_phone_used"));
       setForm({ name: "", nis: "", nisn: "", gender: "", class_name: "", parent_phone: "", parent_name: "", parent_email: "", address: "" });
       toast.success(t("save"));
+      setShowForm(false);
       load();
     } catch (err) { toast.error(errMsg(err)); }
   };
@@ -305,6 +307,10 @@ export default function Students() {
               <Trash2 className="w-4 h-4" /> {t("delete_selected")} ({selected.size})
             </button>
           )}
+          <button data-testid="add-student-btn" onClick={() => setShowForm(!showForm)}
+            className="flex items-center gap-1.5 bg-teal-700 hover:bg-teal-800 text-white text-xs font-bold px-4 py-2 rounded-xl transition-colors">
+            <Plus className="w-4 h-4" /> {t("add_student")}
+          </button>
           <button data-testid="promote-btn" onClick={() => setPromoteOpen(true)}
             className="flex items-center gap-1.5 bg-white border border-teal-700 text-teal-700 hover:bg-teal-50 text-xs font-bold px-4 py-2 rounded-xl transition-colors">
             <GraduationCap className="w-4 h-4" /> {t("promote_class")}
@@ -335,6 +341,7 @@ export default function Students() {
         </button>
       </div>
 
+      {showForm && (
       <form onSubmit={add} data-testid="add-student-form" className="bg-white rounded-2xl border border-slate-200 p-4 flex flex-wrap items-end gap-3">
         <In label={t("name")} testid="student-name" v={form.name} set={(v) => setForm({ ...form, name: v })} req grow />
         <In label={t("nis")} testid="student-nis" v={form.nis} set={(v) => setForm({ ...form, nis: v })} />
@@ -361,6 +368,7 @@ export default function Students() {
           <Plus className="w-4 h-4" /> {t("add_student")}
         </button>
       </form>
+      )}
 
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />

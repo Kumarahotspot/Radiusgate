@@ -528,4 +528,9 @@ Aplikasi absensi berbasis tablet kiosk + face recognition & liveness, geofence G
 - Laporan user (screenshot): dropdown filter di tab Harian sebelumnya memfilter per nama guru ("Semua Guru" + daftar nama) — seharusnya filter tipe orang: **Semua / Siswa / Guru**.
 - Backend: `report_attendance` & `report_export` menerima param `person` (student/teacher/employee → q person_type; teacher_id lama tetap didukung). Frontend Reports.jsx: dropdown guru diganti select `report-person` (label "Tipe", opsi Semua/Siswa/Guru); fetch /admin/teachers dihapus (tidak dipakai lagi); export mengikuti filter aktif. i18n baru: all_people (ID "Semua" / EN "All").
 - Terverifikasi: curl (semua=25, siswa=23, guru=2, employee=0; export xlsx terfilter 23 baris) + screenshot UI (opsi benar, filter bekerja, mobile 390 tanpa overflow).
+
+## 2026-09-22 — Form Tambah Siswa disembunyikan di balik tombol (seperti Guru & Karyawan)
+- Keluhan user (screenshot): form tambah siswa selalu tampil di atas halaman Siswa, memakan banyak ruang. Diminta field hanya muncul saat klik "Tambah Siswa", mengikuti pola halaman Guru & Karyawan (state showForm).
+- Students.jsx: state baru `showForm` (default false); tombol "+ Tambah Siswa" (testid add-student-btn, solid teal) di header men-toggle form; form dibungkus `{showForm && ...}`; form otomatis tertutup setelah submit sukses. Testid form & field tidak berubah (add-student-form, student-name, dst).
+- Terverifikasi screenshot: default tersembunyi, klik → tampil (semua field utuh), klik lagi → tertutup, mobile 390 tanpa overflow.
 - P2: Tablet React Native (kiosk native); laporan grafik SPP; kuitansi PDF cetak; impor data tagihan lama; Midtrans/Duitku
