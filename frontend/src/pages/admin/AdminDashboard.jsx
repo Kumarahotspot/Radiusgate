@@ -16,6 +16,8 @@ export default function AdminDashboard() {
   const [expanded, setExpanded] = useState(null);
   const [flt, setFlt] = useState(() => new URLSearchParams(window.location.search).get("f") || "");
   const tableRef = useRef(null);
+  const todayStr = new Date().toISOString().slice(0, 10);
+  const [attDate, setAttDate] = useState(todayStr);
   const q = query.trim().toLowerCase();
   const filtered = today.filter((a) => !q || [a.teacher_name, a.status, a.class, a.type === "in" ? t("check_in") : t("check_out")].some((f) => (f || "").toLowerCase().includes(q)));
   const byFlt = flt === "late" ? filtered.filter((a) => a.status === "late")
@@ -34,9 +36,11 @@ export default function AdminDashboard() {
 
   const load = () => {
     api.get("/admin/stats").then((r) => setStats(r.data));
-    api.get("/admin/today").then((r) => setToday(r.data));
+    loadAtt();
   };
+  const loadAtt = () => api.get("/admin/today", { params: { date: attDate } }).then((r) => setToday(r.data));
   useEffect(() => { load(); }, []);
+  useEffect(() => { setPage(1); loadAtt(); }, [attDate]); // eslint-disable-line
   useEffect(() => { if (flt && tableRef.current) tableRef.current.scrollIntoView({ behavior: "smooth", block: "start" }); }, [flt]);
 
   const delAttendance = async (id) => {
@@ -80,6 +84,8 @@ export default function AdminDashboard() {
               <X className="w-3 h-3" />
             </button>
           )}
+          <input data-testid="att-date" type="date" value={attDate} max={todayStr} onChange={(e) => setAttDate(e.target.value)}
+            className="rounded-lg border border-slate-200 px-2.5 py-1 text-xs outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-600/15 transition" />
           <div className="flex flex-wrap items-center gap-2">
             <div className="flex items-center gap-1.5">
               <span className="text-xs font-semibold text-slate-500">{t("show_entries")}</span>

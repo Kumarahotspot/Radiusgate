@@ -77,9 +77,12 @@ async def stats(user: dict = Depends(admin_dep)):
 
 
 @router.get("/admin/today")
-async def today_list(user: dict = Depends(admin_dep)):
+async def today_list(date: str | None = None, user: dict = Depends(admin_dep)):
+    if date and not re.match(r"^\d{4}-\d{2}-\d{2}$", date):
+        raise HTTPException(status_code=422, detail="Format tanggal tidak valid")
+    d = date or await school_today(user["school_id"])
     return await db.attendance.find(
-        {"school_id": user["school_id"], "date": await school_today(user["school_id"])}, {"_id": 0, "photo": 0}
+        {"school_id": user["school_id"], "date": d}, {"_id": 0, "photo": 0}
     ).sort("ts_server", -1).to_list(500)
 
 
