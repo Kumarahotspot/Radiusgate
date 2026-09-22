@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import api, { errMsg } from "../../api";
-import { Plus, Layers, Tags, Banknote, Trash2, FileDown, Wallet, AlertTriangle, TrendingUp, Receipt } from "lucide-react";
+import { Plus, Layers, Tags, Banknote, Trash2, FileDown, Wallet, AlertTriangle, TrendingUp, Receipt, X } from "lucide-react";
 
 const rp = (n) => `Rp ${Number(n || 0).toLocaleString("id-ID")}`;
 
@@ -385,9 +385,16 @@ function Stat({ icon: Icon, label, val, testid, amber, red }) {
 
 function Modal({ title, onClose, children, testid }) {
   return (
-    <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4" data-testid={testid}>
+    <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4" data-testid={testid}
+      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
       <div className="bg-white rounded-2xl w-full max-w-md p-5 max-h-[90vh] overflow-y-auto">
-        <p className="font-bold text-slate-800 mb-4">{title}</p>
+        <div className="flex items-center justify-between gap-2 mb-4">
+          <p className="font-bold text-slate-800">{title}</p>
+          <button type="button" data-testid={`${testid}-close`} onClick={onClose}
+            className="p-1.5 rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors">
+            <X className="w-4 h-4" />
+          </button>
+        </div>
         {children}
       </div>
     </div>
