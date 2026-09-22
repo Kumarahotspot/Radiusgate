@@ -453,3 +453,6 @@ Aplikasi absensi berbasis tablet kiosk + face recognition & liveness, geofence G
 - Fix: `_ensure_parent_account()` dipanggil otomatis saat tambah siswa (add_student) dan edit siswa (update_student, jika belum ada akun). Respons menyertakan parent_account (created/exists/phone_used) → toast info di Students.jsx. Edit No. HP tetap menyinkronkan akun yang ada. No. HP yang sudah dipakai akun ortu lain ditolak dengan toast jelas.
 - Akun siswa Arto (6282112393993) langsung dibuatkan via bulk endpoint (idempoten).
 - Terverifikasi: login 6282112393993/696969 OK (role parent); auto-create saat tambah siswa; ganti No. HP → login HP baru OK, HP lama ditolak; duplikat HP → phone_used; pytest 79 passed / 1 skipped.
+
+## 2026-09-22 — Indikator "Akun Ortu" di tabel Data Siswa
+- `list_students` menyertakan `has_parent_account` (lookup satu query ke users role=parent). Sel "No. HP Orang Tua" kini menampilkan badge: hijau "✓ Akun Aktif" / abu "Belum Ada Akun" (testid parent-account-<id>). i18n parent_account_active/none (ID/EN).

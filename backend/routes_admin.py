@@ -393,8 +393,11 @@ async def list_students(user: dict = Depends(admin_dep)):
     students = await db.students.find({"school_id": user["school_id"]}, {"_id": 0, "embedding": 0, "photo": 0}).to_list(5000)
     enrolled_ids = {s["id"] for s in await db.students.find(
         {"school_id": user["school_id"], "embedding": {"$ne": None}}, {"_id": 0, "id": 1}).to_list(5000)}
+    parent_sids = {u["student_id"] for u in await db.users.find(
+        {"school_id": user["school_id"], "role": "parent"}, {"_id": 0, "student_id": 1}).to_list(5000)}
     for s in students:
         s["enrolled"] = s["id"] in enrolled_ids
+        s["has_parent_account"] = s["id"] in parent_sids
     return students
 
 

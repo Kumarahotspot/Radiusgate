@@ -375,7 +375,16 @@ export default function Students() {
                   <td className="px-4 py-2.5 font-mono text-xs">{s.nisn || "-"}</td>
                   <td className="px-4 py-2.5" data-testid={`student-gender-cell-${s.id}`}>{s.gender || "-"}</td>
                   <td className="px-4 py-2.5">{s.class}</td>
-                  <td className="px-4 py-2.5 font-mono text-xs">{s.parent_phone || "-"}</td>
+                  <td className="px-4 py-2.5">
+                    {s.parent_phone ? (
+                      <>
+                        <p className="font-mono text-xs">{s.parent_phone}</p>
+                        <span data-testid={`parent-account-${s.id}`} className={`inline-flex items-center gap-0.5 text-[10px] font-bold ${s.has_parent_account ? "text-emerald-600" : "text-slate-400"}`}>
+                          {s.has_parent_account ? <><CheckCircle2 className="w-3 h-3" /> {t("parent_account_active")}</> : <><Circle className="w-3 h-3" /> {t("parent_account_none")}</>}
+                        </span>
+                      </>
+                    ) : <span className="font-mono text-xs">-</span>}
+                  </td>
                   <td className="px-4 py-2.5">
                     <span data-testid={`student-enroll-status-${s.id}`} className={`inline-flex items-center gap-1 text-xs font-bold ${s.enrolled ? "text-emerald-600" : "text-slate-400"}`}>
                       {s.enrolled ? <CheckCircle2 className="w-4 h-4" /> : <Circle className="w-4 h-4" />}
