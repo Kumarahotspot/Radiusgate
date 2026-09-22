@@ -833,6 +833,19 @@ async def decide_leave(lid: str, body: DecisionIn, user: dict = Depends(admin_de
     return {"ok": True}
 
 
+# ---------- Absensi Mapel (admin, read-only) ----------
+@router.get("/admin/subject-attendance")
+async def admin_subject_attendance(date_from: str, date_to: str, class_name: str | None = None,
+                                   subject: str | None = None, user: dict = Depends(admin_dep)):
+    q = {"school_id": user["school_id"], "date": {"$gte": date_from, "$lte": date_to}}
+    if class_name:
+        q["class_name"] = class_name
+    if subject:
+        q["subject"] = subject
+    return await db.subject_attendance.find(q, {"_id": 0}).sort(
+        [("date", -1), ("class_name", 1), ("subject", 1), ("student_name", 1)]).to_list(10000)
+
+
 # ---------- Employees (Karyawan) ----------
 class EmployeeIn(BaseModel):
     name: str

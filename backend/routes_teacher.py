@@ -180,3 +180,67 @@ async def create_leave(body: LeaveIn, user: dict = Depends(teacher_dep)):
     await db.leaves.insert_one(doc)
     doc.pop("_id", None)
     return doc
+
+
+# ---------- Absensi per Mata Pelajaran ----------
+def _subject_list(t: dict) -> list:
+    return [c.strip() for c in (t.get("subject") or "").split(",") if c.strip()]
+
+
+@router.get("/teacher/subject-att/meta")
+async def subject_att_meta(user: dict = Depends(teacher_dep)):
+    t = await my_teacher(user)
+    return {"subjects": _subject_list(t), "classes": _class_list(t)}
+
+
+@router.get("/teacher/subject-att")
+async def subject_att_get(date: str, subject: str, class_name: str, user: dict = Depends(teacher_dep)):
+    t = await my_teacher(user)
+    if subject not in _subject_list(t):
+        raise HTTPException(status_code=403, detail="Mapel tidak diampu")
+    if class_name not in _class_list(t):
+        raise HTTPException(status_code=403, detail="Kelas tidak diampu")
+    students = await db.students.find(
+        {"school_id": user["school_id"], "class": class_name, "status": {"$ne": "lulus"}},
+        {"_id": 0, "id": 1, "name": 1, "nis": 1}).sort("name", 1).to_list(500)
+    recs = await db.subject_attendance.find(
+        {"school_id": user["school_id"], "teacher_id": t["id"], "date": date,
+         "subject": subject, "class_name": class_name}, {"_id": 0}).to_list(500)
+    return {"students": students, "records": {r["student_id"]: r["status"] for r in recs},
+            "saved": bool(recs)}
+
+
+class SubjectAttIn(BaseModel):
+    date: str
+    subject: str
+    class_name: str
+    records: list  # [{student_id, status: hadir|sakit|izin|alpha}]
+
+
+@router.post("/teacher/subject-att")
+async def subject_att_save(body: SubjectAttIn, user: dict = Depends(teacher_dep)):
+    t = await my_teacher(user)
+    if body.subject not in _subject_list(t):
+        raise HTTPException(status_code=403, detail="Mapel tidak diampu")
+    if body.class_name not in _class_list(t):
+        raise HTTPException(status_code=403, detail="Kelas tidak diampu")
+    valid = {s["id"]: s for s in await db.students.find(
+        {"school_id": user["school_id"], "class": body.class_name, "status": {"$ne": "lulus"}},
+        {"_id": 0, "id": 1, "name": 1, "nis": 1}).to_list(500)}
+    now = datetime.now(timezone.utc).isoformat()
+    saved = 0
+    for r in body.records:
+        st = valid.get(r.get("student_id"))
+        status = r.get("status")
+        if not st or status not in ("hadir", "sakit", "izin", "alpha"):
+            continue
+        key = {"school_id": user["school_id"], "teacher_id": t["id"], "date": body.date,
+               "subject": body.subject, "class_name": body.class_name, "student_id": st["id"]}
+        await db.subject_attendance.update_one(
+            key,
+            {"$set": {**key, "student_name": st["name"], "nis": st.get("nis", ""),
+                      "teacher_name": t["name"], "status": status, "updated_at": now},
+             "$setOnInsert": {"id": str(uuid.uuid4()), "created_at": now}},
+            upsert=True)
+        saved += 1
+    return {"ok": True, "saved": saved}

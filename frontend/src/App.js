@@ -29,6 +29,7 @@ import Overtime from "@/pages/admin/Overtime";
 import Spp from "@/pages/admin/Spp";
 import EmployeeHome from "@/pages/employee/EmployeeHome";
 import ParentHome from "@/pages/parent/ParentHome";
+import TeacherSubjectAtt from "@/pages/teacher/TeacherSubjectAtt";
 
 function Guard({ roles, children }) {
   const { user, loading } = useAuth();
@@ -70,6 +71,7 @@ function App() {
           </Route>
           <Route element={<Guard roles={["teacher"]}><Layout /></Guard>}>
             <Route path="/guru" element={<TeacherHome />} />
+            <Route path="/guru/mapel" element={<TeacherSubjectAtt />} />
             <Route path="/guru/izin" element={<TeacherStudentStatus />} />
             <Route path="/guru/laporan" element={<TeacherReports />} />
           </Route>

@@ -12,12 +12,27 @@ export default function Reports() {
   const [teacherId, setTeacherId] = useState("");
   const [teachers, setTeachers] = useState([]);
   const [rows, setRows] = useState([]);
+  const [tab, setTab] = useState("daily");
+  const [opts, setOpts] = useState({ classes: [], subjects: [] });
+  const [saClass, setSaClass] = useState("");
+  const [saSubject, setSaSubject] = useState("");
+  const [saRows, setSaRows] = useState([]);
 
-  useEffect(() => { api.get("/admin/teachers").then((r) => setTeachers(r.data)); }, []);
+  useEffect(() => {
+    api.get("/admin/teachers").then((r) => setTeachers(r.data));
+    api.get("/admin/meta/options").then((r) => setOpts(r.data));
+  }, []);
 
   const load = () => api.get("/admin/reports/attendance", { params: { date_from: from, date_to: to, teacher_id: teacherId || undefined } })
     .then((r) => setRows(r.data));
   useEffect(() => { load(); }, [from, to, teacherId]);
+
+  useEffect(() => {
+    if (tab !== "subject") return;
+    api.get("/admin/subject-attendance", {
+      params: { date_from: from, date_to: to, class_name: saClass || undefined, subject: saSubject || undefined },
+    }).then((r) => setSaRows(r.data));
+  }, [tab, from, to, saClass, saSubject]);
 
   const exportUrl = (fmt) =>
     `${process.env.REACT_APP_BACKEND_URL}/api/admin/reports/export?format=${fmt}&date_from=${from}&date_to=${to}`;
@@ -35,6 +50,13 @@ export default function Reports() {
   return (
     <div data-testid="reports-page" className="space-y-4">
       <h2 className="text-lg font-bold text-slate-800">{t("reports")}</h2>
+      <div className="flex gap-1 bg-white border border-slate-200 rounded-xl p-1 w-fit">
+        <button data-testid="tab-daily" onClick={() => setTab("daily")}
+          className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-colors ${tab === "daily" ? "bg-teal-700 text-white" : "text-slate-600 hover:bg-slate-100"}`}>{t("daily_tab")}</button>
+        <button data-testid="tab-subject" onClick={() => setTab("subject")}
+          className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-colors ${tab === "subject" ? "bg-teal-700 text-white" : "text-slate-600 hover:bg-slate-100"}`}>{t("subject_att_tab")}</button>
+      </div>
+      {tab === "daily" && (<>
       <div className="bg-white rounded-2xl border border-slate-200 p-4 flex flex-wrap items-end gap-3">
         <div>
           <label className="text-xs font-semibold text-slate-500">{t("from")}</label>
@@ -107,6 +129,75 @@ export default function Reports() {
           </table>
         </div>
       </div>
+      </>)}
+
+      {tab === "subject" && (
+        <>
+          <div className="bg-white rounded-2xl border border-slate-200 p-4 flex flex-wrap items-end gap-3">
+            <div>
+              <label className="text-xs font-semibold text-slate-500">{t("from")}</label>
+              <input data-testid="sa-from" type="date" value={from} onChange={(e) => setFrom(e.target.value)}
+                className="mt-1 block rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-teal-600" />
+            </div>
+            <div>
+              <label className="text-xs font-semibold text-slate-500">{t("to")}</label>
+              <input data-testid="sa-to" type="date" value={to} onChange={(e) => setTo(e.target.value)}
+                className="mt-1 block rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-teal-600" />
+            </div>
+            <div>
+              <label className="text-xs font-semibold text-slate-500">{t("class")}</label>
+              <select data-testid="sa-class" value={saClass} onChange={(e) => setSaClass(e.target.value)}
+                className="mt-1 block rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-teal-600 bg-white">
+                <option value="">{t("all_classes")}</option>
+                {(opts.classes || []).map((c) => <option key={c} value={c}>{c}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="text-xs font-semibold text-slate-500">{t("mapel")}</label>
+              <select data-testid="sa-subject" value={saSubject} onChange={(e) => setSaSubject(e.target.value)}
+                className="mt-1 block rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-teal-600 bg-white">
+                <option value="">{t("all_status")}</option>
+                {(opts.subjects || []).map((s) => <option key={s} value={s}>{s}</option>)}
+              </select>
+            </div>
+          </div>
+          <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="text-left text-xs uppercase tracking-wide text-slate-500 border-b bg-slate-50">
+                    <th className="px-4 py-3">{t("date")}</th>
+                    <th className="px-4 py-3">{t("class")}</th>
+                    <th className="px-4 py-3">{t("mapel")}</th>
+                    <th className="px-4 py-3">{t("teachers")}</th>
+                    <th className="px-4 py-3">{t("name")}</th>
+                    <th className="px-4 py-3">{t("nis")}</th>
+                    <th className="px-4 py-3">{t("status")}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {saRows.map((r) => (
+                    <tr key={r.id} className="border-b last:border-0 hover:bg-slate-50/60">
+                      <td className="px-4 py-2.5 font-mono text-xs">{r.date}</td>
+                      <td className="px-4 py-2.5">{r.class_name}</td>
+                      <td className="px-4 py-2.5">{r.subject}</td>
+                      <td className="px-4 py-2.5 text-slate-600">{r.teacher_name}</td>
+                      <td className="px-4 py-2.5 font-semibold text-slate-800">{r.student_name}</td>
+                      <td className="px-4 py-2.5 font-mono text-xs">{r.nis || "-"}</td>
+                      <td className="px-4 py-2.5">
+                        <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${r.status === "hadir" ? "bg-emerald-100 text-emerald-700" : r.status === "sakit" ? "bg-red-100 text-red-600" : r.status === "izin" ? "bg-sky-100 text-sky-700" : "bg-slate-200 text-slate-600"}`}>
+                          {t(`att_${r.status}`)}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                  {saRows.length === 0 && <tr><td colSpan={7} className="px-4 py-8 text-center text-slate-400">{t("no_data")}</td></tr>}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }

@@ -5,7 +5,7 @@ import LangSwitch from "./LangSwitch";
 import {
   LayoutDashboard, School, FileText, Users, GraduationCap, Settings,
   CalendarClock, BarChart3, CreditCard, LogOut, ScanFace, MonitorSmartphone, Bell, Inbox,
-  Briefcase, Timer, Wallet,
+  Briefcase, Timer, Wallet, BookOpen,
 } from "lucide-react";
 
 const menus = {
@@ -29,6 +29,7 @@ const menus = {
   ],
   teacher: [
     { to: "/guru", icon: ScanFace, key: "teacher_attendance", end: true },
+    { to: "/guru/mapel", icon: BookOpen, key: "subject_att" },
     { to: "/guru/izin", icon: CalendarClock, key: "student_status_menu" },
     { to: "/guru/laporan", icon: BarChart3, key: "student_report_menu" },
   ],
