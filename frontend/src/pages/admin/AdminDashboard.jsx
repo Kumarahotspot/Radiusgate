@@ -60,6 +60,29 @@ export default function AdminDashboard() {
         ))}
       </div>
 
+      {stats?.parent_data && stats.parent_data.total > 0 && (
+        <div className="bg-white rounded-2xl border border-slate-200 p-4" data-testid="parent-data-card">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <p className="font-bold text-slate-800 text-sm">{t("parent_data_completeness")}</p>
+            <p className="text-xs text-slate-500">
+              {t("parent_phone")}: <strong className="text-slate-700">{stats.parent_data.with_phone}/{stats.parent_data.total}</strong>
+              {" · "}{t("parent_data_complete")}: <strong className="text-slate-700">{stats.parent_data.with_complete}/{stats.parent_data.total}</strong>
+            </p>
+          </div>
+          <div className="mt-3 space-y-2 max-h-56 overflow-y-auto pr-1">
+            {stats.parent_data.per_class.map((c) => (
+              <div key={c.class} data-testid={`pc-${c.class}`} className="flex items-center gap-3">
+                <p className="w-28 truncate text-xs font-semibold text-slate-600">{c.class}</p>
+                <div className="flex-1 h-2 rounded-full bg-slate-100 overflow-hidden">
+                  <div className="h-full bg-teal-600 rounded-full transition-all" style={{ width: `${c.total ? (c.phone / c.total) * 100 : 0}%` }} />
+                </div>
+                <p className="w-24 text-right text-[11px] text-slate-500 shrink-0">{c.phone}/{c.total} {t("parent_phone_short")}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
         <div className="flex flex-wrap items-center justify-between gap-2 px-4 py-3 border-b">
           <p className="font-bold text-slate-800 text-sm">{t("today_attendance")}</p>

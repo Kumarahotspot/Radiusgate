@@ -42,6 +42,25 @@ async def stats(user: dict = Depends(admin_dep)):
     sid = user["school_id"]
     today = await school_today(sid)
     today_att = await db.attendance.find({"school_id": sid, "date": today, "type": "in"}, {"_id": 0}).to_list(5000)
+    students_pc = await db.students.find({"school_id": sid, "status": {"$ne": "lulus"}},
+                                         {"_id": 0, "class": 1, "parent_phone": 1, "parent_email": 1,
+                                          "parent_name": 1, "address": 1}).to_list(5000)
+    per_class = {}
+    tot_phone = tot_complete = 0
+    for s in students_pc:
+        cls = s.get("class") or "-"
+        d = per_class.setdefault(cls, {"class": cls, "total": 0, "phone": 0, "complete": 0})
+        has_phone = bool(s.get("parent_phone"))
+        complete = bool(s.get("parent_phone") and s.get("parent_email") and s.get("parent_name") and s.get("address"))
+        d["total"] += 1
+        d["phone"] += 1 if has_phone else 0
+        d["complete"] += 1 if complete else 0
+        tot_phone += 1 if has_phone else 0
+        tot_complete += 1 if complete else 0
+    parent_data = {
+        "total": len(students_pc), "with_phone": tot_phone, "with_complete": tot_complete,
+        "per_class": sorted(per_class.values(), key=lambda x: x["class"]),
+    }
     return {
         "present_today": len({a["teacher_id"] for a in today_att if a.get("person_type", "teacher") == "teacher"}),
         "students_present": len({a.get("student_id") for a in today_att
@@ -53,6 +72,7 @@ async def stats(user: dict = Depends(admin_dep)):
         "employees_present": len({a.get("employee_id") for a in today_att if a.get("person_type") == "employee"}),
         "total_employees": await db.employees.count_documents({"school_id": sid, "active": True}),
         "pending_overtime": await db.overtime_requests.count_documents({"school_id": sid, "status": "pending"}),
+        "parent_data": parent_data,
     }
 
 

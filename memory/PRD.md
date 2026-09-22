@@ -477,4 +477,9 @@ Aplikasi absensi berbasis tablet kiosk + face recognition & liveness, geofence G
 - Atas masukan user (field alamat terlalu sempit): Alamat di form tambah siswa kini textarea 2 baris selebar penuh form (w-full, ~1214px desktop); di modal Ubah Siswa textarea lebar penuh modal (sm:col-span-2, ~408px). Testid tetap student-address / edit-student-address.
 - Atas masukan user: urutan field form tambah & modal edit siswa kini Nama → NIS → NISN → **Jenis Kelamin → Kelas** → No. HP Ortu → Nama Ortu → Email Ortu → Alamat → tombol simpan.
 - **Validasi form siswa (atas permintaan user)**: Jenis Kelamin & Kelas WAJIB (required + cek JS toast `required_gender_class`) di form tambah & modal edit; format No. HP ortu divalidasi regex `^(\+?62|0)8\d{7,12}$` (toast `invalid_phone`); format email ortu divalidasi (toast `invalid_email`). ClassSelect kini menerima prop req. Backend sengaja tetap lentur agar impor massal tanpa JK/kelas tidak putus.
+
+## 2026-09-22 — Kartu Kelengkapan Data Orang Tua di Dasbor admin
+- `GET /admin/stats` kini menyertakan `parent_data`: {total, with_phone, with_complete, per_class[{class,total,phone,complete}]} — "lengkap" = No. HP + email + nama ortu + alamat semua terisi.
+- AdminDashboard: kartu "Kelengkapan Data Orang Tua" (testid parent-data-card) dengan ringkasan keseluruhan + progress bar per kelas (testid pc-<kelas>), scroll jika kelas banyak. i18n parent_data_completeness/parent_data_complete/parent_phone_short (ID/EN).
+- Terverifikasi: curl stats (total 122, with_phone 2, complete 1, per_class benar, stats lain utuh), screenshot kartu tampil rapi desktop+mobile tanpa overflow.
 - Terverifikasi screenshot (urutan testid terukur benar di kedua form, tanpa overflow mobile).
