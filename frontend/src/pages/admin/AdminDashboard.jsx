@@ -1,9 +1,9 @@
-import { useEffect, useState, Fragment } from "react";
+import { useEffect, useState, Fragment, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import api from "../../api";
-import { Users, Clock, CalendarClock, GraduationCap, UserCheck, Trash2, BookOpen, Search, ChevronLeft, ChevronRight, ChevronDown } from "lucide-react";
+import { Users, Clock, CalendarClock, GraduationCap, UserCheck, Trash2, BookOpen, Search, ChevronLeft, ChevronRight, ChevronDown, X } from "lucide-react";
 
 export default function AdminDashboard() {
   const { t } = useTranslation();
@@ -14,10 +14,15 @@ export default function AdminDashboard() {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [expanded, setExpanded] = useState(null);
+  const [flt, setFlt] = useState(() => new URLSearchParams(window.location.search).get("f") || "");
+  const tableRef = useRef(null);
   const q = query.trim().toLowerCase();
   const filtered = today.filter((a) => !q || [a.teacher_name, a.status, a.class, a.type === "in" ? t("check_in") : t("check_out")].some((f) => (f || "").toLowerCase().includes(q)));
+  const byFlt = flt === "late" ? filtered.filter((a) => a.status === "late")
+    : flt ? filtered.filter((a) => (a.person_type || "teacher") === flt)
+    : filtered;
   const groupsMap = new Map();
-  for (const a of filtered) {
+  for (const a of byFlt) {
     const k = a.student_id || a.teacher_id || `${a.teacher_name}|${a.person_type}`;
     if (!groupsMap.has(k)) groupsMap.set(k, { key: k, name: a.teacher_name, person_type: a.person_type, cls: a.class, rows: [] });
     groupsMap.get(k).rows.push(a);
@@ -32,6 +37,7 @@ export default function AdminDashboard() {
     api.get("/admin/today").then((r) => setToday(r.data));
   };
   useEffect(() => { load(); }, []);
+  useEffect(() => { if (flt && tableRef.current) tableRef.current.scrollIntoView({ behavior: "smooth", block: "start" }); }, [flt]);
 
   const delAttendance = async (id) => {
     if (!window.confirm(t("confirm_delete"))) return;
@@ -40,25 +46,27 @@ export default function AdminDashboard() {
     load();
   };
 
+  const toggleFlt = (v) => setFlt((cur) => (cur === v ? "" : v));
   const cards = stats ? [
-    { icon: UserCheck, label: t("present_today"), val: stats.present_today, testid: "stat-present" },
-    { icon: BookOpen, label: t("students_present"), val: stats.students_present ?? 0, testid: "stat-students-present" },
-    { icon: Clock, label: t("late_today"), val: stats.late_today, testid: "stat-late" },
-    { icon: CalendarClock, label: t("pending_leaves"), val: stats.pending_leaves, testid: "stat-leaves" },
-    { icon: Users, label: t("total_teachers"), val: stats.total_teachers, testid: "stat-teachers" },
-    { icon: GraduationCap, label: t("total_students"), val: stats.total_students, testid: "stat-students" },
-    { icon: Users, label: t("employees_present"), val: stats.employees_present ?? 0, testid: "stat-employees" },
+    { icon: UserCheck, label: t("present_today"), val: stats.present_today, testid: "stat-present", on: () => toggleFlt("teacher"), active: flt === "teacher" },
+    { icon: BookOpen, label: t("students_present"), val: stats.students_present ?? 0, testid: "stat-students-present", on: () => toggleFlt("student"), active: flt === "student" },
+    { icon: Clock, label: t("late_today"), val: stats.late_today, testid: "stat-late", on: () => toggleFlt("late"), active: flt === "late" },
+    { icon: CalendarClock, label: t("pending_leaves"), val: stats.pending_leaves, testid: "stat-leaves", on: () => navigate("/admin/leaves") },
+    { icon: Users, label: t("total_teachers"), val: stats.total_teachers, testid: "stat-teachers", on: () => navigate("/admin/teachers") },
+    { icon: GraduationCap, label: t("total_students"), val: stats.total_students, testid: "stat-students", on: () => navigate("/admin/students") },
+    { icon: Users, label: t("employees_present"), val: stats.employees_present ?? 0, testid: "stat-employees", on: () => toggleFlt("employee"), active: flt === "employee" },
   ] : [];
 
   return (
     <div data-testid="admin-dashboard" className="space-y-6">
       <div className="grid grid-cols-2 lg:grid-cols-6 gap-3">
         {cards.map((s) => (
-          <div key={s.testid} data-testid={s.testid} className="bg-white rounded-2xl border border-slate-200 p-4">
+          <button key={s.testid} data-testid={s.testid} onClick={s.on}
+            className={`bg-white rounded-2xl border p-4 text-left transition-all cursor-pointer hover:shadow-md hover:-translate-y-0.5 ${s.active ? "border-teal-600 ring-2 ring-teal-600/20" : "border-slate-200"}`}>
             <s.icon className="w-5 h-5 text-teal-700 mb-2" />
             <p className="text-2xl font-extrabold text-slate-800">{s.val}</p>
             <p className="text-xs text-slate-500 font-medium mt-0.5">{s.label}</p>
-          </div>
+          </button>
         ))}
       </div>
 
@@ -87,9 +95,16 @@ export default function AdminDashboard() {
         </div>
       )}
 
-      <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+      <div ref={tableRef} className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
         <div className="flex flex-wrap items-center justify-between gap-2 px-4 py-3 border-b">
           <p className="font-bold text-slate-800 text-sm">{t("today_attendance")}</p>
+          {flt && (
+            <button data-testid="clear-filter" onClick={() => setFlt("")}
+              className="flex items-center gap-1 text-[11px] font-bold text-teal-700 bg-teal-50 hover:bg-teal-100 px-2.5 py-1 rounded-full transition-colors">
+              {{ teacher: t("present_today"), student: t("students_present"), late: t("late_today"), employee: t("employees_present") }[flt]}
+              <X className="w-3 h-3" />
+            </button>
+          )}
           <div className="flex flex-wrap items-center gap-2">
             <div className="flex items-center gap-1.5">
               <span className="text-xs font-semibold text-slate-500">{t("show_entries")}</span>

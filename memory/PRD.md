@@ -483,4 +483,8 @@ Aplikasi absensi berbasis tablet kiosk + face recognition & liveness, geofence G
 - AdminDashboard: kartu "Kelengkapan Data Orang Tua" (testid parent-data-card) dengan ringkasan keseluruhan + progress bar per kelas (testid pc-<kelas>), scroll jika kelas banyak. i18n parent_data_completeness/parent_data_complete/parent_phone_short (ID/EN).
 - Terverifikasi: curl stats (total 122, with_phone 2, complete 1, per_class benar, stats lain utuh), screenshot kartu tampil rapi desktop+mobile tanpa overflow.
 - **Klik navigasi (atas permintaan user)**: bar per kelas di kartu kelengkapan kini tombol → `navigate("/admin/students?q=<kelas>")`; Students.jsx membaca query param `q` saat mount untuk mengisi kolom pencarian otomatis. Tooltip `view_class_students` (ID/EN). Terverifikasi screenshot: klik "X TB 1" → URL `/admin/students?q=X%20TB%201`, pencarian terisi, tabel terfilter kelas tsb.
+
+## 2026-09-22 — Kartu statistik Dasbor bisa diklik
+- Kartu Hadir Hari Ini / Siswa Hadir / Telat Hari Ini / Karyawan Hadir = toggle filter tabel "Absensi Hari Ini" di halaman yang sama (state `flt`: teacher/student/late/employee; chip filter aktif dengan tombol X, tabel auto-scroll ke tabel, klik ulang = hapus filter; dukung query `?f=`). Kartu Pengajuan Menunggu → /admin/leaves, Total Guru → /admin/teachers, Total Siswa → /admin/students.
+- Kartu kini <button> dengan hover lift + ring teal saat aktif. Terverifikasi screenshot: chip "Telat Hari Ini ×" muncul + ring aktif, toggle off menghilangkan chip, navigasi kartu ke halaman siswa/izin berfungsi.
 - Terverifikasi screenshot (urutan testid terukur benar di kedua form, tanpa overflow mobile).
