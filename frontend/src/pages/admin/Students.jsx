@@ -60,6 +60,12 @@ export default function Students() {
 
   const [enrollFor, setEnrollFor] = useState(null);
   const [query, setQuery] = useState("");
+
+  // dukung lompat dari kartu kelengkapan data di Dasbor: /admin/students?q=<kelas>
+  useEffect(() => {
+    const q0 = new URLSearchParams(window.location.search).get("q");
+    if (q0) setQuery(q0);
+  }, []);
   const [page, setPage] = useState(1);
   const [selected, setSelected] = useState(new Set());
   const [showGrad, setShowGrad] = useState(false);

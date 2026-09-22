@@ -482,4 +482,5 @@ Aplikasi absensi berbasis tablet kiosk + face recognition & liveness, geofence G
 - `GET /admin/stats` kini menyertakan `parent_data`: {total, with_phone, with_complete, per_class[{class,total,phone,complete}]} — "lengkap" = No. HP + email + nama ortu + alamat semua terisi.
 - AdminDashboard: kartu "Kelengkapan Data Orang Tua" (testid parent-data-card) dengan ringkasan keseluruhan + progress bar per kelas (testid pc-<kelas>), scroll jika kelas banyak. i18n parent_data_completeness/parent_data_complete/parent_phone_short (ID/EN).
 - Terverifikasi: curl stats (total 122, with_phone 2, complete 1, per_class benar, stats lain utuh), screenshot kartu tampil rapi desktop+mobile tanpa overflow.
+- **Klik navigasi (atas permintaan user)**: bar per kelas di kartu kelengkapan kini tombol → `navigate("/admin/students?q=<kelas>")`; Students.jsx membaca query param `q` saat mount untuk mengisi kolom pencarian otomatis. Tooltip `view_class_students` (ID/EN). Terverifikasi screenshot: klik "X TB 1" → URL `/admin/students?q=X%20TB%201`, pencarian terisi, tabel terfilter kelas tsb.
 - Terverifikasi screenshot (urutan testid terukur benar di kedua form, tanpa overflow mobile).

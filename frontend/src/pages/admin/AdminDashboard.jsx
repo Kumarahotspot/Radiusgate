@@ -1,4 +1,5 @@
 import { useEffect, useState, Fragment } from "react";
+import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import api from "../../api";
@@ -6,6 +7,7 @@ import { Users, Clock, CalendarClock, GraduationCap, UserCheck, Trash2, BookOpen
 
 export default function AdminDashboard() {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const [stats, setStats] = useState(null);
   const [today, setToday] = useState([]);
   const [query, setQuery] = useState("");
@@ -71,13 +73,15 @@ export default function AdminDashboard() {
           </div>
           <div className="mt-3 space-y-2 max-h-56 overflow-y-auto pr-1">
             {stats.parent_data.per_class.map((c) => (
-              <div key={c.class} data-testid={`pc-${c.class}`} className="flex items-center gap-3">
+              <button key={c.class} data-testid={`pc-${c.class}`} title={t("view_class_students")}
+                onClick={() => navigate(`/admin/students?q=${encodeURIComponent(c.class)}`)}
+                className="flex items-center gap-3 w-full text-left rounded-lg px-1.5 py-1 -mx-1.5 hover:bg-teal-50/70 transition-colors cursor-pointer">
                 <p className="w-28 truncate text-xs font-semibold text-slate-600">{c.class}</p>
                 <div className="flex-1 h-2 rounded-full bg-slate-100 overflow-hidden">
                   <div className="h-full bg-teal-600 rounded-full transition-all" style={{ width: `${c.total ? (c.phone / c.total) * 100 : 0}%` }} />
                 </div>
                 <p className="w-24 text-right text-[11px] text-slate-500 shrink-0">{c.phone}/{c.total} {t("parent_phone_short")}</p>
-              </div>
+              </button>
             ))}
           </div>
         </div>
