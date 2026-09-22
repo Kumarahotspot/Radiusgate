@@ -1125,89 +1125,118 @@ async def report_export(format: str, date_from: str, date_to: str, user: dict = 
 
 
 
-# ---------- Laporan kehadiran per siswa (admin) ----------
-async def _student_report_rows(sid: str, date_from: str, date_to: str, class_name: str | None):
-    q = {"school_id": sid, "person_type": "student", "date": {"$gte": date_from, "$lte": date_to}}
-    if class_name:
+# ---------- Laporan kehadiran per orang: siswa / guru / karyawan (admin) ----------
+PEOPLE_REPORT_CFG = {
+    "student": {"coll": "students", "idf": "student_id", "extra": {"status": {"$ne": "lulus"}},
+                "ref": "nis", "grp": "class", "ref_label": "NIS", "grp_label": "Kelas",
+                "label": "Siswa", "slug": "siswa"},
+    "teacher": {"coll": "teachers", "idf": "teacher_id", "extra": {"active": True},
+                "ref": "nip", "grp": "subject", "ref_label": "NIP", "grp_label": "Mapel",
+                "label": "Guru", "slug": "guru"},
+    "employee": {"coll": "employees", "idf": "employee_id", "extra": {"active": True},
+                 "ref": "nip", "grp": "department", "ref_label": "NIP", "grp_label": "Departemen",
+                 "label": "Karyawan", "slug": "karyawan"},
+}
+
+
+def _person_cfg(person: str) -> dict:
+    cfg = PEOPLE_REPORT_CFG.get(person)
+    if not cfg:
+        raise HTTPException(status_code=422, detail="Tipe person tidak valid")
+    return cfg
+
+
+async def _people_report_rows(sid: str, person: str, date_from: str, date_to: str, class_name: str | None):
+    cfg = _person_cfg(person)
+    q = {"school_id": sid, "person_type": person, "date": {"$gte": date_from, "$lte": date_to}}
+    if class_name and person == "student":
         q["class"] = class_name
     rows = await db.attendance.find(q, {"_id": 0, "photo": 0}).sort([("date", 1), ("ts_server", 1)]).to_list(10000)
     for r in rows:
         r["time"] = r.get("time_local") or r.get("ts_device", r.get("ts_server", ""))[11:16]
-    sq = {"school_id": sid, "status": {"$ne": "lulus"}}
-    if class_name:
-        sq["class"] = class_name
-    students = await db.students.find(sq, {"_id": 0, "id": 1, "name": 1, "nis": 1, "class": 1}).to_list(5000)
-    return rows, students
+    pq = {"school_id": sid, **cfg["extra"]}
+    if class_name and person == "student":
+        pq["class"] = class_name
+    persons = await db[cfg["coll"]].find(
+        pq, {"_id": 0, "id": 1, "name": 1, "nis": 1, "nip": 1, "class": 1, "subject": 1, "department": 1}).to_list(5000)
+    return rows, persons, cfg
 
 
-def _student_recap(rows: list, students: list) -> list:
+def _people_recap(rows: list, persons: list, cfg: dict) -> list:
     active_days = {r["date"] for r in rows}
+    idf = cfg["idf"]
     recap = []
-    for s in students:
-        rs = [r for r in rows if r.get("student_id") == s["id"]]
+    for p in persons:
+        rs = [r for r in rows if r.get(idf) == p["id"]]
         hadir = {r["date"] for r in rs if r.get("att_status", "present") == "present"}
         telat = {r["date"] for r in rs if r.get("att_status", "present") == "present" and r.get("late_minutes", 0) > 0}
         sakit = {r["date"] for r in rs if r.get("att_status") == "sakit"}
         izin = {r["date"] for r in rs if r.get("att_status") == "izin"}
         alpha = max(0, len(active_days) - len(hadir | sakit | izin))
-        recap.append({"id": s["id"], "name": s["name"], "nis": s.get("nis", ""), "class": s.get("class", ""),
+        recap.append({"id": p["id"], "name": p["name"], "ref": p.get(cfg["ref"], "") or "",
+                      "group": p.get(cfg["grp"], "") or "",
                       "hadir": len(hadir), "telat": len(telat), "sakit": len(sakit), "izin": len(izin),
                       "alpha": alpha, "active_days": len(active_days)})
-    recap.sort(key=lambda r: (r["class"], r["name"]))
+    recap.sort(key=lambda r: (r["group"], r["name"]))
     return recap
 
 
-@router.get("/admin/reports/students")
-async def report_students_daily(date_from: str, date_to: str, class_name: str | None = None,
-                                user: dict = Depends(admin_dep)):
-    rows, _ = await _student_report_rows(user["school_id"], date_from, date_to, class_name)
+@router.get("/admin/reports/people")
+async def report_people_daily(person: str, date_from: str, date_to: str, class_name: str | None = None,
+                              user: dict = Depends(admin_dep)):
+    rows, _, _ = await _people_report_rows(user["school_id"], person, date_from, date_to, class_name)
     return rows
 
 
-@router.get("/admin/reports/students/recap")
-async def report_students_recap(date_from: str, date_to: str, class_name: str | None = None,
-                                user: dict = Depends(admin_dep)):
-    rows, students = await _student_report_rows(user["school_id"], date_from, date_to, class_name)
-    return _student_recap(rows, students)
+@router.get("/admin/reports/people/recap")
+async def report_people_recap(person: str, date_from: str, date_to: str, class_name: str | None = None,
+                              user: dict = Depends(admin_dep)):
+    rows, persons, cfg = await _people_report_rows(user["school_id"], person, date_from, date_to, class_name)
+    return _people_recap(rows, persons, cfg)
 
 
-@router.get("/admin/reports/students/export")
-async def report_students_export(format: str, kind: str, date_from: str, date_to: str,
-                                 class_name: str | None = None, user: dict = Depends(admin_dep)):
-    rows, students = await _student_report_rows(user["school_id"], date_from, date_to, class_name)
+@router.get("/admin/reports/people/export")
+async def report_people_export(person: str, format: str, kind: str, date_from: str, date_to: str,
+                               class_name: str | None = None, user: dict = Depends(admin_dep)):
+    rows, persons, cfg = await _people_report_rows(user["school_id"], person, date_from, date_to, class_name)
     school = await db.schools.find_one({"id": user["school_id"]}, {"_id": 0, "name": 1})
+    xlsx_mime = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     if kind == "recap":
-        data = _student_recap(rows, students)
+        data = _people_recap(rows, persons, cfg)
         if format == "xlsx":
             df = pd.DataFrame([{
-                "Nama": r["name"], "NIS": r["nis"], "Kelas": r["class"], "Hadir": r["hadir"],
-                "Telat": r["telat"], "Sakit": r["sakit"], "Izin": r["izin"], "Alpha": r["alpha"],
-                "Hari Efektif": r["active_days"],
+                "Nama": r["name"], cfg["ref_label"]: r["ref"], cfg["grp_label"]: r["group"],
+                "Hadir": r["hadir"], "Telat": r["telat"], "Sakit": r["sakit"], "Izin": r["izin"],
+                "Alpha": r["alpha"], "Hari Efektif": r["active_days"],
             } for r in data])
             buf = io.BytesIO()
             df.to_excel(buf, index=False)
             buf.seek(0)
             return StreamingResponse(
-                buf,
-                media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                headers={"Content-Disposition": "attachment; filename=rekap-kehadiran-siswa.xlsx"})
-        path = build_recap_pdf(f"/tmp/recap_students_{user['school_id']}.pdf", school["name"],
-                               date_from, date_to, data, class_name)
-        return FileResponse(path, media_type="application/pdf", filename="rekap-kehadiran-siswa.pdf")
+                buf, media_type=xlsx_mime,
+                headers={"Content-Disposition": f"attachment; filename=rekap-kehadiran-{cfg['slug']}.xlsx"})
+        path = build_recap_pdf(f"/tmp/recap_{person}_{user['school_id']}.pdf", school["name"],
+                               date_from, date_to, data, class_name, cfg["label"], cfg["grp_label"])
+        return FileResponse(path, media_type="application/pdf",
+                            filename=f"rekap-kehadiran-{cfg['slug']}.pdf")
+    pmap = {p["id"]: p for p in persons}
+    idf = cfg["idf"]
     if format == "xlsx":
         df = pd.DataFrame([{
-            "Tanggal": r.get("date"), "Nama": r.get("teacher_name"), "Kelas": r.get("class", ""),
-            "NIS": r.get("student_nis", ""), "Jam": r.get("time"),
+            "Tanggal": r.get("date"), "Nama": r.get("teacher_name"),
+            cfg["ref_label"]: (pmap.get(r.get(idf)) or {}).get(cfg["ref"], "") or "",
+            cfg["grp_label"]: r.get("class", "") or r.get("department", "") or "",
+            "Tipe": "Masuk" if r.get("type") == "in" else "Pulang",
+            "Jam": r.get("time"),
             "Status": (r.get("att_status") if r.get("att_status") not in (None, "present") else r.get("status")),
-            "Telat (mnt)": r.get("late_minutes", 0),
+            "Telat (mnt)": r.get("late_minutes", 0), "Lembur (mnt)": r.get("overtime_minutes", 0),
             "Offline": "Ya" if r.get("offline") else "Tidak",
         } for r in rows])
         buf = io.BytesIO()
         df.to_excel(buf, index=False)
         buf.seek(0)
         return StreamingResponse(
-            buf,
-            media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            headers={"Content-Disposition": "attachment; filename=laporan-siswa.xlsx"})
-    path = build_report_pdf(f"/tmp/report_students_{user['school_id']}.pdf", school["name"], date_from, date_to, rows)
-    return FileResponse(path, media_type="application/pdf", filename="laporan-siswa.pdf")
+            buf, media_type=xlsx_mime,
+            headers={"Content-Disposition": f"attachment; filename=laporan-{cfg['slug']}.xlsx"})
+    path = build_report_pdf(f"/tmp/report_{person}_{user['school_id']}.pdf", school["name"], date_from, date_to, rows)
+    return FileResponse(path, media_type="application/pdf", filename=f"laporan-{cfg['slug']}.pdf")
