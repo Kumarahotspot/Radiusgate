@@ -507,4 +507,12 @@ Aplikasi absensi berbasis tablet kiosk + face recognition & liveness, geofence G
 ## Backlog Prioritas (per 2026-09-22)
 - P0: Kunci Tripay asli dari user → aktifkan mode real + uji webhook (SPP & billing SaaS)
 - P1: Token Wablas asli dari user → uji kirim WA nyata (notif ortu, ringkasan mingguan, pengingat SPP)
+
+## 2026-09-22 — Laporan Kehadiran per Siswa (Admin) + export
+- Permintaan user (dengan screenshot referensi aplikasi lama): laporan kehadiran per siswa di Admin → Laporan, filter Kelas + rentang tanggal, sub-tab Harian (n) / Rekap (n), export Excel & PDF. Keputusan: cakupan semua kelas; alpha dari hari efektif; PDF berkop sekolah; laporan guru tetap ada.
+- Backend (routes_admin.py): helper `_student_report_rows` + `_student_recap` (hitungan per TANGGAL UNIK: hadir/telat/sakit/izin, alpha = hari efektif − (hadir∪sakit∪izin)); endpoint GET /admin/reports/students (harian), /admin/reports/students/recap, /admin/reports/students/export (format xlsx|pdf, kind daily|recap, filter class_name).
+- pdfgen.py: `build_recap_pdf` (kop logo+nama sekolah, kolom Nama/Kelas/Hadir/Telat/Sakit/Izin/Alpha/Hari Efektif, multipage).
+- Konsistensi: rekap guru (`teacher_report_recap`) ikut dikoreksi ke hitungan tanggal unik (sebelumnya absen masuk+pulang terhitung 2× hadir).
+- Frontend Reports.jsx: tab baru "Per Siswa" (tab-students) — filter Dari/Sampai/Kelas + tombol Export Excel/PDF (mengikuti sub-tab aktif: rekap-kehadiran-siswa.* atau laporan-siswa.*), sub-tab Harian/Rekap dengan jumlah, tabel status ber-badge. Kolom Jam menampilkan "-" untuk sakit/izin. i18n: student_att_tab (ID/EN), sisanya reuse.
+- Terverifikasi: curl e2e (23 baris harian, filter X TB 1 → 12, rekap 22 siswa dgn angka benar, 4 kombinasi export valid, PDF berkop, regresi guru OK); testing agent frontend 100% (/app/test_reports/iteration_10.json: semua flow + export filename + mobile 390 tanpa overflow + regresi tab lain & laporan guru & dasbor).
 - P2: Tablet React Native (kiosk native); laporan grafik SPP; kuitansi PDF cetak; impor data tagihan lama; Midtrans/Duitku

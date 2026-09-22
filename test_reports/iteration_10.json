@@ -1,0 +1,35 @@
+{
+  "summary": "Frontend-only verification of new 'Laporan Kehadiran per Siswa' feature (Admin → Laporan → Per Siswa) plus regressions. All 5 required frontend flows PASS and regressions clean.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "detailed_results": {
+    "FE1_tab_students_default_view": "PASS - tab-students clickable; st-from/st-to/st-class/st-export-xlsx/st-export-pdf/st-tab-daily/st-tab-recap/st-daily-table all visible. Sub-tab labels: 'Harian (23)' active + 'Rekap (122)'. Daily rows rendered = 23. First daily row cells: [2026-09-19, SUSIYANTO, X TB 1, 07:00, sakit, 0] with status badge coloring applied.",
+    "FE2_recap_susiyanto": "PASS - Recap table renders 122 rows. SUSIYANTO row = [SUSIYANTO, 2609001, X TB 1, hadir 3, telat 3, sakit 1, izin 0, alpha 0, active_days 4] EXACT match to expected values.",
+    "FE3_filter_XTB1": "PASS - After selecting Kelas 'X TB 1' both tables refilter: Harian (12), Rekap (22).",
+    "FE4_exports": "PASS - Recap sub-tab active → Export Excel triggers download 'rekap-kehadiran-siswa.xlsx'; Export PDF triggers 'rekap-kehadiran-siswa.pdf'. Switched to Daily → Export Excel triggers 'laporan-siswa.xlsx'. Filenames match spec.",
+    "FE5_mobile_390": "PASS - Viewport 390x844 on both sub-tabs: scrollWidth == clientWidth == 390 (no horizontal document overflow). Tables scroll internally via overflow-x-auto wrapper.",
+    "regression_a_tab_daily_and_subject": "PASS - tab-daily table visible; tab-subject sa-class visible; both render normally.",
+    "regression_b_guru_laporan": "PASS - guru login → /guru/laporan → kelas X TB 1 → Tampilkan → tab-daily + tab-recap present with counts 'Harian (12)' & 'Rekap (22)', table populated. Recap numbers appear consistent with distinct-date counting (no obvious dobel dari absen masuk+pulang).",
+    "regression_c_admin_dasbor": "PASS - /admin dashboard loads with metrics widgets (Hadir Hari Ini 0, Siswa Hadir 6, Telat 6, Total Guru 2, Total Siswa 122, etc.) and Absensi Hari Ini table."
+  },
+  "critical_code_review_comments": [
+    "Reports.jsx is 348 lines - manageable but if more tabs are added consider splitting each tab into a component.",
+    "Daily table 'Jam' column shows 07:00 for sakit/izin rows (records without real time). Consider blank/'-' when att_status != 'present' for cleaner UX (minor).",
+    "stExport uses same base filename regardless of stTab kind param mapping; verified filenames correct - OK.",
+    "Duplicated date-picker markup between tabs (daily/subject/students); could be extracted to a shared <DateRangeFilter/> to reduce DRY violations."
+  ],
+  "test_report_links": [],
+  "action_items": [],
+  "updated_files": [],
+  "success_rate": {"frontend": "100%"},
+  "test_credentials": "admin@nusantara.sch.id/Admin123!, guru@nusantara.sch.id/Guru123! (from problem statement, verified working)",
+  "seed_data_creation": "None - no data created or modified during testing.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Feature 'Laporan Kehadiran per Siswa' verified end-to-end on frontend. SUSIYANTO recap matches expected exactly (3/3/1/0/0/4). Backend already curl-verified by main agent. Do not re-run this suite; focus on any new features.",
+  "rca of the issue": "N/A - no issues found."
+}
