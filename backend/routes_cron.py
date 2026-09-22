@@ -132,3 +132,71 @@ async def cron_invoice_reminders(request: Request):
         return {"ok": True, "duplicate": True}
     asyncio.create_task(_run_invoice_reminders(run_id))
     return {"ok": True}
+
+
+async def _run_weekly_parent_summary(run_id: str):
+    """Ringkasan absensi minggu berjalan (Senin-Minggu) per siswa ke ortu via WA.
+    Tanpa Wablas aktif, tidak ada yang terkirim (dihitung not_sent)."""
+    try:
+        from notif import get_notif_settings
+        wablas_on = (await get_notif_settings()).get("wa_provider") == "wablas"
+        sent = not_sent = failed = 0
+        for school in await db.schools.find({}, {"_id": 0, "id": 1, "name": 1}).to_list(1000):
+            sid = school["id"]
+            st = await db.settings.find_one({"school_id": sid}, {"_id": 0, "timezone": 1}) or {}
+            try:
+                tz = ZoneInfo(st.get("timezone", "Asia/Jakarta"))
+            except Exception:
+                tz = ZoneInfo("Asia/Jakarta")
+            today = datetime.now(timezone.utc).astimezone(tz).date()
+            monday = today - __import__("datetime").timedelta(days=today.weekday())
+            date_from, date_to = monday.isoformat(), today.isoformat()
+            students = await db.students.find(
+                {"school_id": sid, "status": {"$ne": "lulus"}, "parent_phone": {"$nin": [None, ""]}},
+                {"_id": 0, "id": 1, "name": 1, "class": 1, "parent_phone": 1}).to_list(5000)
+            if not students:
+                continue
+            rows = await db.attendance.find(
+                {"school_id": sid, "person_type": "student", "type": "in",
+                 "date": {"$gte": date_from, "$lte": date_to}},
+                {"_id": 0, "student_id": 1, "att_status": 1, "late_minutes": 1}).to_list(20000)
+            per = {}
+            for r in rows:
+                per.setdefault(r.get("student_id"), []).append(r)
+            weekdays_elapsed = sum(1 for i in range((today - monday).days + 1)
+                                   if (monday + __import__("datetime").timedelta(days=i)).weekday() < 5)
+            for s in students:
+                recs = per.get(s["id"], [])
+                hadir = len([r for r in recs if r.get("att_status", "present") == "present"])
+                telat = len([r for r in recs if r.get("att_status", "present") == "present" and r.get("late_minutes", 0) > 0])
+                sakit = len([r for r in recs if r.get("att_status") == "sakit"])
+                izin = len([r for r in recs if r.get("att_status") == "izin"])
+                alpha = max(0, weekdays_elapsed - hadir - sakit - izin)
+                msg = (f"EduGateID - {school['name']}\n"
+                       f"Ringkasan absensi minggu ini ({date_from} s/d {date_to})\n"
+                       f"Ananda *{s['name']}* ({s.get('class', '-')})\n"
+                       f"Hadir: {hadir} hari" + (f" (telat {telat}x)" if telat else "") + "\n"
+                       f"Sakit: {sakit} - Izin: {izin} - Tanpa keterangan: {alpha}")
+                if not wablas_on:
+                    not_sent += 1
+                    continue
+                try:
+                    await send_whatsapp(s["parent_phone"], msg)
+                    sent += 1
+                except Exception as e:
+                    failed += 1
+                    logger.warning("Ringkasan mingguan ke ortu %s gagal: %s", s["name"], e)
+        await _finish_run(run_id, {"sent": sent, "not_sent": not_sent, "send_failed": failed})
+    except Exception as e:
+        await _finish_run(run_id, error=str(e))
+
+
+@router.post("/cron/weekly-parent-summary")
+async def cron_weekly_parent_summary(request: Request):
+    # Cron endpoints must ack 2xx immediately; enqueue/background the actual work.
+    _authorize(request)
+    run_id, dup = await _accept_run(request, "weekly-parent-summary")
+    if dup:
+        return {"ok": True, "duplicate": True}
+    asyncio.create_task(_run_weekly_parent_summary(run_id))
+    return {"ok": True}

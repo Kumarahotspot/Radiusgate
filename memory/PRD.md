@@ -432,3 +432,8 @@ Aplikasi absensi berbasis tablet kiosk + face recognition & liveness, geofence G
 - Notifikasi WA otomatis ke ortu saat siswa absen (kiosk wajah & NIS): `_notify_parent` fire-and-forget via send_whatsapp — aktif hanya jika Wablas terkonfigurasi (mode link = diam-diam lewati), kegagalan tidak mengganggu absen.
 - Frontend: halaman `/ortu` (ParentHome.jsx): kartu anak, form izin/sakit, ganti password, tabel aktivitas per hari (masuk/pulang/status badge + catatan). Login.jsx menerima "Email / No. HP". Menu/portal parent + homeFor("/ortu"). i18n ID/EN (parent_portal, child_activity, dll + date/late_short).
 - Terverifikasi: e2e 13 langkah (bulk create idempoten, login HP, salah password 401, me, absen NIS 200 + jalur notif WA aman, izin sakit tercatat + duplikat 409, ganti password → lama tolak/baru terima, ortu→admin 403, cleanup bersih), pytest 79 passed / 1 skipped, screenshot portal desktop+mobile tanpa overflow.
+
+## 2026-09-22 — Ringkasan absensi mingguan ke orang tua (cron ke-3)
+- Cron `weekly-parent-summary` (crons.yml): Jumat 10:00 UTC (17:00 WIB) → `POST /api/cron/weekly-parent-summary` (auth + idempotensi run_id seperti cron lain).
+- `_run_weekly_parent_summary` (routes_cron.py): per sekolah, rentang Senin–hari ini (zona waktu sekolah), per siswa ber-parent_phone: Hadir (x hari, telat y kali), Sakit, Izin, Tanpa keterangan (hari kerja berjalan − hadir − sakit − izin). Terkirim hanya jika Wablas aktif; tanpa Wablas dihitung `not_sent`. Hasil (sent/not_sent/send_failed) dicatat di cron_runs.
+- Terverifikasi: 401 tanpa token, 200 + duplicate run_id, run done dengan not_sent=1 (siswa uji ber-HP ortu + 1 absen minggu ini, Wablas belum aktif), cleanup bersih.

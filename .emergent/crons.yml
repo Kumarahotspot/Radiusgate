@@ -13,3 +13,10 @@ crons:
     method: POST
     # Cron endpoints must ack 2xx immediately; enqueue/background the actual work.
     enabled: true
+  - name: weekly-parent-summary
+    description: "Ringkasan absensi mingguan (Senin-Minggu) per siswa ke orang tua via WA tiap Jumat 17:00 WIB (aktif kirim jika Wablas terkonfigurasi)"
+    cron: "0 10 * * 5"
+    endpoint: "{{BASE_URL}}/api/cron/weekly-parent-summary"
+    method: POST
+    # Cron endpoints must ack 2xx immediately; enqueue/background the actual work.
+    enabled: true
