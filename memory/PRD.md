@@ -473,5 +473,7 @@ Aplikasi absensi berbasis tablet kiosk + face recognition & liveness, geofence G
 - Temuan lingkungan: proxy email Emergent (Resend) memblokir alamat undeliverable (mis. example.com) dengan 422 `undeliverable_recipient` — kegagalan ditangani graceful (dicatat, dihitung send_failed). Untuk pengujian email gunakan `delivered@resend.dev`.
 - Terverifikasi: kuitansi email terkirim tanpa error, cron pengingat email_sent=1 & send_failed=0 (alamat resend.dev), dedupe run kedua 0 kirim, cleanup bersih, pytest 79 passed / 1 skipped.
 
-## 2026-09-22 — UX: field Alamat diperlebar jadi textarea
-- Atas masukan user (field alamat terlalu sempit): Alamat di form tambah siswa kini textarea 2 baris selebar penuh form (w-full, ~1214px desktop); di modal Ubah Siswa textarea lebar penuh modal (sm:col-span-2, ~408px). Testid tetap student-address / edit-student-address. Terverifikasi screenshot (TEXTAREA width terukur, tanpa overflow mobile).
+## 2026-09-22 — UX: field Alamat diperlebar jadi textarea + urutan form dirapikan
+- Atas masukan user (field alamat terlalu sempit): Alamat di form tambah siswa kini textarea 2 baris selebar penuh form (w-full, ~1214px desktop); di modal Ubah Siswa textarea lebar penuh modal (sm:col-span-2, ~408px). Testid tetap student-address / edit-student-address.
+- Atas masukan user: urutan field form tambah & modal edit siswa kini Nama → NIS → NISN → **Jenis Kelamin → Kelas** → No. HP Ortu → Nama Ortu → Email Ortu → Alamat → tombol simpan.
+- Terverifikasi screenshot (urutan testid terukur benar di kedua form, tanpa overflow mobile).
