@@ -324,7 +324,11 @@ export default function Students() {
         <In label={t("parent_phone")} testid="student-parent-phone" v={form.parent_phone} set={(v) => setForm({ ...form, parent_phone: v })} />
         <In label={t("parent_name")} testid="student-parent-name" v={form.parent_name} set={(v) => setForm({ ...form, parent_name: v })} />
         <In label={t("parent_email")} testid="student-parent-email" type="email" v={form.parent_email} set={(v) => setForm({ ...form, parent_email: v })} />
-        <In label={t("address")} testid="student-address" v={form.address} set={(v) => setForm({ ...form, address: v })} />
+        <div className="w-full">
+          <label className="text-xs font-semibold text-slate-500">{t("address")}</label>
+          <textarea data-testid="student-address" rows={2} value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })}
+            className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-600/15 transition" />
+        </div>
         <div>
           <label className="text-xs font-semibold text-slate-500">{t("gender")}</label>
           <select data-testid="student-gender" value={form.gender} onChange={(e) => setForm({ ...form, gender: e.target.value })}
@@ -599,7 +603,11 @@ export default function Students() {
               <In label={t("parent_phone")} testid="edit-student-parent-phone" v={editFor.parent_phone || ""} set={(v) => setEditFor({ ...editFor, parent_phone: v })} grow />
               <In label={t("parent_name")} testid="edit-student-parent-name" v={editFor.parent_name || ""} set={(v) => setEditFor({ ...editFor, parent_name: v })} grow />
               <In label={t("parent_email")} testid="edit-student-parent-email" type="email" v={editFor.parent_email || ""} set={(v) => setEditFor({ ...editFor, parent_email: v })} grow />
-              <In label={t("address")} testid="edit-student-address" v={editFor.address || ""} set={(v) => setEditFor({ ...editFor, address: v })} grow />
+              <div className="sm:col-span-2">
+                <label className="text-xs font-semibold text-slate-500">{t("address")}</label>
+                <textarea data-testid="edit-student-address" rows={2} value={editFor.address || ""} onChange={(e) => setEditFor({ ...editFor, address: e.target.value })}
+                  className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-600/15 transition" />
+              </div>
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
