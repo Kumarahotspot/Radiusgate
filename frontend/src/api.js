@@ -19,6 +19,7 @@ const CODE_KEYS = {
   invalid_or_expired: "reset_invalid",
   password_too_short: "password_too_short",
   wrong_current_password: "wrong_current_password",
+  overpayment: "overpayment",
 };
 
 export const errMsg = (e, fallback = "Terjadi kesalahan") => {

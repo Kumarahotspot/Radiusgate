@@ -8,6 +8,9 @@ export default function ParentHome() {
   const { t } = useTranslation();
   const [me, setMe] = useState(null);
   const [att, setAtt] = useState([]);
+  const [spp, setSpp] = useState({ bills: [], payments: [] });
+  const [payFor, setPayFor] = useState(null);
+  const [payAmount, setPayAmount] = useState("");
   const today = new Date().toISOString().slice(0, 10);
   const [leave, setLeave] = useState({ status: "sakit", date: today, note: "" });
   const [pw, setPw] = useState({ current_password: "", new_password: "" });
@@ -16,8 +19,22 @@ export default function ParentHome() {
   const load = () => {
     api.get("/parent/me").then((r) => setMe(r.data)).catch(() => {});
     api.get("/parent/attendance").then((r) => setAtt(r.data)).catch(() => {});
+    api.get("/parent/spp").then((r) => setSpp(r.data)).catch(() => {});
   };
   useEffect(() => { load(); }, []);
+
+  const rp = (n) => `Rp ${Number(n || 0).toLocaleString("id-ID")}`;
+
+  const submitPay = async (e) => {
+    e.preventDefault();
+    setBusy(true);
+    try {
+      await api.post("/parent/spp/pay", { bill_id: payFor.id, amount: Number(payAmount) });
+      toast.success(t("spp_pay_done"));
+      setPayFor(null);
+      load();
+    } catch (err) { toast.error(errMsg(err)); } finally { setBusy(false); }
+  };
 
   const submitLeave = async (e) => {
     e.preventDefault();
@@ -64,6 +81,50 @@ export default function ParentHome() {
           </div>
         </div>
       )}
+
+      <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden" data-testid="spp-section">
+        <p className="px-4 pt-4 font-bold text-slate-800">{t("spp_my_bills")}</p>
+        <p className="px-4 text-[11px] text-slate-400">{t("spp_demo_note")}</p>
+        <div className="p-4 space-y-3">
+          {spp.bills.map((b) => (
+            <div key={b.id} data-testid={`spp-bill-${b.id}`} className="border border-slate-200 rounded-xl p-4">
+              <div className="flex items-start justify-between gap-2">
+                <div>
+                  <p className="font-semibold text-slate-800 text-sm">{b.title}</p>
+                  <p className="text-xs text-slate-400">{b.category} · {t("due_date")}: {b.due_date}</p>
+                </div>
+                <span className={`px-2 py-0.5 rounded-full text-[11px] font-bold shrink-0 ${b.status === "paid" ? "bg-emerald-100 text-emerald-700" : b.status === "partial" ? "bg-amber-100 text-amber-700" : "bg-red-100 text-red-600"}`}>
+                  {t(`status_${b.status}`)}
+                </span>
+              </div>
+              <div className="mt-2 h-2 rounded-full bg-slate-100 overflow-hidden">
+                <div className="h-full bg-teal-600 rounded-full" style={{ width: `${Math.min(100, (b.paid_amount / b.amount) * 100)}%` }} />
+              </div>
+              <div className="mt-2 flex items-center justify-between gap-2">
+                <p className="text-xs text-slate-500">{rp(b.paid_amount)} / <strong className="text-slate-700">{rp(b.amount)}</strong>{b.remaining > 0 && <span className="text-amber-600"> · {t("remaining")} {rp(b.remaining)}</span>}</p>
+                {b.status !== "paid" && (
+                  <button data-testid={`spp-pay-${b.id}`} onClick={() => { setPayFor(b); setPayAmount(String(b.remaining)); }}
+                    className="px-4 py-1.5 rounded-xl text-xs font-bold text-white bg-teal-700 hover:bg-teal-800 transition-colors">
+                    {t("spp_pay")}
+                  </button>
+                )}
+              </div>
+            </div>
+          ))}
+          {spp.bills.length === 0 && <p className="text-center text-slate-400 text-sm py-4">{t("no_data")}</p>}
+        </div>
+        {spp.payments.length > 0 && (
+          <div className="border-t px-4 py-3">
+            <p className="text-xs font-bold text-slate-500 uppercase tracking-wide mb-2">{t("spp_history")}</p>
+            {spp.payments.slice(0, 5).map((p) => (
+              <div key={p.id} className="flex justify-between text-xs py-1.5 border-b last:border-0 border-slate-100">
+                <span className="text-slate-600">{p.bill_title} · <span className="font-mono text-slate-400">{p.reference}</span></span>
+                <span className="font-bold text-teal-700">{rp(p.amount)}</span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
 
       <div className="grid lg:grid-cols-2 gap-6 items-start">
         <form onSubmit={submitLeave} data-testid="parent-leave-form" className="bg-white rounded-2xl border border-slate-200 p-5">
@@ -112,6 +173,25 @@ export default function ParentHome() {
             className="mt-4 px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-teal-700 hover:bg-teal-800 disabled:opacity-50">{t("change_password")}</button>
         </form>
       </div>
+
+      {payFor && (
+        <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4" data-testid="spp-pay-modal">
+          <form onSubmit={submitPay} className="bg-white rounded-2xl w-full max-w-sm p-5 space-y-4">
+            <p className="font-bold text-slate-800">{t("spp_pay")} — {payFor.title}</p>
+            <p className="text-xs text-slate-500">{t("remaining")}: <strong>{rp(payFor.remaining)}</strong></p>
+            <div>
+              <label className="text-xs font-semibold text-slate-500">{t("amount")}</label>
+              <input data-testid="spp-pay-amount" type="number" min={1} max={payFor.remaining} required value={payAmount} onChange={(e) => setPayAmount(e.target.value)}
+                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-teal-600" />
+            </div>
+            <p className="text-[11px] text-amber-600 bg-amber-50 rounded-lg px-3 py-2">{t("spp_demo_note")}</p>
+            <div className="flex justify-end gap-2">
+              <button type="button" onClick={() => setPayFor(null)} className="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 bg-slate-100 hover:bg-slate-200">{t("cancel")}</button>
+              <button data-testid="spp-pay-submit" disabled={busy} className="px-4 py-2 rounded-xl text-xs font-bold text-white bg-teal-700 hover:bg-teal-800 disabled:opacity-50">{t("spp_pay")}</button>
+            </div>
+          </form>
+        </div>
+      )}
 
       <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
         <p className="px-4 pt-4 font-bold text-slate-800">{t("child_activity")}</p>

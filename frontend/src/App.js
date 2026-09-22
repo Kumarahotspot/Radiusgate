@@ -26,6 +26,7 @@ import TeacherStudentStatus from "@/pages/teacher/TeacherStudentStatus";
 import TeacherReports from "@/pages/teacher/TeacherReports";
 import Employees from "@/pages/admin/Employees";
 import Overtime from "@/pages/admin/Overtime";
+import Spp from "@/pages/admin/Spp";
 import EmployeeHome from "@/pages/employee/EmployeeHome";
 import ParentHome from "@/pages/parent/ParentHome";
 
@@ -64,6 +65,7 @@ function App() {
             <Route path="/admin/settings" element={<SettingsPage />} />
             <Route path="/admin/leaves" element={<Leaves />} />
             <Route path="/admin/reports" element={<Reports />} />
+            <Route path="/admin/spp" element={<Spp />} />
             <Route path="/admin/billing" element={<Billing />} />
           </Route>
           <Route element={<Guard roles={["teacher"]}><Layout /></Guard>}>

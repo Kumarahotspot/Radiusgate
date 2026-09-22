@@ -20,3 +20,10 @@ crons:
     method: POST
     # Cron endpoints must ack 2xx immediately; enqueue/background the actual work.
     enabled: true
+  - name: spp-reminders
+    description: "Pengingat WA tagihan SPP mendekati jatuh tempo (H-3 & H-1) ke orang tua, harian 09:00 WIB (aktif kirim jika Wablas terkonfigurasi)"
+    cron: "0 2 * * *"
+    endpoint: "{{BASE_URL}}/api/cron/spp-reminders"
+    method: POST
+    # Cron endpoints must ack 2xx immediately; enqueue/background the actual work.
+    enabled: true

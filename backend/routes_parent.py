@@ -55,3 +55,46 @@ async def child_leave(body: ParentLeaveIn, user: dict = Depends(parent_dep)):
         extra={"person_type": "student", "class": st.get("class", ""), "att_status": body.status,
                "note": body.note, "recorded_by": user["id"], "recorded_by_name": "Orang Tua"})
     return {"ok": True, "date": doc["date"], "att_status": body.status}
+
+
+# ---------- Tagihan SPP anak ----------
+@router.get("/parent/spp")
+async def child_spp(user: dict = Depends(parent_dep)):
+    st = await my_child(user)
+    bills = await db.bills.find({"school_id": user["school_id"], "student_id": st["id"]},
+                                {"_id": 0}).sort("due_date", -1).to_list(200)
+    for b in bills:
+        b["status"] = "paid" if b.get("paid_amount", 0) >= b["amount"] else ("partial" if b.get("paid_amount", 0) > 0 else "unpaid")
+        b["remaining"] = max(0, b["amount"] - b.get("paid_amount", 0))
+    payments = await db.spp_payments.find({"school_id": user["school_id"], "student_id": st["id"]},
+                                          {"_id": 0}).sort("created_at", -1).to_list(100)
+    return {"bills": bills, "payments": payments}
+
+
+class SppPayIn(BaseModel):
+    bill_id: str
+    amount: int
+
+
+@router.post("/parent/spp/pay")
+async def pay_bill(body: SppPayIn, user: dict = Depends(parent_dep)):
+    """MODE DEMO: pembayaran online disimulasikan (langsung tercatat). Beralih ke Tripay asli
+    otomatis saat kredensial diisi."""
+    st = await my_child(user)
+    bill = await db.bills.find_one({"id": body.bill_id, "school_id": user["school_id"], "student_id": st["id"]})
+    if not bill:
+        raise HTTPException(status_code=404, detail="Tagihan tidak ditemukan")
+    remaining = bill["amount"] - bill.get("paid_amount", 0)
+    if body.amount <= 0 or body.amount > remaining:
+        raise HTTPException(status_code=422, detail=f"overpayment:{remaining}")
+    ref = f"DEMO-{uuid.uuid4().hex[:8].upper()}"
+    pay = {"id": str(uuid.uuid4()), "school_id": user["school_id"], "bill_id": bill["id"],
+           "student_id": st["id"], "student_name": st["name"], "bill_title": bill["title"],
+           "class": st.get("class", ""), "amount": body.amount, "method": "Online (Demo)",
+           "channel": "tripay_demo", "reference": ref, "note": "", "recorded_by": "Orang Tua",
+           "paid_at": __import__("datetime").datetime.now(__import__("datetime").timezone.utc).isoformat(),
+           "created_at": __import__("datetime").datetime.now(__import__("datetime").timezone.utc).isoformat()}
+    await db.spp_payments.insert_one(pay)
+    pay.pop("_id", None)
+    await db.bills.update_one({"id": bill["id"]}, {"$inc": {"paid_amount": body.amount}})
+    return {"ok": True, "reference": ref, "mode": "demo"}

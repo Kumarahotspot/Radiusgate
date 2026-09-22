@@ -200,3 +200,53 @@ async def cron_weekly_parent_summary(request: Request):
         return {"ok": True, "duplicate": True}
     asyncio.create_task(_run_weekly_parent_summary(run_id))
     return {"ok": True}
+
+
+async def _run_spp_reminders(run_id: str):
+    """Pengingat WA tagihan SPP mendekati jatuh tempo (H-3 & H-1) ke orang tua.
+    Tanpa Wablas aktif dihitung not_sent."""
+    try:
+        from notif import get_notif_settings
+        from datetime import date as _date
+        wablas_on = (await get_notif_settings()).get("wa_provider") == "wablas"
+        sent = not_sent = failed = 0
+        today = datetime.now(timezone.utc).date()
+        bills = await db.bills.find(
+            {"$expr": {"$lt": ["$paid_amount", "$amount"]},
+             "due_date": {"$in": [(today + __import__("datetime").timedelta(days=d)).isoformat() for d in (1, 3)]}},
+            {"_id": 0}).to_list(10000)
+        for bill in bills:
+            days_left = (_date.fromisoformat(bill["due_date"]) - today).days
+            if days_left in bill.get("reminded_for", []):
+                continue
+            st = await db.students.find_one({"id": bill["student_id"]}, {"_id": 0, "parent_phone": 1})
+            if not st or not st.get("parent_phone"):
+                continue
+            sisa = bill["amount"] - bill.get("paid_amount", 0)
+            msg = (f"PENGINGAT Tagihan Sekolah\n"
+                   f"Siswa: *{bill['student_name']}*\nTagihan: {bill['title']}\n"
+                   f"Sisa: Rp {sisa:,}\nJatuh tempo: {bill['due_date']} (H-{days_left})".replace(",", "."))
+            if not wablas_on:
+                not_sent += 1
+            else:
+                try:
+                    await send_whatsapp(st["parent_phone"], msg)
+                    sent += 1
+                except Exception as e:
+                    failed += 1
+                    logger.warning("Pengingat SPP %s gagal: %s", bill["id"], e)
+            await db.bills.update_one({"id": bill["id"]}, {"$addToSet": {"reminded_for": days_left}})
+        await _finish_run(run_id, {"sent": sent, "not_sent": not_sent, "send_failed": failed})
+    except Exception as e:
+        await _finish_run(run_id, error=str(e))
+
+
+@router.post("/cron/spp-reminders")
+async def cron_spp_reminders(request: Request):
+    # Cron endpoints must ack 2xx immediately; enqueue/background the actual work.
+    _authorize(request)
+    run_id, dup = await _accept_run(request, "spp-reminders")
+    if dup:
+        return {"ok": True, "duplicate": True}
+    asyncio.create_task(_run_spp_reminders(run_id))
+    return {"ok": True}
