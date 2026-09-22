@@ -1,0 +1,31 @@
+{
+  "summary": "Frontend-only regression + FE verification of Reports page after refactor to generic PersonReport with 5 tabs (Harian | Per Mapel | Per Siswa | Per Guru | Per Karyawan). All 7 FE checklist items PASS.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Reports.jsx is nearing 373 lines with 3 inline table implementations (daily, subject, PersonReport). Consider extracting DailyReport & SubjectReport into their own files to keep single-responsibility (currently mixes 3 report shapes and the tab shell).",
+    "PersonReport useEffect deps miss meta.showClass but include it; harmless. Consider passing an AbortController when switching tabs quickly to prevent stale setRows/setRecap after unmount.",
+    "Daily table cell uses r.teacher_name for all persons (student/teacher/employee). Currently backend maps name into teacher_name for compat; works but is confusing naming — recommend renaming API field to person_name for clarity."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "N/A (skipped per request)", "frontend": "100%"},
+  "test_credentials": "admin@nusantara.sch.id / Admin123! (school_admin)",
+  "seed_data_creation": "None",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "FE1-FE7 verified on preview URL. Verified: 5 tabs render; tab-teachers has tc-* controls with NO class dropdown, Rekap (1) shows Budi Santoso NIP 198001012005011001 Mapel Matematika (0/0/0/0/0/0 — expected due to no attendance data); tab-employees emp-* with NO class, Rekap (1) shows lembur NIP 2606666 Departemen Tata Usaha (0 counts — expected). Downloads triggered: rekap-kehadiran-guru.xlsx, rekap-kehadiran-guru.pdf, laporan-guru.xlsx, rekap-kehadiran-karyawan.xlsx, rekap-kehadiran-siswa.xlsx. Students regression: st-class dropdown present, Harian (23) Rekap (122), daily headers include Tipe & Lembur (mnt), SUSIYANTO row = [SUSIYANTO, 2609001, X TB 1, 3, 3, 1, 0, 0, 4] ✓; Filter Kelas X TB 1 → Harian (12) Rekap (22) ✓. Regression Harian & Per Mapel tabs load without error. Mobile 390px: none of 5 tabs cause horizontal overflow (scrollWidth==clientWidth=390). Date range change on Per Guru reloads data without error.",
+  "verification_evidence": {
+    "teachers_recap_headers": ["Nama","NIP","Mata Pelajaran","Hadir","Telat","Sakit","Izin","Alpha","Hari Efektif"],
+    "employees_recap_headers": ["Nama","NIP","Departemen","Hadir","Telat","Sakit","Izin","Alpha","Hari Efektif"],
+    "students_daily_headers": ["Tanggal","Nama","Kelas","Tipe","Jam","Status","Telat (mnt)","Lembur (mnt)"],
+    "susiyanto_row": ["SUSIYANTO","2609001","X TB 1","3","3","1","0","0","4"],
+    "downloads_verified": ["rekap-kehadiran-guru.xlsx","rekap-kehadiran-guru.pdf","laporan-guru.xlsx","rekap-kehadiran-karyawan.xlsx","rekap-kehadiran-siswa.xlsx"],
+    "mobile_overflow": "none (all 5 tabs at 390px width)"
+  }
+}
