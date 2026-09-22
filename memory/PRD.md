@@ -493,3 +493,18 @@ Aplikasi absensi berbasis tablet kiosk + face recognition & liveness, geofence G
 - `GET /admin/today` kini menerima query `date=YYYY-MM-DD` (default hari ini zona waktu sekolah; format invalid → 422).
 - AdminDashboard: input date (testid att-date, max = hari ini) di header tabel "Absensi Hari Ini"; ganti tanggal → tabel reload + reset ke halaman 1. Kartu statistik tetap menampilkan data HARI INI. Terverifikasi screenshot: default hari ini, ganti ke kemarin memuat data 21/09 (6 baris "Komplit"/"Masuk Saja"), kembali ke hari ini normal, tanpa overflow mobile.
 - Terverifikasi screenshot (urutan testid terukur benar di kedua form, tanpa overflow mobile).
+
+
+## 2026-09-22 — Absensi per Mata Pelajaran (guru) — SELESAI
+- Permintaan user: guru mapel bisa mengabsen siswa per sesi pelajaran (mis. jam pertama Bahasa Inggris, jam berikutnya mapel lain).
+- Backend (routes_teacher.py): GET /teacher/subject-att/meta (mapel & kelas yang diampu), GET /teacher/subject-att (date+subject+class_name → students + records + saved), POST /teacher/subject-att (upsert ke koleksi `subject_attendance`, validasi mapel/kelas diampu → 403, status hadir/sakit/izin/alpha). Admin: GET /admin/subject-attendance (routes_admin.py:837) dengan filter date_from/date_to/class_name/subject.
+- Frontend: halaman guru /guru/mapel (TeacherSubjectAtt.jsx) — picker tanggal+mapel+kelas, tabel siswa dgn 4 tombol status, counter badge, tombol Semua Hadir & Simpan, catatan edit bila sesi sudah tersimpan; menu ke-4 "Absen Mapel" di Layout. Admin Reports.jsx: tab "Per Mapel" (tab-subject) dengan filter tanggal/kelas/mapel.
+- i18n: subject_att, mapel, att_hadir/sakit/izin/alpha, all_present, att_saved, att_edit_note, subject_att_tab, all_subjects (ID/EN).
+- Fix saat verifikasi: (1) label dropdown filter mapel admin salah pakai all_status → all_subjects; (2) overflow horizontal 8px (scrollWidth 540) di tab Per Mapel mobile 390px karena select memakai lebar opsi mapel terpanjang → select dibatasi (w-full + max-w-full pada wrapper).
+- Terverifikasi: curl e2e (meta OK, GET 22 siswa, POST saved=22, reload saved=true, 403 mapel/kelas di luar ampuan, admin rows=22); testing agent frontend 100% (/app/test_reports/iteration_9.json: persistence setelah reload, ganti kelas, filter admin, regresi menu guru, mobile OK); screenshot ulang pasca-fix overflow: 390=390 OK, desktop OK.
+- Data demo sengaja disimpan: absen mapel Matematika X TB 1 tanggal 2026-09-22 (Galang=sakit, Kasmujo=izin, 20 hadir).
+
+## Backlog Prioritas (per 2026-09-22)
+- P0: Kunci Tripay asli dari user → aktifkan mode real + uji webhook (SPP & billing SaaS)
+- P1: Token Wablas asli dari user → uji kirim WA nyata (notif ortu, ringkasan mingguan, pengingat SPP)
+- P2: Tablet React Native (kiosk native); laporan grafik SPP; kuitansi PDF cetak; impor data tagihan lama; Midtrans/Duitku

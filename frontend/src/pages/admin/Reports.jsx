@@ -144,19 +144,19 @@ export default function Reports() {
               <input data-testid="sa-to" type="date" value={to} onChange={(e) => setTo(e.target.value)}
                 className="mt-1 block rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-teal-600" />
             </div>
-            <div>
+            <div className="min-w-0 max-w-full">
               <label className="text-xs font-semibold text-slate-500">{t("class")}</label>
               <select data-testid="sa-class" value={saClass} onChange={(e) => setSaClass(e.target.value)}
-                className="mt-1 block rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-teal-600 bg-white">
+                className="mt-1 block w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-teal-600 bg-white">
                 <option value="">{t("all_classes")}</option>
                 {(opts.classes || []).map((c) => <option key={c} value={c}>{c}</option>)}
               </select>
             </div>
-            <div>
+            <div className="min-w-0 max-w-full">
               <label className="text-xs font-semibold text-slate-500">{t("mapel")}</label>
               <select data-testid="sa-subject" value={saSubject} onChange={(e) => setSaSubject(e.target.value)}
-                className="mt-1 block rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-teal-600 bg-white">
-                <option value="">{t("all_status")}</option>
+                className="mt-1 block w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-teal-600 bg-white">
+                <option value="">{t("all_subjects")}</option>
                 {(opts.subjects || []).map((s) => <option key={s} value={s}>{s}</option>)}
               </select>
             </div>

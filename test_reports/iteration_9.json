@@ -1,0 +1,28 @@
+{
+  "summary": "Frontend E2E testing of new 'Absen per Mapel' feature — ALL requested flows PASSED. (1) Guru login + /guru/mapel loads correctly with data-testid subject-att-page, sa-date=2026-09-22, sa-subject=Matematika, sa-class=X TB 1, 22 student rows, saved-note visible, counts Hadir:20 Sakit:1 Izin:1 Alpha:0 (Galang=Sakit, Kasmujo=Izin). (2) Persistence verified: changed SUSIYANTO to Alpha, clicked Simpan, reloaded → Alpha button remained active and count-alpha=1. Reverted to Hadir + saved to restore demo state. (3) Class switch to X TB 2 → 20 students, no saved-note (empty state, default Hadir), Semua Hadir button → Hadir:20. Did NOT save (as instructed). (4) Admin login + /admin/reports → tab-subject shows 22 rows for today with Budi Santoso as guru, Galang=Sakit, Kasmujo=Izin. Filter dropdowns sa-class and sa-subject work correctly (still 22 rows after filter X TB 1 + Matematika since all data matches). (5) Mobile 390px: /guru/mapel body no horizontal overflow (sw=cw=390). Guru nav tabs live inside a container with class 'overflow-x-auto' (sw=510, cw=390) — scrollable by design, does NOT break layout (confirmed as intended horizontal scroll). /admin/laporan has minor 8px scroll overflow (sw=398 cw=390) — very minor. (6) Regression: /guru, /guru/izin, /guru/laporan all load without errors after 4th menu item added.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "/admin/laporan on 390px mobile", "issues": ["Very minor 8px horizontal overflow (documentElement.scrollWidth=398 vs clientWidth=390). Likely from admin tab-bar 'Dasbor|Guru|Siswa|Karyawan|Lembur|Pengaturan|Izin/Cuti|Laporan|SPP & Tagihan|Tagihan' row. If already inside overflow-x-auto container it is intended scrollable (like guru nav), but the extra 8px suggests the outer wrapper may need overflow-x-hidden/overflow-x-auto at the top-level container. Non-blocking."]},
+    {"screen": "Guru nav bar on 390px", "issues": ["Confirmed the nav row uses 'overflow-x-auto pb-2' — content width 510px inside 390px viewport is by design (horizontally scrollable). Not a layout break. Main agent's concern is resolved: menu is safely scrollable, does not push page width."]}
+    ]
+  },
+  "test_report_links": ["/app/test_reports/iteration_9.json"],
+  "action_items": [
+    "OPTIONAL: Fix minor 8px horizontal overflow on /admin/laporan at 390px (wrap the admin secondary tab bar in overflow-x-auto if not already, or add overflow-x-hidden to Layout main). Non-blocking.",
+    "PRE-EXISTING (from iter_8): Console hydration warning 'span cannot be a child of option' recurs on TeacherStudentStatus.jsx select — same instrumentation wrapper issue as Spp.jsx, likely dev-tool only."
+  ],
+  "critical_code_review_comments": [
+    "TeacherSubjectAtt.jsx is clean, well-scoped (<135 lines), has all required data-testid attributes, proper error handling via errMsg, toast feedback, and correct persistence flow.",
+    "Reports.jsx correctly gates the subject-att fetch via `if (tab !== 'subject') return;` avoiding unnecessary calls."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "not_retested (per instruction)", "frontend": "100%"},
+  "test_credentials": "guru@nusantara.sch.id / Guru123! ✓, admin@nusantara.sch.id / Admin123! ✓",
+  "seed_data_creation": "None permanent. Temporarily changed SUSIYANTO to Alpha then reverted to Hadir; X TB 2 all-present state was NOT saved as instructed. Demo state (Galang=Sakit, Kasmujo=Izin, rest Hadir on X TB 1 Matematika 2026-09-22) preserved intact.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Absen per Mapel feature is fully verified end-to-end (guru save + persistence + class switch + admin per-mapel report + filters). Data-testid coverage is excellent. Only minor design-nit is 8px overflow on /admin/laporan at 390px. Guru nav overflow is intentional (overflow-x-auto). Do not remove demo data for 2026-09-22 X TB 1 Matematika."
+}
