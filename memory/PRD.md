@@ -547,4 +547,11 @@ Aplikasi absensi berbasis tablet kiosk + face recognition & liveness, geofence G
 - Bug yang ditemukan saat verifikasi: memilih tahun lalu bulan me-reset picker (nilai parsial hilang karena onChange("") menimpa) → diperbaiki dengan state lokal `sel` di komponen.
 - Backend tidak berubah (filter month=YYYY-MM via regex due_date/paid_at terverifikasi benar: Agu 2026 → 0 baris, Sep 2026 → 4 baris).
 - Terverifikasi screenshot: pilih tahun tetap tersimpan, bulan+tahun memfilter benar, kosongkan bulan menonaktifkan filter, tab Transaksi default September 2026, mobile 390 tanpa overflow.
+
+## 2026-09-23 — Kolom Tgl Bayar di tabel Tagihan SPP + MonthYearPicker jadi komponen bersama
+- Permintaan user: "tambahkan juga tgl pembayarannya" (+ persetujuan menerapkan picker Bulan/Tahun ke halaman lain).
+- Backend routes_spp.py: `list_bills` kini melampirkan `last_paid_at` (tanggal pembayaran terakhir per tagihan, join spp_payments).
+- Frontend Spp.jsx: kolom baru "Tgl Bayar" (testid bill-paid-at-<id>, "—" bila belum ada pembayaran), colSpan 8→9. i18n baru: payment_date (ID "Tgl Bayar" / EN "Paid Date").
+- `MonthYearPicker` diekstrak ke `/app/frontend/src/components/MonthYearPicker.jsx` (mandiri via useTranslation, prop allowEmpty — false = tanpa opsi "Semua"). Dipakai di: Spp.jsx (tab Tagihan & Transaksi), Overtime.jsx (periode payroll, allowEmpty=false), OwnerInvoices.jsx (periode invoice, allowEmpty=false) — menggantikan semua input type="month".
+- Terverifikasi: curl (last_paid_at terisi benar untuk lunas/cicilan, kosong untuk belum lunas), screenshot 3 halaman (kolom Tgl Bayar tampil benar, picker payroll & invoice default September 2026 dan berfungsi).
 - P2: Tablet React Native (kiosk native); laporan grafik SPP; kuitansi PDF cetak; impor data tagihan lama; Midtrans/Duitku

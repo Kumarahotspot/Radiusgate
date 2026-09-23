@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import api, { errMsg } from "../../api";
 import { periodLabel } from "../../i18n";
+import MonthYearPicker from "../../components/MonthYearPicker";
 import { FileText, Send, MessageCircle } from "lucide-react";
 
 const rupiah = (n) => `Rp ${Number(n || 0).toLocaleString("id-ID")}`;
@@ -41,8 +42,7 @@ export default function OwnerInvoices() {
       <div className="bg-white rounded-2xl border border-slate-200 p-5 flex flex-wrap items-end gap-3">
         <div>
           <label className="text-xs font-semibold text-slate-500">{t("period")}</label>
-          <input data-testid="invoice-period" type="month" value={period} onChange={(e) => setPeriod(e.target.value)}
-            className="mt-1 block rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-teal-600" />
+          <MonthYearPicker testid="invoice-period" value={period} onChange={setPeriod} allowEmpty={false} />
         </div>
         <label className="flex items-center gap-2 text-sm text-slate-600 pb-2.5">
           <input data-testid="invoice-send-email" type="checkbox" checked={sendEmail} onChange={(e) => setSendEmail(e.target.checked)} className="accent-teal-700 w-4 h-4" />

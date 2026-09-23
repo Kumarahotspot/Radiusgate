@@ -2,36 +2,13 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import api, { errMsg } from "../../api";
-import { MONTHS_ID, MONTHS_EN } from "../../i18n";
+import MonthYearPicker from "../../components/MonthYearPicker";
 import { Plus, Layers, Tags, Banknote, Trash2, FileDown, Wallet, AlertTriangle, TrendingUp, Receipt, X } from "lucide-react";
 
 const rp = (n) => `Rp ${Number(n || 0).toLocaleString("id-ID")}`;
 
-function MonthYearPicker({ testid, value, onChange, t, lang }) {
-  const names = String(lang).startsWith("en") ? MONTHS_EN : MONTHS_ID;
-  const [sel, setSel] = useState(value ? value.split("-") : ["", ""]);
-  const [y, m] = sel;
-  const now = new Date().getFullYear();
-  const years = [];
-  for (let yy = now - 3; yy <= now + 1; yy++) years.push(String(yy));
-  const set = (yy, mm) => { setSel([yy, mm]); onChange(yy && mm ? `${yy}-${mm}` : ""); };
-  const cls = "mt-1 block rounded-xl border border-slate-200 px-3 py-2 text-sm bg-white outline-none focus:border-teal-600";
-  return (
-    <div className="flex gap-2">
-      <select data-testid={`${testid}-month`} value={m} onChange={(e) => set(y, e.target.value)} className={cls}>
-        <option value="">{t("all_months")}</option>
-        {names.slice(1).map((n, i) => <option key={n} value={String(i + 1).padStart(2, "0")}>{n}</option>)}
-      </select>
-      <select data-testid={`${testid}-year`} value={y} onChange={(e) => set(e.target.value, m)} className={cls}>
-        <option value="">{t("all_years")}</option>
-        {years.map((yy) => <option key={yy} value={yy}>{yy}</option>)}
-      </select>
-    </div>
-  );
-}
-
 export default function Spp() {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const [tab, setTab] = useState("bills");
   const [stats, setStats] = useState(null);
   const [bills, setBills] = useState([]);
@@ -181,7 +158,7 @@ export default function Spp() {
           <div className="bg-white rounded-2xl border border-slate-200 p-4 flex flex-wrap items-end gap-3">
             <div>
               <label className="text-xs font-semibold text-slate-500">{t("period_filter")}</label>
-              <MonthYearPicker testid="flt-month" value={flt.month} onChange={(v) => setFlt({ ...flt, month: v })} t={t} lang={i18n.language} />
+              <MonthYearPicker testid="flt-month" value={flt.month} onChange={(v) => setFlt({ ...flt, month: v })} />
             </div>
             <div>
               <label className="text-xs font-semibold text-slate-500">{t("class")}</label>
@@ -216,6 +193,7 @@ export default function Spp() {
                     <th className="px-4 py-3">{t("amount")}</th>
                     <th className="px-4 py-3">{t("remaining")}</th>
                     <th className="px-4 py-3">{t("due_date")}</th>
+                    <th className="px-4 py-3">{t("payment_date")}</th>
                     <th className="px-4 py-3">{t("status")}</th>
                     <th className="px-4 py-3">{t("actions")}</th>
                   </tr>
@@ -229,6 +207,7 @@ export default function Spp() {
                       <td className="px-4 py-3">{rp(b.amount)}</td>
                       <td className="px-4 py-3 font-semibold text-amber-600">{b.remaining > 0 ? rp(b.remaining) : "—"}</td>
                       <td className={`px-4 py-3 font-mono text-xs ${overdue(b) ? "text-red-600 font-bold" : ""}`}>{b.due_date}</td>
+                      <td className="px-4 py-3 font-mono text-xs" data-testid={`bill-paid-at-${b.id}`}>{b.last_paid_at ? b.last_paid_at.slice(0, 10) : "—"}</td>
                       <td className="px-4 py-3"><span className={`px-2 py-0.5 rounded-full text-[11px] font-bold ${stBadge(b.status)}`}>{t(`status_${b.status}`)}</span></td>
                       <td className="px-4 py-3">
                         <div className="flex gap-1">
@@ -246,7 +225,7 @@ export default function Spp() {
                       </td>
                     </tr>
                   ))}
-                  {bills.length === 0 && <tr><td colSpan={8} className="px-4 py-8 text-center text-slate-400">{t("no_data")}</td></tr>}
+                  {bills.length === 0 && <tr><td colSpan={9} className="px-4 py-8 text-center text-slate-400">{t("no_data")}</td></tr>}
                 </tbody>
               </table>
             </div>
@@ -259,7 +238,7 @@ export default function Spp() {
           <div className="bg-white rounded-2xl border border-slate-200 p-4 flex flex-wrap items-end gap-3">
             <div>
               <label className="text-xs font-semibold text-slate-500">{t("period_filter")}</label>
-              <MonthYearPicker testid="pay-flt-month" value={payMonth} onChange={setPayMonth} t={t} lang={i18n.language} />
+              <MonthYearPicker testid="pay-flt-month" value={payMonth} onChange={setPayMonth} />
             </div>
             <button data-testid="pay-export" onClick={exportXlsx}
               className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-teal-700 bg-teal-50 hover:bg-teal-100">

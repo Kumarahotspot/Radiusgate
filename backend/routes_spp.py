@@ -206,6 +206,15 @@ async def list_bills(status: str | None = None, class_name: str | None = None,
         query["due_date"] = {"$regex": f"^{month}"}
     bills = await db.bills.find(query, {"_id": 0}).sort("due_date", -1).to_list(5000)
     out = [with_status(b) for b in bills]
+    pays = await db.spp_payments.find(
+        {"school_id": user["school_id"], "bill_id": {"$in": [b["id"] for b in out]}},
+        {"_id": 0, "bill_id": 1, "paid_at": 1}).to_list(10000)
+    last_pay = {}
+    for p in pays:
+        if p.get("paid_at", "") > last_pay.get(p["bill_id"], ""):
+            last_pay[p["bill_id"]] = p["paid_at"]
+    for b in out:
+        b["last_paid_at"] = last_pay.get(b["id"], "")
     if status in ("unpaid", "partial", "paid"):
         out = [b for b in out if b["status"] == status]
     if q:

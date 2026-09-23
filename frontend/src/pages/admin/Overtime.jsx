@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import api, { errMsg } from "../../api";
+import MonthYearPicker from "../../components/MonthYearPicker";
 import { Check, X, FileDown } from "lucide-react";
 
 const rp = (n) => `Rp ${Number(n || 0).toLocaleString("id-ID")}`;
@@ -194,8 +195,7 @@ export default function Overtime() {
           <div className="bg-white rounded-2xl border border-slate-200 p-4 flex flex-wrap items-end gap-3">
             <div>
               <label className="text-xs font-semibold text-slate-500">{t("payroll_period")}</label>
-              <input data-testid="payroll-period" type="month" value={period} onChange={(e) => setPeriod(e.target.value)}
-                className="mt-1 block rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-teal-600" />
+              <MonthYearPicker testid="payroll-period" value={period} onChange={setPeriod} allowEmpty={false} />
             </div>
             <button data-testid="payroll-apply" onClick={loadPayroll}
               className="px-4 py-2 rounded-xl text-xs font-bold text-white bg-teal-700 hover:bg-teal-800">{t("apply")}</button>
