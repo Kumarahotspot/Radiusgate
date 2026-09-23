@@ -35,7 +35,7 @@ export default function Pay() {
       <div className="w-full max-w-md">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-2">
-            <div className="w-9 h-9 rounded-xl bg-white flex items-center justify-center overflow-hidden p-1"><img src="/logo.png" alt="RadiusGate" className="w-full h-full object-contain" /></div>
+            <div className="w-11 h-11 rounded-xl bg-white flex items-center justify-center overflow-hidden p-1"><img src="/logo.png" alt="RadiusGate" className="w-full h-full object-contain" /></div>
             <p className="text-white font-bold">{t("app_name")}</p>
           </div>
           <LangSwitch dark />

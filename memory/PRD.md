@@ -595,4 +595,10 @@ Aplikasi absensi berbasis tablet kiosk + face recognition & liveness, geofence G
 - File JPEG hasil generate → PIL: piksel putih (r/g/b>232) → alpha 0, crop ke konten, PNG 1024×1024, ditimpa ke /app/frontend/public/logo.png + /app/backend/assets/logo.png (semua kop PDF otomatis ikut).
 - Terverifikasi: kuitansi PDF 200 dengan logo baru; screenshot login + header admin + mobile menampilkan logo pin orbit transparan dengan rapi.
 - File sumber semua varian logo tersimpan di /tmp (logo8.png dsb) — URL generate tercatat di percakapan bila perlu varian lain.
+
+## 2026-09-23 — Logo diperbesar & dikuatkan
+- Keluhan user: tampilan logo "kurang kuat". Dua akar masalah: (1) konversi transparan ambang global mengikis piksel gradasi terang; (2) ukuran tampilan kecil (28–44px).
+- Fix konversi: flood-fill BFS dari 4 sudut (hanya latar luar >240 yang jadi transparan; interior utuh termasuk lubang pin putih) + ImageEnhance Color 1.15 & Contrast 1.08 → warna lebih pekat.
+- Ukuran diperbesar: header Layout 32→44px, Login 44→64px (panel) & 40→48px (form), Landing header 36→48px (teks ikut lg→xl), Kiosk 64→80px, ResetPassword/RegisterTrial 40→48px, Pay 36→44px, mock kiosk landing 28→36px, kontak landing 36→44px.
+- Terverifikasi: view file PNG (gradasi utuh pekat), screenshot login desktop+mobile, header admin, landing — logo tampak besar & kuat, mobile tanpa overflow.
 - P2: Tablet React Native (kiosk native); laporan grafik SPP; kuitansi PDF cetak; impor data tagihan lama; Midtrans/Duitku

@@ -61,8 +61,8 @@ export default function Landing() {
       <header className="sticky top-0 z-50 backdrop-blur-md bg-white/80 border-b border-teal-100/60">
         <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between gap-3">
           <a href="#" className="flex items-center gap-2.5">
-            <img src="/logo.png" alt="RadiusGate" className="w-9 h-9 object-contain" />
-            <span className="font-extrabold text-lg tracking-tight">RadiusGate</span>
+            <img src="/logo.png" alt="RadiusGate" className="w-12 h-12 object-contain" />
+            <span className="font-extrabold text-xl tracking-tight">RadiusGate</span>
           </a>
           <nav className="hidden md:flex items-center gap-6 text-sm font-semibold text-slate-600">
             <a data-testid="nav-link-fitur" href="#fitur" className="hover:text-teal-700 transition-colors">Fitur</a>
@@ -122,7 +122,7 @@ export default function Landing() {
           <div className="bg-slate-900 rounded-[2rem] p-6 shadow-2xl">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
-                <img src="/logo.png" alt="" className="w-7 h-7 object-contain bg-white rounded-lg p-0.5" />
+                <img src="/logo.png" alt="" className="w-9 h-9 object-contain bg-white rounded-lg p-0.5" />
                 <span className="text-white text-xs font-bold">RadiusGate · Kiosk</span>
               </div>
               <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
@@ -269,7 +269,7 @@ export default function Landing() {
       <footer className="bg-slate-900 text-slate-400">
         <div className="max-w-6xl mx-auto px-4 py-12 flex flex-col sm:flex-row items-center justify-between gap-6">
           <div className="flex items-center gap-3">
-            <img src="/logo.png" alt="RadiusGate" className="w-9 h-9 object-contain bg-white rounded-xl p-1" />
+            <img src="/logo.png" alt="RadiusGate" className="w-11 h-11 object-contain bg-white rounded-xl p-1" />
             <div>
               <p className="text-white font-bold text-sm">RadiusGate</p>
               <p className="text-xs">Gerbang Absensi Digital Sekolah Masa Kini.</p>
