@@ -30,6 +30,7 @@ import Spp from "@/pages/admin/Spp";
 import EmployeeHome from "@/pages/employee/EmployeeHome";
 import ParentHome from "@/pages/parent/ParentHome";
 import TeacherSubjectAtt from "@/pages/teacher/TeacherSubjectAtt";
+import LegalPage from "@/pages/LegalPage";
 
 function Guard({ roles, children }) {
   const { user, loading } = useAuth();
@@ -51,6 +52,8 @@ function App() {
           <Route path="/daftar" element={<RegisterTrial />} />
           <Route path="/kiosk" element={<Kiosk />} />
           <Route path="/pay/:token" element={<Pay />} />
+          <Route path="/privasi" element={<LegalPage kind="privasi" />} />
+          <Route path="/syarat" element={<LegalPage kind="syarat" />} />
           <Route element={<Guard roles={["owner"]}><Layout /></Guard>}>
             <Route path="/owner" element={<OwnerDashboard />} />
             <Route path="/owner/leads" element={<OwnerLeads />} />

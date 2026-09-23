@@ -591,7 +591,10 @@ export default function Landing() {
             <a href="#cara-kerja" className="hover:text-white transition-colors">Cara Kerja</a>
             <a href="#harga" className="hover:text-white transition-colors">Harga</a>
             <Link to="/login" className="hover:text-white transition-colors">Masuk Portal</Link>
+            <Link data-testid="footer-trial-link" to="/daftar" className="hover:text-white transition-colors">Daftar Trial Gratis</Link>
             <Link to="/kiosk" className="hover:text-white transition-colors">Mode Kiosk</Link>
+            <Link data-testid="footer-privacy-link" to="/privasi" className="hover:text-white transition-colors">Kebijakan Privasi</Link>
+            <Link data-testid="footer-terms-link" to="/syarat" className="hover:text-white transition-colors">Syarat & Ketentuan</Link>
           </nav>
           <p className="text-[11px] text-slate-500">© 2026 PT. Pusaka Kreasi Mandiri.</p>
         </div>

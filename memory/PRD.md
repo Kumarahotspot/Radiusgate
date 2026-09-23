@@ -735,3 +735,8 @@ Aplikasi absensi berbasis tablet kiosk + face recognition & liveness, geofence G
 ## 2026-09-23 — Landing page: section mock Portal Orang Tua
 - Landing.jsx: section baru `#ortu` di antara Pembayaran dan Harga (mock kiri, copy kanan). Mock HP `parent-mock-card` (max-w 300px, rounded 2.5rem, notch bar): header Portal Orang Tua, kartu anak teal (inisial AR, kelas, NIS), 4 chip rekap (Hadir 18/Telat 2/Sakit 0/Izin 2), kartu tagihan "SPP September" dengan progress cicilan 35% + tombol Bayar, bottom nav mock 4 ikon. Copy: "Orang Tua Memantau dari Genggaman." + 4 bullets (kehadiran harian & rekap, tagihan + bayar dari HP, ajukan izin/sakit, kuitansi PDF).
 - Reveal via useInView (mock 0ms, copy 150ms). Terverifikasi: opacity 0 → 1 setelah scroll, tanpa overflow mobile 390.
+
+## 2026-09-23 — Halaman legal + link footer
+- Halaman baru `LegalPage.jsx` (publik, tanpa Layout): route `/privasi` (Kebijakan Privasi — data yang dikumpulkan, penggunaan, biometrik & lokasi, penyimpanan/keamanan, hak sekolah & ortu, kontak) dan `/syarat` (Syarat & Ketentuan — layanan, akun & tanggung jawab, langganan & pembayaran, larangan, batasan tanggung jawab, perubahan). Header minimal logo + tombol Kembali.
+- Footer landing: link baru "Daftar Trial Gratis" (/daftar), "Kebijakan Privasi" (/privasi), "Syarat & Ketentuan" (/syarat).
+- Terverifikasi screenshot: 3 link footer tampil & berfungsi, kedua halaman legal render lengkap (6 section), tanpa overflow mobile 390.
