@@ -1,0 +1,20 @@
+{
+  "summary": "Frontend-only verification of /guru/mapel iteration 14: removal of 'Semua Hadir' button, mobile status buttons shrunk, and 'Mulai Panggil' full-width on first mobile row. All checks PASS.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [],
+  "action_items": [],
+  "critical_code_review_comments": [],
+  "updated_files": [],
+  "success_rate": {"backend": "N/A", "frontend": "100%"},
+  "test_credentials": "guru@nusantara.sch.id / Guru123!",
+  "seed_data_creation": "None (did not persist; only clicked status which is client-state).",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Verified on 390x844 mobile and 1920x1080 desktop: (1) sa-all-present testid absent on both viewports (CheckCheck import removal safe, no console errors); (2) Only 3 action buttons present: sa-call-start, sa-save, sa-lock; (3) sa-call-start has 'col-span-2' class and renders on its own row above sa-save & sa-lock (Call y=340 w=324; Save & Lock y=382 w=158 each on same row); (4) Mobile status buttons class = 'py-2 rounded-lg text-[11px] font-bold border ...' — no py-2.5 / rounded-xl / border-2 classes; clicking sa-m-sakit updates chip sa-count-sakit from 'Sakit: 0' to 'Sakit: 1' correctly; (5) 8 student cards on mobile, 8 rows on desktop table, no horizontal overflow, no console errors.",
+  "rca of the issue": "N/A — no issues found."
+}

@@ -850,4 +850,9 @@ Keputusan user via ask_human: auto-Alpa; prefill mapel dari kiosk; absen pulang 
 - TeacherSubjectAtt.jsx: (1) field filter kini grid 2 kolom di mobile (Tanggal+Mapel sejajar w-full, Kelas col-span-2 lebar penuh), di sm+ kembali flex sebaris items-end; (2) 4 tombol aksi (Semua Hadir/Mulai Panggil/Simpan/Kunci) kini grid 2×2 lebar konsisten + justify-center di mobile, flex di sm+.
 - ZIP Hostinger di-build ulang (bundle main.11d48ba4.js, 6,2 MB).
 - Terverifikasi testing_agent (iterasi 13): 100% pass — posisi boundingBox presisi (filter sejajar y=210, Kelas full-width 324px, tombol 2×2 seragam 158px), tanpa overflow, desktop tak regresi.
+
+## 2026-09-24 — Hapus tombol "Semua Hadir" + perkecil tombol HSIA kartu
+- TeacherSubjectAtt.jsx: tombol "Semua Hadir" (`sa-all-present`) dihapus total (prefill kiosk sudah menggantikannya); import CheckCheck ikut dihapus. Toolbar mobile kini 3 tombol: Mulai Panggil lebar penuh (col-span-2), Simpan & Kunci sejajar di baris kedua. Tombol status kartu mobile diperkecil (py-2 rounded-lg text-[11px] border).
+- ZIP Hostinger di-build ulang (bundle main.03b3bf59.js; grep "sa-all-present" = 0 membuktikan terhapus dari bundle).
+- Terverifikasi testing_agent (iterasi 14): 100% pass — tombol hilang di kedua viewport, 3 tombol aksi rapi, tombol kartu lebih kecil tapi tetap mudah ditekan, klik status tetap mengubah chip ringkasan, tanpa error console, tanpa regresi desktop.
 Terverifikasi: prefill alpha✓; HSIA izin→hadir menimpa status harian✓; guard 01:30→422 not_dismissal_time:15:30, setelah 00:30→lolos gate✓; cron manual marked_alpa=429 lalu dibersihkan (auth via dotenv — jangan ekstrak secret pakai grep/cut, nilai mengandung karakter khusus)✓; UI settings 7 input tanpa overflow✓; UI guru prefill tampil (5 hadir/1 izin/2 alpha dari 8 siswa)✓.
