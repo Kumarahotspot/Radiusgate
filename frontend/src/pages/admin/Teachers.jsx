@@ -32,6 +32,7 @@ export default function Teachers() {
         name: editFor.name, nip: editFor.nip,
         subject: [editFor.subject, (editFor.subject_other || "").trim()].filter(Boolean).join(", "),
         active: !!editFor.active, classes: editFor.classes || "",
+        ...(editFor.new_password?.trim() ? { password: editFor.new_password.trim() } : {}),
       });
       toast.success(t("save"));
       setEditFor(null);
@@ -191,6 +192,7 @@ export default function Teachers() {
           <form onSubmit={saveEdit} data-testid="edit-teacher-form" className="bg-white rounded-2xl w-full max-w-md p-5 grid sm:grid-cols-2 gap-4">
             <p className="sm:col-span-2 font-bold text-slate-800">{t("edit_teacher")}</p>
             <In label={t("name")} testid="edit-teacher-name" v={editFor.name} set={(v) => setEditFor({ ...editFor, name: v })} req />
+            <In label={t("new_password_opt")} testid="edit-teacher-password" v={editFor.new_password || ""} set={(v) => setEditFor({ ...editFor, new_password: v })} />
             <In label={t("nip")} testid="edit-teacher-nip" v={editFor.nip || ""} set={(v) => setEditFor({ ...editFor, nip: v })} />
             <div className="sm:col-span-2">
               <CheckGroup label={t("subject")} testid="edit-teacher-subject" options={opts.subjects} value={editFor.subject || ""} onChange={(v) => setEditFor({ ...editFor, subject: v })} />

@@ -219,6 +219,7 @@ class TeacherPatch(BaseModel):
     subject: str | None = None
     active: bool | None = None
     classes: str | None = None
+    password: str | None = None
 
 
 @router.get("/admin/teachers")
@@ -258,13 +259,20 @@ async def create_teacher(body: TeacherIn, user: dict = Depends(admin_dep)):
 @router.patch("/admin/teachers/{tid}")
 async def update_teacher(tid: str, body: TeacherPatch, user: dict = Depends(admin_dep)):
     upd = {k: v for k, v in body.model_dump().items() if v is not None}
-    if not upd:
+    new_pw = upd.pop("password", None)
+    if new_pw is not None and len(new_pw) < 6:
+        raise HTTPException(status_code=422, detail="password_too_short")
+    if not upd and not new_pw:
         raise HTTPException(status_code=400, detail="Tidak ada perubahan")
-    await db.teachers.update_one({"id": tid, "school_id": user["school_id"]}, {"$set": upd})
+    if upd:
+        await db.teachers.update_one({"id": tid, "school_id": user["school_id"]}, {"$set": upd})
+    t = await db.teachers.find_one({"id": tid, "school_id": user["school_id"]}, {"_id": 0, "user_id": 1})
+    if not t:
+        raise HTTPException(status_code=404, detail="Guru tidak ditemukan")
     if "name" in upd:
-        t = await db.teachers.find_one({"id": tid}, {"_id": 0, "user_id": 1})
-        if t:
-            await db.users.update_one({"id": t["user_id"]}, {"$set": {"name": upd["name"]}})
+        await db.users.update_one({"id": t["user_id"]}, {"$set": {"name": upd["name"]}})
+    if new_pw:
+        await db.users.update_one({"id": t["user_id"]}, {"$set": {"password_hash": hash_password(new_pw)}})
     return {"ok": True}
 
 

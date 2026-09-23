@@ -775,3 +775,8 @@ Aplikasi absensi berbasis tablet kiosk + face recognition & liveness, geofence G
 - public/index.html: meta description emergent diganti deskripsi RadiusGate (ID); ditambah OG tags (og:title/description/type/image) + twitter:card summary_large_image; theme-color #0F766E. og-image.png 1200×630 dibuat via PIL (gradien teal, logo, tagline, pill radiusgate.id).
 - Frontend di-build ulang + ZIP landing-radiusgate.zip diperbarui (berisi index.html baru + og-image.png).
 - Terverifikasi: teks emergent hilang dari index.html build, og:image → /og-image.png, endpoint download menyajikan ZIP terbaru.
+
+## 2026-09-23 — Ubah password guru: admin reset + guru ganti sendiri
+- **Admin reset**: TeacherPatch + field `password` (opsional); PATCH /admin/teachers/{id} memisahkan password dari $set dokumen guru, validasi min 6 (422 password_too_short), update `password_hash` akun login guru, 404 bila guru tak ada. Teachers.jsx: field "Password Baru (opsional)" (`edit-teacher-password`) di modal Ubah Guru; hanya dikirim jika diisi.
+- **Guru ganti sendiri**: TeacherHome.jsx punya kartu "Ganti Password" (`teacher-pw-form`) memakai endpoint POST /auth/change-password yang sudah ada. i18n baru: new_password_opt (ID/EN).
+- Terverifikasi: curl e2e (reset → login lama 401/baru 200, pendek 422, dikembalikan ke Guru123!) + screenshot UI (field modal admin tampil, form portal guru tampil, ganti sendiri maju-mundur 2x sukses dengan toast), tanpa overflow mobile 390.
