@@ -102,9 +102,7 @@ async def pay_bill(body: SppPayIn, user: dict = Depends(parent_dep)):
     pay.pop("_id", None)
     await db.bills.update_one({"id": bill["id"]}, {"$inc": {"paid_amount": body.amount}})
     asyncio.create_task(_receipt_notify(user["school_id"], bill, body.amount, ref))
-    return {"ok": True, "reference": ref, "mode": "demo"}
-
-    return {"ok": True, "reference": ref, "mode": "demo"}
+    return {"ok": True, "id": pay["id"], "reference": ref, "mode": "demo"}
 
 
 @router.get("/parent/spp/payments/{pid}/receipt.pdf")

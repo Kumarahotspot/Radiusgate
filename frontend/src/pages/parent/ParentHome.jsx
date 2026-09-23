@@ -11,6 +11,7 @@ export default function ParentHome() {
   const [spp, setSpp] = useState({ bills: [], payments: [] });
   const [payFor, setPayFor] = useState(null);
   const [payAmount, setPayAmount] = useState("");
+  const [paidReceipt, setPaidReceipt] = useState(null);
   const today = new Date().toISOString().slice(0, 10);
   const [leave, setLeave] = useState({ status: "sakit", date: today, note: "" });
   const [pw, setPw] = useState({ current_password: "", new_password: "" });
@@ -41,9 +42,9 @@ export default function ParentHome() {
     e.preventDefault();
     setBusy(true);
     try {
-      await api.post("/parent/spp/pay", { bill_id: payFor.id, amount: Number(payAmount) });
+      const r = await api.post("/parent/spp/pay", { bill_id: payFor.id, amount: Number(payAmount) });
       toast.success(t("spp_pay_done"));
-      setPayFor(null);
+      setPaidReceipt(r.data);
       load();
     } catch (err) { toast.error(errMsg(err)); } finally { setBusy(false); }
   };
@@ -115,7 +116,7 @@ export default function ParentHome() {
               <div className="mt-2 flex items-center justify-between gap-2">
                 <p className="text-xs text-slate-500">{rp(b.paid_amount)} / <strong className="text-slate-700">{rp(b.amount)}</strong>{b.remaining > 0 && <span className="text-amber-600"> · {t("remaining")} {rp(b.remaining)}</span>}</p>
                 {b.status !== "paid" && (
-                  <button data-testid={`spp-pay-${b.id}`} onClick={() => { setPayFor(b); setPayAmount(String(b.remaining)); }}
+                  <button data-testid={`spp-pay-${b.id}`} onClick={() => { setPaidReceipt(null); setPayFor(b); setPayAmount(String(b.remaining)); }}
                     className="px-4 py-1.5 rounded-xl text-xs font-bold text-white bg-teal-700 hover:bg-teal-800 transition-colors">
                     {t("spp_pay")}
                   </button>
@@ -195,6 +196,26 @@ export default function ParentHome() {
 
       {payFor && (
         <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4" data-testid="spp-pay-modal">
+          {paidReceipt ? (
+            <div className="bg-white rounded-2xl w-full max-w-sm p-5 space-y-4 text-center" data-testid="spp-pay-success">
+              <div className="w-14 h-14 mx-auto rounded-full bg-emerald-100 flex items-center justify-center">
+                <FileText className="w-7 h-7 text-emerald-600" />
+              </div>
+              <div>
+                <p className="font-bold text-slate-800">{t("pay_success")}</p>
+                <p className="text-sm text-slate-600 mt-1">{payFor.title} · <strong>{rp(Number(payAmount))}</strong></p>
+                <p className="text-xs font-mono text-slate-400 mt-0.5">Ref: {paidReceipt.reference}</p>
+              </div>
+              <div className="flex justify-center gap-2">
+                <button data-testid="parent-pay-receipt" onClick={() => dlReceipt(paidReceipt)}
+                  className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-white bg-teal-700 hover:bg-teal-800 transition-colors">
+                  <FileText className="w-4 h-4" /> {t("download_receipt")}
+                </button>
+                <button data-testid="parent-pay-close" onClick={() => { setPayFor(null); setPaidReceipt(null); }}
+                  className="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors">{t("close")}</button>
+              </div>
+            </div>
+          ) : (
           <form onSubmit={submitPay} className="bg-white rounded-2xl w-full max-w-sm p-5 space-y-4">
             <p className="font-bold text-slate-800">{t("spp_pay")} — {payFor.title}</p>
             <p className="text-xs text-slate-500">{t("remaining")}: <strong>{rp(payFor.remaining)}</strong></p>
@@ -209,6 +230,7 @@ export default function ParentHome() {
               <button data-testid="spp-pay-submit" disabled={busy} className="px-4 py-2 rounded-xl text-xs font-bold text-white bg-teal-700 hover:bg-teal-800 disabled:opacity-50">{t("spp_pay")}</button>
             </div>
           </form>
+          )}
         </div>
       )}
 
