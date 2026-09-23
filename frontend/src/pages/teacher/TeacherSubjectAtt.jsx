@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import api, { errMsg } from "../../api";
-import { Save, CheckCheck, BookOpen } from "lucide-react";
+import { Save, CheckCheck, BookOpen, Lock } from "lucide-react";
 
 const STATUSES = ["hadir", "sakit", "izin", "alpha"];
 const ON = { hadir: "bg-emerald-600 text-white border-emerald-600", sakit: "bg-red-500 text-white border-red-500", izin: "bg-sky-500 text-white border-sky-500", alpha: "bg-slate-500 text-white border-slate-500" };
@@ -10,7 +10,7 @@ const OFF = "bg-white text-slate-500 border-slate-200 hover:border-slate-400";
 
 export default function TeacherSubjectAtt() {
   const { t } = useTranslation();
-  const today = new Date().toISOString().slice(0, 10);
+  const today = new Date().toLocaleDateString("en-CA");
   const [meta, setMeta] = useState({ subjects: [], classes: [] });
   const [date, setDate] = useState(today);
   const [subject, setSubject] = useState("");
@@ -18,6 +18,7 @@ export default function TeacherSubjectAtt() {
   const [students, setStudents] = useState([]);
   const [marks, setMarks] = useState({});
   const [saved, setSaved] = useState(false);
+  const [locked, setLocked] = useState(false);
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
@@ -36,16 +37,19 @@ export default function TeacherSubjectAtt() {
       r.data.students.forEach((s) => { m[s.id] = r.data.records[s.id] || (r.data.prefill || {})[s.id] || "hadir"; });
       setMarks(m);
       setSaved(r.data.saved);
+      setLocked(!!r.data.locked);
     }).catch((err) => { setStudents([]); toast.error(errMsg(err)); });
   }, [date, subject, cls]);
 
-  const save = async () => {
+  const save = async (lock = false) => {
+    if (locked && !lock && !window.confirm(t("session_locked_confirm"))) return;
     setBusy(true);
     try {
       const records = students.map((s) => ({ student_id: s.id, status: marks[s.id] || "hadir" }));
-      await api.post("/teacher/subject-att", { date, subject, class_name: cls, records });
+      await api.post("/teacher/subject-att", { date, subject, class_name: cls, records, lock });
       toast.success(t("att_saved"));
       setSaved(true);
+      if (lock) setLocked(true);
     } catch (err) { toast.error(errMsg(err)); } finally { setBusy(false); }
   };
 
@@ -81,13 +85,18 @@ export default function TeacherSubjectAtt() {
           className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 transition-colors">
           <CheckCheck className="w-4 h-4" /> {t("all_present")}
         </button>
-        <button data-testid="sa-save" onClick={save} disabled={busy || !students.length}
+        <button data-testid="sa-save" onClick={() => save(false)} disabled={busy || !students.length}
           className="flex items-center gap-1.5 px-5 py-2 rounded-xl text-xs font-bold text-white bg-teal-700 hover:bg-teal-800 disabled:opacity-50 transition-colors ml-auto">
           <Save className="w-4 h-4" /> {busy ? t("loading") : t("save")}
+        </button>
+        <button data-testid="sa-lock" onClick={() => save(true)} disabled={busy || !students.length}
+          className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-teal-800 bg-teal-50 border border-teal-200 hover:bg-teal-100 disabled:opacity-50 transition-colors">
+          <Lock className="w-4 h-4" /> {t("lock_done")}
         </button>
       </div>
 
       {saved && <p data-testid="sa-saved-note" className="text-xs text-amber-600 bg-amber-50 border border-amber-100 rounded-xl px-3 py-2">{t("att_edit_note")}</p>}
+      {locked && <span data-testid="sa-locked-badge" className="inline-flex items-center gap-1 text-[11px] font-bold text-slate-600 bg-slate-100 border border-slate-200 rounded-full px-3 py-1 w-fit"><Lock className="w-3 h-3" /> {t("session_locked")}</span>}
 
       <div className="flex flex-wrap gap-2">
         {STATUSES.map((st) => (

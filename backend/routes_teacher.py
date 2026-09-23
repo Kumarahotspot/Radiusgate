@@ -213,7 +213,7 @@ async def subject_att_get(date: str, subject: str, class_name: str, user: dict =
     to_subject = {"present": "hadir", "sakit": "sakit", "izin": "izin", "alpa": "alpha"}
     prefill = {s["id"]: to_subject.get(dmap.get(s["id"], "alpa"), "hadir") for s in students}
     return {"students": students, "records": {r["student_id"]: r["status"] for r in recs},
-            "prefill": prefill, "saved": bool(recs)}
+            "prefill": prefill, "saved": bool(recs), "locked": bool(recs and recs[0].get("locked"))}
 
 
 class SubjectAttIn(BaseModel):
@@ -221,6 +221,7 @@ class SubjectAttIn(BaseModel):
     subject: str
     class_name: str
     records: list  # [{student_id, status: hadir|sakit|izin|alpha}]
+    lock: bool = False
 
 
 @router.post("/teacher/subject-att")
@@ -245,7 +246,8 @@ async def subject_att_save(body: SubjectAttIn, user: dict = Depends(teacher_dep)
         await db.subject_attendance.update_one(
             key,
             {"$set": {**key, "student_name": st["name"], "nis": st.get("nis", ""),
-                      "teacher_name": t["name"], "status": status, "updated_at": now},
+                      "teacher_name": t["name"], "status": status, "updated_at": now,
+                      **({"locked": True} if body.lock else {})},
              "$setOnInsert": {"id": str(uuid.uuid4()), "created_at": now}},
             upsert=True)
         saved += 1

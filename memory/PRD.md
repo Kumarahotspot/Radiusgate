@@ -811,4 +811,10 @@ Keputusan user via ask_human: auto-Alpa; prefill mapel dari kiosk; absen pulang 
 4. **Prefill absen mapel** (routes_teacher `subject_att_get`): field `prefill` per siswa dari rekaman harian (present→hadir, sakit/izin tetap, alpa/tanpa record→alpha); TeacherSubjectAtt.jsx memakai prefill bila belum ada simpanan.
 5. **HSIA final** (`subject_att_save`): setiap simpan menimpa `att_status` rekaman harian siswa (hadir→present, alpha→alpa, dst); bila belum ada in-record, dibuat manual ber-note "Absen mapel <mapel>". Last writer wins sesuai keputusan user.
 6. Portal ortu: badge & rekap kini mengenal "alpa" (chip ke-5, sumStatus/sumBadge/sumLabel).
+
+## 2026-09-24 — Kunci lunak sesi absen mapel
+- Keputusan user: kunci manual oleh guru (bukan otomatis), sifat lunak (masih bisa diubah setelah konfirmasi); guru mapel lain tidak terpengaruh karena sesi terpisah per guru+mapel+kelas+tanggal.
+- Backend routes_teacher.py: SubjectAttIn + field `lock`; $set locked=true pada semua record sesi saat lock; GET mengembalikan `locked` (dari record pertama sesi).
+- Frontend TeacherSubjectAtt.jsx: tombol "Selesai & Kunci" (`sa-lock`), lencana "Terkunci" (`sa-locked-badge`), dan window.confirm `session_locked_confirm` saat menyimpan sesi terkunci. i18n: lock_done, session_locked, session_locked_confirm (ID/EN). Fix bonus: tanggal default halaman guru kini toLocaleDateString("en-CA") (bug UTC yang sama seperti dasbor).
+- Terverifikasi UI: kunci → lencana muncul → ubah+simpan sesi terkunci lewat konfirmasi → kunci persisten setelah reload; tanpa overflow mobile. Data uji sesi (Matematika 09-23) & rekaman harian hasil sinkron HSIA dibersihkan setelah tes; rekaman asli 09-23 utuh.
 Terverifikasi: prefill alpha✓; HSIA izin→hadir menimpa status harian✓; guard 01:30→422 not_dismissal_time:15:30, setelah 00:30→lolos gate✓; cron manual marked_alpa=429 lalu dibersihkan (auth via dotenv — jangan ekstrak secret pakai grep/cut, nilai mengandung karakter khusus)✓; UI settings 7 input tanpa overflow✓; UI guru prefill tampil (5 hadir/1 izin/2 alpha dari 8 siswa)✓.
