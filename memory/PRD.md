@@ -671,3 +671,8 @@ Aplikasi absensi berbasis tablet kiosk + face recognition & liveness, geofence G
 - Permintaan user: "data email diambil dari data siswa". Keputusan via ask_human: email & nama READ-ONLY dari data siswa (perubahan hanya oleh admin sekolah), no. HP tetap bisa diedit ortu dan tersinkron dua arah.
 - routes_parent.py `/parent/me`: parent.name/email/phone kini bersumber dari `students.parent_name` / `parent_email` / `parent_phone` (fallback ke akun user jika kosong). Frontend ParentHome.jsx tidak berubah (field nama & email memang sudah disabled).
 - Terverifikasi: curl /parent/me mengembalikan name "Bilal" & email "susyanto1@gmail.com" (dari data siswa Arto, bukan akun user), screenshot tab Profil PASS (nama/email/HP tampil benar, email read-only).
+
+## 2026-09-23 — Portal ortu: menu "Aktivitas Anak" jadi bottom navigation
+- Permintaan user (screenshot anotasi): pill "Aktivitas Anak" di bawah header dipindah ke bawah.
+- Layout.jsx: untuk role parent, `<nav>` di header tidak dirender; diganti bottom bar fixed (`bottom-nav`, bg blur, border-t) setelah `<main>`; konten diberi pb-24 agar tidak tertutup. Role lain tidak berubah.
+- Terverifikasi screenshot: header tanpa pill, bottom-nav tampil & aktif, tanpa overflow (desktop 1920 & mobile 390).

@@ -112,6 +112,7 @@ export default function Layout() {
             )}
           </div>
         </div>
+        {user.role !== "parent" && (
         <nav className="max-w-7xl mx-auto px-4 flex gap-1 overflow-x-auto pb-2">
           {items.map((m) => (
             <NavLink
@@ -129,10 +130,32 @@ export default function Layout() {
             </NavLink>
           ))}
         </nav>
+        )}
       </header>
-      <main className="max-w-7xl mx-auto px-4 py-6">
+      <main className={`max-w-7xl mx-auto px-4 py-6 ${user.role === "parent" ? "pb-24" : ""}`}>
         <Outlet />
       </main>
+      {user.role === "parent" && (
+        <nav data-testid="bottom-nav" className="fixed bottom-0 inset-x-0 z-30 bg-white/95 backdrop-blur border-t border-slate-200">
+          <div className="max-w-7xl mx-auto px-4 py-2.5 flex justify-center gap-1">
+            {items.map((m) => (
+              <NavLink
+                key={m.to}
+                to={m.to}
+                end={m.end}
+                data-testid={`nav-${m.key}`}
+                className={({ isActive }) =>
+                  `flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition-colors ${
+                    isActive ? "bg-teal-700 text-white" : "text-slate-600 hover:bg-slate-100"
+                  }`
+                }
+              >
+                <m.icon className="w-3.5 h-3.5" /> {t(m.key)}
+              </NavLink>
+            ))}
+          </div>
+        </nav>
+      )}
     </div>
   );
 }
