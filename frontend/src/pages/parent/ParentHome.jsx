@@ -113,6 +113,13 @@ export default function ParentHome() {
   const nearestDue = unpaidBills.map((b) => b.due_date).filter(Boolean).sort()[0];
   const leaveHistory = att.filter((a) => a.att_status === "sakit" || a.att_status === "izin")
     .sort((a, b) => b.date.localeCompare(a.date)).slice(0, 30);
+  const thisMonth = today.slice(0, 7);
+  const recap = { ok: 0, late: 0, sakit: 0, izin: 0 };
+  days.forEach(([date, d]) => {
+    if (!date.startsWith(thisMonth)) return;
+    const s = sumStatus(d);
+    if (s) recap[s] += 1;
+  });
 
   return (
     <div data-testid="parent-home" className="space-y-6">
@@ -300,6 +307,17 @@ export default function ParentHome() {
       )}
 
       {tab === "main" && (<>
+      <div>
+        <p className="text-[11px] font-bold uppercase tracking-wide text-slate-400 mb-2">{t("monthly_recap")}</p>
+        <div data-testid="att-recap" className="grid grid-cols-4 gap-2">
+          {[["ok", "present", "text-emerald-600"], ["late", "late_short", "text-amber-600"], ["sakit", "att_sakit", "text-red-600"], ["izin", "att_izin", "text-sky-600"]].map(([k, label, color]) => (
+            <div key={k} data-testid={`recap-${k}`} className="bg-white rounded-2xl border border-slate-200 p-3 text-center">
+              <p className={`text-xl font-extrabold ${color}`}>{recap[k]}</p>
+              <p className="text-[11px] font-semibold text-slate-500">{t(label)}</p>
+            </div>
+          ))}
+        </div>
+      </div>
       <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
         <p className="px-4 pt-4 font-bold text-slate-800">{t("child_activity")}</p>
         <div className="overflow-x-auto mt-2">

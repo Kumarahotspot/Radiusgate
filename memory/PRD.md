@@ -702,3 +702,7 @@ Aplikasi absensi berbasis tablet kiosk + face recognition & liveness, geofence G
 - Frontend ParentHome.jsx: kolom aksi di tabel Riwayat Izin/Sakit dengan tombol kecil "Batalkan" (`leave-cancel-<date>`) hanya untuk baris tanggal hari ini; handler cancelLeave + toast cancelled_ok. i18n baru: cancelled_ok, cancel_only_today, already_present, leave_not_found (ID/EN).
 - Terverifikasi e2e: 400 untuk tanggal lampau, 404 tanpa record; siswa uji TEST-CANCEL-1 (akun ortu 628999000111) — ajukan izin via UI → tombol Batal muncul → klik → toast "Pengajuan izin/sakit dibatalkan" + riwayat kosong; siswa & akun ortu uji dibersihkan, 0 sisa di DB.
 - INSIDEN & PEMULIHAN: saat cleanup, endpoint list siswa mengabaikan query `?q=` sehingga ID Arto (bukan siswa uji) terkirim ke bulk-delete → siswa Arto + akun ortunya terhapus. Langsung dipulihkan via pymongo dengan id asli (absensi 6 record & tagihan SPP tetap tertaut; password ortu direset ke NIS 696969). Catatan: foto profil Arto hilang saat pemulihan — admin dapat mengunggah ulang. Pelajaran: jangan andalkan filter `?q=` untuk mengambil ID; selalu cocokkan field unik (nis).
+
+## 2026-09-23 — Rekap bulanan kehadiran di tab Aktivitas Anak
+- ParentHome.jsx: 4 chip rekap (`att-recap`) di atas tabel aktivitas — Hadir/Telat/Sakit/Izin bulan berjalan, dihitung client-side dari `days` (sumStatus per tanggal, filter prefix YYYY-MM). i18n baru: monthly_recap (ID/EN).
+- Terverifikasi screenshot: rekap Arto September = Hadir 1, Telat 2, Sakit 0, Izin 2 (sesuai tabel), tanpa overflow mobile 390.
