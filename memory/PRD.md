@@ -727,3 +727,7 @@ Aplikasi absensi berbasis tablet kiosk + face recognition & liveness, geofence G
 ## 2026-09-23 — Reveal halus section Harga & Kontak
 - Landing.jsx: section `#harga` (copy + kartu kalkulator `pricing-card`) dan `#kontak` (copy + form/success) kini reveal saat masuk viewport — kolom kiri delay 0, kolom kanan 150ms, memakai useInView + keyframes attRowIn yang sama. Seluruh landing page kini beranimasi konsisten dari hero sampai kontak.
 - Terverifikasi: opacity 0 sebelum scroll → semua elemen opacity 1 setelah scroll (delay kartu 150ms terukur), tanpa overflow mobile 390.
+
+## 2026-09-23 — Landing page: section mock Dashboard Admin
+- Landing.jsx: section baru `#admin` di antara Absensi dan Pembayaran (mock kiri, copy kanan — kebalikan section SPP). Kartu mock `admin-mock-card`: header logo + "Dashboard Admin" + badge LIVE berdenyut, grid stat 2×2 (Hadir 1.128, Telat 34, Izin & Sakit 20, SPP Terkumpul 87%), mini bar chart CSS "Kehadiran 7 Hari Terakhir" (Sen–Min, Jumat highlight teal). Copy: "Semua Data Sekolah, Satu Layar." + 4 bullets (statistik real-time, kelengkapan data ortu, export Excel/PDF, kelola guru/siswa/karyawan/lembur).
+- Reveal konsisten via useInView (mock 0ms, copy 150ms). Terverifikasi: opacity 0 → 1 setelah scroll, tanpa overflow mobile 390.

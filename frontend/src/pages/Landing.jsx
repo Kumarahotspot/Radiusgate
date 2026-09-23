@@ -67,6 +67,7 @@ export default function Landing() {
   const [stepRef, stepIn] = useInView();
   const [priceRef, priceIn] = useInView();
   const [contactRef, contactIn] = useInView();
+  const [admRef, admIn] = useInView();
 
   const submit = async (e) => {
     e.preventDefault();
@@ -298,6 +299,67 @@ export default function Landing() {
                 ))}
               </div>
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Dashboard admin */}
+      <section id="admin" data-testid="admin-section" className="max-w-6xl mx-auto px-4 py-20">
+        <div ref={admRef} className="grid lg:grid-cols-2 gap-12 items-center">
+          <div className={`att-anim ${admIn ? "att-in" : ""} relative mx-auto w-full max-w-md order-2 lg:order-1`}>
+            <div className="absolute -inset-4 sm:-inset-6 bg-gradient-to-br from-teal-100/70 to-emerald-50 rounded-[3rem] -z-10" />
+            <div data-testid="admin-mock-card" className="bg-white border border-slate-200 rounded-3xl p-6 shadow-2xl">
+              <div className="flex items-center gap-2.5 pb-4 border-b border-slate-100">
+                <img src="/logo.png" alt="" className="w-8 h-8 object-contain" />
+                <div>
+                  <p className="text-xs font-bold text-slate-800">Dashboard Admin</p>
+                  <p className="text-[10px] text-slate-400">SMA Nusantara · Real-time</p>
+                </div>
+                <span className="ml-auto flex items-center gap-1.5 text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-100">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" /> LIVE
+                </span>
+              </div>
+              <div className="grid grid-cols-2 gap-2.5 py-4">
+                {[["Hadir Hari Ini", "1.128", "text-emerald-600"], ["Telat", "34", "text-amber-600"],
+                  ["Izin & Sakit", "20", "text-sky-600"], ["SPP Terkumpul", "87%", "text-teal-700"]].map(([label, val, color]) => (
+                  <div key={label} className="bg-slate-50 border border-slate-100 rounded-2xl p-3">
+                    <p className={`text-lg font-extrabold ${color}`}>{val}</p>
+                    <p className="text-[10px] font-semibold text-slate-500">{label}</p>
+                  </div>
+                ))}
+              </div>
+              <div className="pt-4 border-t border-slate-100">
+                <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-3">Kehadiran 7 Hari Terakhir</p>
+                <div className="flex items-end gap-2 h-20">
+                  {[45, 62, 55, 78, 92, 70, 38].map((h, i) => (
+                    <div key={i} className="flex-1 flex flex-col items-center gap-1">
+                      <div className={`w-full rounded-t-md ${i === 4 ? "bg-teal-600" : "bg-teal-200"}`} style={{ height: `${h}%` }} />
+                      <span className="text-[8px] font-bold text-slate-400">{["Sen", "Sel", "Rab", "Kam", "Jum", "Sab", "Min"][i]}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className={`att-anim ${admIn ? "att-in" : ""} order-1 lg:order-2`} style={{ animationDelay: "150ms" }}>
+            <span className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-teal-700 bg-teal-50 border border-teal-100 rounded-full px-3 py-1.5">
+              Dashboard Admin
+            </span>
+            <h2 className="mt-5 text-3xl sm:text-4xl font-bold tracking-tight">Semua Data Sekolah, <span className="text-teal-700">Satu Layar.</span></h2>
+            <p className="mt-4 text-slate-600 text-sm sm:text-base leading-relaxed max-w-lg">
+              Admin memantau kehadiran siswa, guru, dan karyawan secara real-time — dari statistik harian
+              sampai rekap SPP, semuanya tersaji dalam satu dasbor yang rapi.
+            </p>
+            <ul className="mt-6 space-y-2.5 text-sm text-slate-700">
+              {[
+                "Statistik kehadiran siswa, guru & karyawan real-time",
+                "Kelengkapan data orang tua per kelas dalam satu kartu",
+                "Laporan harian & bulanan siap export Excel / PDF",
+                "Kelola guru, siswa, karyawan, lembur & penggajian",
+              ].map((x) => (
+                <li key={x} className="flex items-start gap-2.5"><Check className="w-4 h-4 mt-0.5 text-teal-600 shrink-0" /> {x}</li>
+              ))}
+            </ul>
           </div>
         </div>
       </section>
