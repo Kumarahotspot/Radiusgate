@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import api, { errMsg } from "@/api";
@@ -27,6 +27,12 @@ const STEPS = [
   { n: "03", icon: FileCheck, title: "Laporan Otomatis", desc: "Rekap harian, keterlambatan, izin/sakit, dan tagihan bulanan tersaji otomatis di dashboard." },
 ];
 
+const SLIDES = [
+  { src: "/slides/siswa-absen.jpg", title: "Siswa absen wajah di gerbang sekolah", sub: "Kiosk RadiusGate · verifikasi < 3 detik" },
+  { src: "/slides/kiosk.jpg", title: "Kiosk tablet anti titip absen", sub: "Face recognition + liveness + GPS geofence" },
+  { src: "/slides/dashboard.jpg", title: "Admin memantau laporan real-time", sub: "Rekap harian, keterlambatan & SPP satu dasbor" },
+];
+
 const rupiah = (n) => "Rp " + n.toLocaleString("id-ID");
 
 export default function Landing() {
@@ -34,6 +40,12 @@ export default function Landing() {
   const [form, setForm] = useState({ school_name: "", contact_person: "", email: "", phone: "", student_count: "", message: "" });
   const [busy, setBusy] = useState(false);
   const [sent, setSent] = useState(false);
+  const [slide, setSlide] = useState(0);
+
+  useEffect(() => {
+    const t = setInterval(() => setSlide((s) => (s + 1) % SLIDES.length), 4500);
+    return () => clearInterval(t);
+  }, []);
 
   const submit = async (e) => {
     e.preventDefault();
@@ -131,16 +143,23 @@ export default function Landing() {
               </div>
               <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
             </div>
-            <div className="relative aspect-[4/3] rounded-2xl bg-slate-800 overflow-hidden">
-              <div className="absolute inset-4 border-2 border-teal-500/40 rounded-xl" />
-              <div className="absolute left-4 right-4 h-0.5 bg-teal-400/80 shadow-[0_0_12px_rgba(45,212,191,0.8)] animate-[scanline_2.2s_ease-in-out_infinite]" style={{ top: "20%" }} />
-              <ScanFace className="absolute inset-0 m-auto w-16 h-16 text-teal-400/70" />
+            <div className="relative aspect-[4/3] rounded-2xl bg-slate-800 overflow-hidden" data-testid="hero-slideshow">
+              {SLIDES.map((s, i) => (
+                <img key={s.src} src={s.src} alt={s.title}
+                  className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ${i === slide ? "opacity-100" : "opacity-0"}`} />
+              ))}
+              <div className="absolute bottom-2.5 left-1/2 -translate-x-1/2 flex gap-1.5 z-10">
+                {SLIDES.map((_, i) => (
+                  <button key={i} data-testid={`slide-dot-${i}`} onClick={() => setSlide(i)} aria-label={`Slide ${i + 1}`}
+                    className={`w-2 h-2 rounded-full transition-colors ${i === slide ? "bg-teal-400" : "bg-white/30 hover:bg-white/60"}`} />
+                ))}
+              </div>
             </div>
-            <div className="mt-4 bg-white/5 border border-white/10 rounded-xl p-3 flex items-center gap-3">
-              <span className="w-8 h-8 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center"><Check className="w-4 h-4" /></span>
-              <div>
-                <p className="text-white text-xs font-bold">Presensi Berhasil</p>
-                <p className="text-slate-400 text-[11px]">"Terima kasih, Budi. Selamat belajar!"</p>
+            <div className="mt-4 bg-white/5 border border-white/10 rounded-xl p-3 flex items-center gap-3 min-h-[60px]">
+              <span className="w-8 h-8 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0"><Check className="w-4 h-4" /></span>
+              <div key={slide}>
+                <p className="text-white text-xs font-bold" data-testid="slide-caption">{SLIDES[slide].title}</p>
+                <p className="text-slate-400 text-[11px]">{SLIDES[slide].sub}</p>
               </div>
             </div>
           </div>

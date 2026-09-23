@@ -628,4 +628,10 @@ Aplikasi absensi berbasis tablet kiosk + face recognition & liveness, geofence G
 - Keluhan user (screenshot): grid fitur punya sel kosong (3 kartu wide=col-span-2 → 13 sel terpakai dari 16 di lg 4-kolom).
 - Fix: kartu "Kiosk Web di HP/Tablet" tidak lagi wide → total 12 sel = 3 baris penuh (lg: Face2+GPS+Offline / Kiosk+Billing+SPP2 / QRIS+Invoice+Dwibahasa+Umpan; md 2-kolom juga pas tanpa lubang).
 - Fix lanjutan (ditemukan saat verifikasi): blob dekoratif `absolute -inset-6` di mockup hero & mockup seksi pembayaran menyebabkan overflow horizontal 8px di mobile 390px → diubah ke `-inset-4 sm:-inset-6`. Terverifikasi screenshot: grid 3 baris penuh tanpa lubang, mobile scrollWidth 390 = clientWidth 390.
+
+## 2026-09-23 — Hero landing: mockup statis diganti slideshow foto
+- Permintaan user (screenshot): area mockup hero diganti slideshow — "ada siswa lagi absen, Radius Kiosk dll".
+- 3 gambar digenerate (siswa antre absen di kiosk gerbang SMA, tablet kiosk dengan UI face-recognition sukses, admin memantau dashboard di laptop) → disimpan lokal di /app/frontend/public/slides/ (siswa-absen.jpg, kiosk.jpg, dashboard.jpg).
+- Landing.jsx: layar mockup kiosk diganti slideshow auto-rotate 4,5 dtk (crossfade opacity 700ms) + dot indikator (klik untuk pindah) + caption dinamis per slide (judul + sub) di bar bawah frame; frame gelap "RadiusGate · Kiosk" tetap dipertahankan. Testid: hero-slideshow, slide-dot-0..2, slide-caption.
+- Terverifikasi screenshot: slideshow tampil, klik dot mengganti slide+caption, auto-rotate berjalan, mobile 390 tanpa overflow.
 - P2: Tablet React Native (kiosk native); laporan grafik SPP; kuitansi PDF cetak; impor data tagihan lama; Midtrans/Duitku
