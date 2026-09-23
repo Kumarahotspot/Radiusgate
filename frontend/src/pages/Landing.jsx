@@ -48,6 +48,18 @@ function useInView() {
   return [ref, inView];
 }
 
+const WA_MSGS = {
+  default: "Halo RadiusGate, saya ingin bertanya tentang program pilot sekolah",
+  fitur: "Halo RadiusGate, saya ingin tahu lebih detail fitur-fiturnya",
+  "cara-kerja": "Halo RadiusGate, saya ingin tahu cara penerapannya di sekolah kami",
+  absensi: "Halo RadiusGate, saya ingin tahu tentang absensi siswa",
+  admin: "Halo RadiusGate, saya ingin tahu tentang dashboard admin",
+  pembayaran: "Halo RadiusGate, saya ingin tahu tentang pembayaran SPP online",
+  ortu: "Halo RadiusGate, saya ingin tahu tentang portal orang tua",
+  harga: "Halo RadiusGate, saya ingin tanya harga RadiusGate",
+  kontak: "Halo RadiusGate, saya ingin mendaftar program pilot sekolah",
+};
+
 const rupiah = (n) => "Rp " + n.toLocaleString("id-ID");
 
 export default function Landing() {
@@ -69,6 +81,16 @@ export default function Landing() {
   const [contactRef, contactIn] = useInView();
   const [admRef, admIn] = useInView();
   const [ortuRef, ortuIn] = useInView();
+
+  const [waMsg, setWaMsg] = useState(WA_MSGS.default);
+  useEffect(() => {
+    const ids = ["fitur", "cara-kerja", "absensi", "admin", "pembayaran", "ortu", "harga", "kontak"];
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach((e) => { if (e.isIntersecting) setWaMsg(WA_MSGS[e.target.id] || WA_MSGS.default); });
+    }, { rootMargin: "-40% 0px -40% 0px" });
+    ids.forEach((id) => { const el = document.getElementById(id); if (el) io.observe(el); });
+    return () => io.disconnect();
+  }, []);
 
   const submit = async (e) => {
     e.preventDefault();
@@ -603,7 +625,7 @@ export default function Landing() {
 
       <style>{`@keyframes scanline { 0%,100% { top: 15%; } 50% { top: 80%; } }`}</style>
 
-      <a data-testid="wa-float" href="https://wa.me/628888200999?text=Halo%20RadiusGate%2C%20saya%20ingin%20bertanya%20tentang%20program%20pilot%20sekolah" target="_blank" rel="noreferrer"
+      <a data-testid="wa-float" href={`https://wa.me/628888200999?text=${encodeURIComponent(waMsg)}`} target="_blank" rel="noreferrer"
         className="fixed bottom-5 right-5 z-50 flex items-center gap-2 bg-[#25D366] hover:bg-[#1fb857] text-white rounded-full shadow-xl shadow-emerald-900/20 px-4 py-3 transition-transform hover:scale-105">
         <MessageCircle className="w-5 h-5" />
         <span className="hidden sm:block text-xs font-bold">Chat WhatsApp</span>
