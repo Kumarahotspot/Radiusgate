@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import api, { errMsg } from "../../api";
 import MonthYearPicker from "../../components/MonthYearPicker";
-import { Plus, Layers, Tags, Banknote, Trash2, FileDown, Wallet, AlertTriangle, TrendingUp, Receipt, X, ChevronRight } from "lucide-react";
+import { Plus, Layers, Tags, Banknote, Trash2, FileDown, FileText, Wallet, AlertTriangle, TrendingUp, Receipt, X, ChevronRight } from "lucide-react";
 
 const rp = (n) => `Rp ${Number(n || 0).toLocaleString("id-ID")}`;
 
@@ -112,6 +112,18 @@ export default function Spp() {
     a.download = `transaksi-spp-${payMonth || "semua"}.xlsx`;
     a.click();
     URL.revokeObjectURL(url);
+  };
+
+  const dlPdf = async (url, fname) => {
+    try {
+      const r = await api.get(url, { responseType: "blob" });
+      const u = URL.createObjectURL(r.data);
+      const a = document.createElement("a");
+      a.href = u;
+      a.download = fname;
+      a.click();
+      URL.revokeObjectURL(u);
+    } catch (err) { toast.error(errMsg(err)); }
   };
 
   const stBadge = (s) => s === "paid" ? "bg-emerald-100 text-emerald-700" : s === "partial" ? "bg-amber-100 text-amber-700" : "bg-red-100 text-red-600";
@@ -240,7 +252,12 @@ export default function Spp() {
                         <td className="px-4 py-3 font-mono text-xs text-slate-500">{nextDue}</td>
                         <td className="px-4 py-3 text-slate-300">—</td>
                         <td className="px-4 py-3"><span data-testid={`bill-group-status-${key}`} className={`px-2 py-0.5 rounded-full text-[11px] font-bold ${stBadge(gStatus)}`}>{t(`status_${gStatus}`)}</span></td>
-                        <td></td>
+                        <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
+                          <button data-testid={`pdf-group-${key}`} onClick={() => dlPdf(`/admin/spp/students/${key}/bills.pdf${flt.month ? `?month=${flt.month}` : ""}`, "rekap-tagihan.pdf")}
+                            className="flex items-center gap-1 text-xs font-bold text-teal-700 hover:bg-teal-50 px-2 py-1.5 rounded-lg transition-colors" title={t("download_student_bills")}>
+                            <FileText className="w-4 h-4" /> PDF
+                          </button>
+                        </td>
                       </tr>,
                       ...(open ? g.map((b) => (
                         <tr key={b.id} data-testid={`bill-row-${b.id}`} className="border-b last:border-0 hover:bg-slate-50/60">
@@ -254,6 +271,8 @@ export default function Spp() {
                           <td className="px-4 py-3"><span className={`px-2 py-0.5 rounded-full text-[11px] font-bold ${stBadge(b.status)}`}>{t(`status_${b.status}`)}</span></td>
                           <td className="px-4 py-3">
                             <div className="flex gap-1">
+                              <button data-testid={`pdf-bill-${b.id}`} onClick={() => dlPdf(`/admin/spp/bills/${b.id}/invoice.pdf`, `tagihan-${b.id.slice(0, 8)}.pdf`)}
+                                className="p-1.5 text-slate-500 hover:bg-slate-100 rounded-lg transition-colors" title={t("download_invoice")}><FileText className="w-4 h-4" /></button>
                               {b.status !== "paid" && (
                                 <button data-testid={`pay-bill-${b.id}`} onClick={() => { setPayForm({ bill: b, amount: String(b.remaining), method: "Tunai", note: "" }); setModal("pay"); }}
                                   className="flex items-center gap-1 text-xs font-bold text-emerald-600 hover:bg-emerald-50 px-2 py-1.5 rounded-lg transition-colors">
@@ -301,6 +320,7 @@ export default function Spp() {
                     <th className="px-4 py-3">{t("method")}</th>
                     <th className="px-4 py-3">{t("amount")}</th>
                     <th className="px-4 py-3">Ref</th>
+                    <th className="px-4 py-3">{t("actions")}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -312,9 +332,15 @@ export default function Spp() {
                       <td className="px-4 py-3 text-slate-600">{p.method}</td>
                       <td className="px-4 py-3 font-semibold text-teal-700">{rp(p.amount)}</td>
                       <td className="px-4 py-3 font-mono text-xs text-slate-400">{p.reference}</td>
+                      <td className="px-4 py-3">
+                        <button data-testid={`receipt-${p.id}`} onClick={() => dlPdf(`/admin/spp/payments/${p.id}/receipt.pdf`, `kuitansi-${p.reference || p.id.slice(0, 8)}.pdf`)}
+                          className="flex items-center gap-1 text-xs font-bold text-teal-700 hover:bg-teal-50 px-2 py-1.5 rounded-lg transition-colors" title={t("download_receipt")}>
+                          <FileText className="w-4 h-4" /> {t("download_receipt")}
+                        </button>
+                      </td>
                     </tr>
                   ))}
-                  {payments.length === 0 && <tr><td colSpan={6} className="px-4 py-8 text-center text-slate-400">{t("no_data")}</td></tr>}
+                  {payments.length === 0 && <tr><td colSpan={7} className="px-4 py-8 text-center text-slate-400">{t("no_data")}</td></tr>}
                 </tbody>
               </table>
             </div>

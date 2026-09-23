@@ -8,13 +8,14 @@ from datetime import datetime, timezone
 
 import pandas as pd
 from fastapi import APIRouter, Depends, HTTPException
-from fastapi.responses import StreamingResponse
+from fastapi.responses import FileResponse, StreamingResponse
 from pydantic import BaseModel
 
 from auth import require_roles
 from db import db
 from emailer import send_email
 from notif import send_whatsapp
+from pdfgen import build_spp_bills_pdf, build_spp_invoice_pdf, build_spp_receipt_pdf
 
 router = APIRouter(tags=["spp"])
 admin_dep = require_roles("school_admin")
@@ -328,3 +329,42 @@ async def export_payments(month: str | None = None, user: dict = Depends(admin_d
     return StreamingResponse(
         buf, media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         headers={"Content-Disposition": f"attachment; filename=transaksi-spp-{month or 'semua'}.xlsx"})
+
+
+
+# ---------- Dokumen PDF SPP ----------
+@router.get("/admin/spp/payments/{pid}/receipt.pdf")
+async def payment_receipt_pdf(pid: str, user: dict = Depends(admin_dep)):
+    pay = await db.spp_payments.find_one({"id": pid, "school_id": user["school_id"]}, {"_id": 0})
+    if not pay:
+        raise HTTPException(status_code=404, detail="Pembayaran tidak ditemukan")
+    bill = await db.bills.find_one({"id": pay["bill_id"]}, {"_id": 0})
+    school = await db.schools.find_one({"id": user["school_id"]}, {"_id": 0, "name": 1})
+    path = build_spp_receipt_pdf(f"/tmp/kuitansi_{pid}.pdf", school["name"],
+                                 with_status(bill) if bill else {}, pay)
+    return FileResponse(path, media_type="application/pdf",
+                        filename=f"kuitansi-{pay.get('reference', pid)}.pdf")
+
+
+@router.get("/admin/spp/bills/{bid}/invoice.pdf")
+async def bill_invoice_pdf(bid: str, user: dict = Depends(admin_dep)):
+    bill = await db.bills.find_one({"id": bid, "school_id": user["school_id"]}, {"_id": 0})
+    if not bill:
+        raise HTTPException(status_code=404, detail="Tagihan tidak ditemukan")
+    school = await db.schools.find_one({"id": user["school_id"]}, {"_id": 0, "name": 1})
+    path = build_spp_invoice_pdf(f"/tmp/invoice_spp_{bid}.pdf", school["name"], with_status(bill))
+    return FileResponse(path, media_type="application/pdf", filename=f"tagihan-{bid[:8]}.pdf")
+
+
+@router.get("/admin/spp/students/{sid}/bills.pdf")
+async def student_bills_pdf(sid: str, month: str | None = None, user: dict = Depends(admin_dep)):
+    q = {"school_id": user["school_id"], "student_id": sid}
+    if month:
+        q["due_date"] = {"$regex": f"^{month}"}
+    bills = [with_status(b) for b in await db.bills.find(q, {"_id": 0}).sort("due_date", 1).to_list(1000)]
+    if not bills:
+        raise HTTPException(status_code=404, detail="Tidak ada tagihan untuk siswa ini")
+    school = await db.schools.find_one({"id": user["school_id"]}, {"_id": 0, "name": 1})
+    path = build_spp_bills_pdf(f"/tmp/rekap_tagihan_{sid}.pdf", school["name"], bills)
+    nis = bills[0].get("nis") or sid[:8]
+    return FileResponse(path, media_type="application/pdf", filename=f"rekap-tagihan-{nis}.pdf")
