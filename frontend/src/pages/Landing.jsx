@@ -65,6 +65,8 @@ export default function Landing() {
   const [attRef, attIn] = useInView();
   const [featRef, featIn] = useInView();
   const [stepRef, stepIn] = useInView();
+  const [priceRef, priceIn] = useInView();
+  const [contactRef, contactIn] = useInView();
 
   const submit = async (e) => {
     e.preventDefault();
@@ -358,8 +360,8 @@ export default function Landing() {
 
       {/* Harga + kalkulator */}
       <section id="harga" className="bg-teal-800 text-white">
-        <div className="max-w-6xl mx-auto px-4 py-20 grid lg:grid-cols-2 gap-12 items-center">
-          <div>
+        <div ref={priceRef} className="max-w-6xl mx-auto px-4 py-20 grid lg:grid-cols-2 gap-12 items-center">
+          <div className={`att-anim ${priceIn ? "att-in" : ""}`}>
             <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">Harga Transparan per Siswa</h2>
             <p className="mt-4 text-teal-100/90 leading-relaxed text-sm sm:text-base">
               Tanpa biaya alat, tanpa biaya tersembunyi. Sekolah hanya membayar sesuai jumlah siswa aktif per bulan.
@@ -371,7 +373,7 @@ export default function Landing() {
               ))}
             </ul>
           </div>
-          <div className="bg-white text-slate-900 rounded-3xl p-7 shadow-2xl">
+          <div data-testid="pricing-card" className={`att-anim ${priceIn ? "att-in" : ""} bg-white text-slate-900 rounded-3xl p-7 shadow-2xl`} style={{ animationDelay: "150ms" }}>
             <p className="text-xs font-bold uppercase tracking-wider text-slate-400">Simulasi Biaya Bulanan</p>
             <div className="mt-5 flex items-end gap-2">
               <span className="text-4xl font-extrabold text-teal-700">{rupiah(8000)}</span>
@@ -401,8 +403,8 @@ export default function Landing() {
 
       {/* Kontak */}
       <section id="kontak" className="max-w-6xl mx-auto px-4 py-20">
-        <div className="grid lg:grid-cols-2 gap-12">
-          <div>
+        <div ref={contactRef} className="grid lg:grid-cols-2 gap-12">
+          <div className={`att-anim ${contactIn ? "att-in" : ""}`}>
             <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">Daftarkan Sekolah Anda ke Program Pilot</h2>
             <p className="mt-4 text-slate-600 text-sm sm:text-base leading-relaxed">
               Isi formulir ini — tim PT. Pusaka Kreasi Mandiri akan menghubungi Anda untuk demo dan onboarding.
@@ -414,13 +416,13 @@ export default function Landing() {
             </div>
           </div>
           {sent ? (
-            <div data-testid="contact-success" className="bg-emerald-50 border border-emerald-200 rounded-3xl p-8 text-center flex flex-col items-center justify-center">
+            <div data-testid="contact-success" className={`att-anim ${contactIn ? "att-in" : ""} bg-emerald-50 border border-emerald-200 rounded-3xl p-8 text-center flex flex-col items-center justify-center`} style={{ animationDelay: "150ms" }}>
               <span className="w-14 h-14 rounded-full bg-emerald-500 text-white flex items-center justify-center"><Check className="w-7 h-7" /></span>
               <h3 className="mt-4 text-xl font-bold text-emerald-800">Pengajuan Terkirim!</h3>
               <p className="mt-2 text-sm text-emerald-700/80">Terima kasih. Tim kami akan segera menghubungi Anda.</p>
             </div>
           ) : (
-            <form data-testid="contact-form" onSubmit={submit} className="bg-white border border-slate-200 rounded-3xl p-7 space-y-4 shadow-sm">
+            <form data-testid="contact-form" onSubmit={submit} className={`att-anim ${contactIn ? "att-in" : ""} bg-white border border-slate-200 rounded-3xl p-7 space-y-4 shadow-sm`} style={{ animationDelay: "150ms" }}>
               <F k="school_name" label="Nama Sekolah / Yayasan" ph="contoh: SMA Negeri 1 Jakarta" testid="contact-input-school" />
               <div className="grid sm:grid-cols-2 gap-4">
                 <F k="contact_person" label="Nama Penanggung Jawab" ph="Bpk/Ibu ..." testid="contact-input-name" />
