@@ -666,3 +666,8 @@ Aplikasi absensi berbasis tablet kiosk + face recognition & liveness, geofence G
 - SettingsPage.jsx: di kartu Papan Info — manajer foto (thumbnail grid + tombol hapus + dropzone unggah, langsung tersimpan tanpa tombol Simpan) dan input tanggal Berlaku (valid_from/valid_until) per slide teks.
 - Kiosk.jsx: saverSlides = foto kustom (jika ada, menggantikan 3 foto bawaan) + slide teks yang difilter tanggal berlaku (valid_from ≤ hari ini ≤ valid_until). i18n baru: saver_photos, saver_photos_hint, upload_photo.
 - P2: Tablet React Native (kiosk native); laporan grafik SPP; kuitansi PDF cetak; impor data tagihan lama; Midtrans/Duitku
+
+## 2026-09-23 — Profil ortu: nama & email diambil dari data siswa
+- Permintaan user: "data email diambil dari data siswa". Keputusan via ask_human: email & nama READ-ONLY dari data siswa (perubahan hanya oleh admin sekolah), no. HP tetap bisa diedit ortu dan tersinkron dua arah.
+- routes_parent.py `/parent/me`: parent.name/email/phone kini bersumber dari `students.parent_name` / `parent_email` / `parent_phone` (fallback ke akun user jika kosong). Frontend ParentHome.jsx tidak berubah (field nama & email memang sudah disabled).
+- Terverifikasi: curl /parent/me mengembalikan name "Bilal" & email "susyanto1@gmail.com" (dari data siswa Arto, bukan akun user), screenshot tab Profil PASS (nama/email/HP tampil benar, email read-only).

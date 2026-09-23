@@ -28,7 +28,9 @@ async def me(user: dict = Depends(parent_dep)):
     st = await my_child(user)
     school = await db.schools.find_one({"id": user["school_id"]}, {"_id": 0, "name": 1})
     return {
-        "parent": {"name": user.get("name", ""), "phone": user.get("phone", ""), "email": user.get("email", "")},
+        "parent": {"name": st.get("parent_name") or user.get("name", ""),
+                   "phone": st.get("parent_phone") or user.get("phone", ""),
+                   "email": st.get("parent_email") or user.get("email", "")},
         "school_name": (school or {}).get("name", ""),
         "child": {"id": st["id"], "name": st["name"], "nis": st.get("nis", ""),
                   "nisn": st.get("nisn", ""), "class": st.get("class", ""),
