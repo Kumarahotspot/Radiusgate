@@ -763,3 +763,9 @@ Aplikasi absensi berbasis tablet kiosk + face recognition & liveness, geofence G
 ## 2026-09-23 — Pesan WA floating button dinamis per section
 - Landing.jsx: map `WA_MSGS` per section (hero/default, fitur, cara-kerja, absensi, admin, pembayaran, ortu, harga, kontak). IntersectionObserver (rootMargin -40%) memantau section aktif dan mengganti query `text` pada href wa.me/628888200999 secara live — mis. di Harga: "saya ingin tanya harga RadiusGate", di Pembayaran: "pembayaran SPP online".
 - Terverifikasi: pesan berubah benar saat scroll (default → harga → absensi → pembayaran di mobile), tanpa overflow.
+
+## 2026-09-23 — Paket landing page statis untuk hosting sendiri (Hostinger)
+- Frontend di-build (yarn build) → ZIP `landing-radiusgate.zip` (±3,5 MB) berisi seluruh SPA + `.htaccess` (fallback SPA ke index.html untuk Apache/Hostinger) + `BACA-SAYA.txt` (panduan upload ke public_html hPanel).
+- Endpoint publik baru `GET /api/public/download/landing-page` (routes_public.py) menyajikan ZIP untuk diunduh user.
+- Catatan: paket tertanam URL backend preview Emergent; bila backend pindah/permanen, paket harus di-build ulang dengan URL baru.
+- Terverifikasi: curl endpoint 200, ZIP valid berisi slides/logo/static/.htaccess.

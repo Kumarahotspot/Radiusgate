@@ -4,6 +4,7 @@ from datetime import datetime, timezone
 from html import escape
 
 from fastapi import APIRouter
+from fastapi.responses import FileResponse
 from pydantic import BaseModel, EmailStr
 
 from db import db
@@ -59,3 +60,9 @@ async def create_lead(body: LeadIn):
         except Exception:
             logger.exception("lead notification email gagal terkirim")
     return {"ok": True}
+
+
+@router.get("/public/download/landing-page")
+async def download_landing_page():
+    return FileResponse("/app/frontend/landing-radiusgate.zip", media_type="application/zip",
+                        filename="landing-radiusgate.zip")
