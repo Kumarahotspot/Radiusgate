@@ -68,6 +68,7 @@ export default function Landing() {
   const [priceRef, priceIn] = useInView();
   const [contactRef, contactIn] = useInView();
   const [admRef, admIn] = useInView();
+  const [ortuRef, ortuIn] = useInView();
 
   const submit = async (e) => {
     e.preventDefault();
@@ -421,6 +422,77 @@ export default function Landing() {
       </section>
 
       {/* Harga + kalkulator */}
+      {/* Portal orang tua */}
+      <section id="ortu" data-testid="ortu-section" className="max-w-6xl mx-auto px-4 py-20">
+        <div ref={ortuRef} className="grid lg:grid-cols-2 gap-12 items-center">
+          <div className={`att-anim ${ortuIn ? "att-in" : ""} relative mx-auto w-full max-w-[300px] order-2 lg:order-1`}>
+            <div className="absolute -inset-4 sm:-inset-6 bg-gradient-to-br from-teal-100/70 to-emerald-50 rounded-[3rem] -z-10" />
+            <div data-testid="parent-mock-card" className="bg-white border border-slate-200 rounded-[2.5rem] p-4 shadow-2xl">
+              <div className="w-16 h-1.5 bg-slate-200 rounded-full mx-auto mb-4" />
+              <div className="flex items-center gap-2 pb-3 border-b border-slate-100">
+                <img src="/logo.png" alt="" className="w-6 h-6 object-contain" />
+                <p className="text-[11px] font-bold text-slate-800">Portal Orang Tua</p>
+              </div>
+              <div className="mt-3 bg-teal-800 text-white rounded-2xl p-3.5 flex items-center gap-2.5">
+                <span className="w-9 h-9 rounded-full bg-white/20 text-[10px] font-extrabold flex items-center justify-center shrink-0">AR</span>
+                <div className="min-w-0">
+                  <p className="text-xs font-bold truncate">Arto Rahman Sadad</p>
+                  <p className="text-[9px] text-teal-200">Kelas X TAV · NIS 696969</p>
+                </div>
+              </div>
+              <div className="mt-3 grid grid-cols-4 gap-1.5 text-center">
+                {[["18", "Hadir", "text-emerald-600"], ["2", "Telat", "text-amber-600"], ["0", "Sakit", "text-red-500"], ["2", "Izin", "text-sky-600"]].map(([v, l, c]) => (
+                  <div key={l} className="bg-slate-50 border border-slate-100 rounded-xl py-1.5">
+                    <p className={`text-sm font-extrabold ${c}`}>{v}</p>
+                    <p className="text-[8px] font-semibold text-slate-400">{l}</p>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-3 border border-slate-200 rounded-2xl p-3">
+                <div className="flex items-center justify-between">
+                  <p className="text-[11px] font-bold text-slate-800">SPP September</p>
+                  <span className="text-[8px] font-bold px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700">Cicilan</span>
+                </div>
+                <div className="mt-2 h-1.5 rounded-full bg-slate-100 overflow-hidden">
+                  <div className="h-full bg-teal-600 rounded-full" style={{ width: "35%" }} />
+                </div>
+                <div className="mt-2 flex items-center justify-between">
+                  <p className="text-[9px] text-slate-400">Sisa <span className="font-bold text-amber-600">Rp 975.000</span></p>
+                  <span className="text-[9px] font-bold text-white bg-teal-700 rounded-lg px-2.5 py-1">Bayar</span>
+                </div>
+              </div>
+              <div className="mt-3 pt-2.5 border-t border-slate-100 flex justify-around">
+                {[[ScanFace, true], [Wallet, false], [FileText, false], [UserPlus, false]].map(([Icon, active], i) => (
+                  <span key={i} className={`flex items-center justify-center w-8 h-8 rounded-full ${active ? "bg-teal-700 text-white" : "text-slate-300"}`}>
+                    <Icon className="w-3.5 h-3.5" />
+                  </span>
+                ))}
+              </div>
+            </div>
+          </div>
+          <div className={`att-anim ${ortuIn ? "att-in" : ""} order-1 lg:order-2`} style={{ animationDelay: "150ms" }}>
+            <span className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-teal-700 bg-teal-50 border border-teal-100 rounded-full px-3 py-1.5">
+              Portal Orang Tua
+            </span>
+            <h2 className="mt-5 text-3xl sm:text-4xl font-bold tracking-tight">Orang Tua Memantau <span className="text-teal-700">dari Genggaman.</span></h2>
+            <p className="mt-4 text-slate-600 text-sm sm:text-base leading-relaxed max-w-lg">
+              Tanpa install aplikasi — orang tua cukup login dengan nomor WhatsApp di browser HP
+              untuk memantau kehadiran dan membayar tagihan anaknya.
+            </p>
+            <ul className="mt-6 space-y-2.5 text-sm text-slate-700">
+              {[
+                "Kehadiran harian + rekap bulanan (Hadir/Telat/Sakit/Izin)",
+                "Tagihan SPP dengan progress cicilan & bayar dari HP",
+                "Ajukan izin/sakit anak langsung dari portal",
+                "Kuitansi PDF berkop sekolah bisa diunduh kapan saja",
+              ].map((x) => (
+                <li key={x} className="flex items-start gap-2.5"><Check className="w-4 h-4 mt-0.5 text-teal-600 shrink-0" /> {x}</li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      </section>
+
       <section id="harga" className="bg-teal-800 text-white">
         <div ref={priceRef} className="max-w-6xl mx-auto px-4 py-20 grid lg:grid-cols-2 gap-12 items-center">
           <div className={`att-anim ${priceIn ? "att-in" : ""}`}>
