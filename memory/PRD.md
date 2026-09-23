@@ -769,3 +769,9 @@ Aplikasi absensi berbasis tablet kiosk + face recognition & liveness, geofence G
 - Endpoint publik baru `GET /api/public/download/landing-page` (routes_public.py) menyajikan ZIP untuk diunduh user.
 - Catatan: paket tertanam URL backend preview Emergent; bila backend pindah/permanen, paket harus di-build ulang dengan URL baru.
 - Terverifikasi: curl endpoint 200, ZIP valid berisi slides/logo/static/.htaccess.
+
+## 2026-09-23 — Fix preview link (meta OG) + og-image khusus share
+- Masalah user: share link radiusgate.id di WA menampilkan "A product of emergent.sh" dan logo kebesaran; halaman sempat blank karena folder static/ & slides/ belum terupload (teratasi dengan upload ZIP + extract di server).
+- public/index.html: meta description emergent diganti deskripsi RadiusGate (ID); ditambah OG tags (og:title/description/type/image) + twitter:card summary_large_image; theme-color #0F766E. og-image.png 1200×630 dibuat via PIL (gradien teal, logo, tagline, pill radiusgate.id).
+- Frontend di-build ulang + ZIP landing-radiusgate.zip diperbarui (berisi index.html baru + og-image.png).
+- Terverifikasi: teks emergent hilang dari index.html build, og:image → /og-image.png, endpoint download menyajikan ZIP terbaru.
