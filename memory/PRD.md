@@ -583,4 +583,10 @@ Aplikasi absensi berbasis tablet kiosk + face recognition & liveness, geofence G
 - Backend routes_parent.py: respons `pay_bill` kini menyertakan `id` pembayaran (untuk unduh kuitansi). Catatan: sempat terjadi duplikasi baris return akibat insert_text yang menyertakan ulang baris anchor — diperbaiki di commit yang sama.
 - Frontend ParentHome.jsx: state `paidReceipt`; modal bayar berganti panel sukses (ikon, nominal, Ref, tombol "Kuitansi PDF" testid parent-pay-receipt + "Tutup" testid parent-pay-close); panel ter-reset saat modal dibuka lagi.
 - Terverifikasi E2E browser: ortu bayar SPP September Rp 25.000 → panel sukses (Ref DEMO-9D9110D2) → unduhan kuitansi-DEMO-9D9110D2.pdf terpicu → progress bar tagihan ter-update (Rp 525.000/Rp 1.500.000) → modal tertutup → mobile 390 OK.
+
+## 2026-09-23 — REBRANDING: EduGateID → RadiusGate + logo baru
+- Permintaan user: ganti nama aplikasi menjadi RadiusGate + buatkan logo.
+- Logo baru digenerate (image_generation_tool): mark cincin radar "radius" + pin lokasi (mewakili GPS geofence), teal #0F766E, flat. File asli JPEG → dikonversi PIL (putih→transparan, crop ke konten) menjadi PNG 1024×1024, ditempatkan di /app/frontend/public/logo.png DAN /app/backend/assets/logo.png (dipakai kop PDF: laporan, kuitansi, invoice, poster kiosk).
+- Rename global case-sensitive "EduGateID"→"RadiusGate" via sed di 18 file (i18n, Landing, Login, Kiosk, RegisterTrial, Pay, ResetPassword, Layout, index.html, emailer, notif, pdfgen, routes_admin/auth/cron/kiosk/notif/owner/public/spp). SENGAJA tidak menyentuh domain internal huruf kecil `@edugateid.local` (email akun ortu existing — menggantinya akan merusak login ortu yang sudah ada).
+- Terverifikasi: grep EduGateID = 0 sisa; backend restart bersih; login API OK; kuitansi PDF 200; screenshot: halaman login (title tab "RadiusGate — Gerbang Absensi..."), header admin, landing page, mobile — semua menampilkan nama + logo baru, logo transparan rapi di background terang & gelap.
 - P2: Tablet React Native (kiosk native); laporan grafik SPP; kuitansi PDF cetak; impor data tagihan lama; Midtrans/Duitku

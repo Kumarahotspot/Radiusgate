@@ -240,7 +240,7 @@ async def send_invoice(iid: str, user: dict = Depends(owner_dep)):
     pay_url = f"{FRONTEND_URL}/pay/{inv['public_token']}"
     pdf_url = f"{FRONTEND_URL}/api/public/invoice/{inv['public_token']}/invoice.pdf"
     amount = f"Rp {inv['amount']:,}".replace(",", ".")
-    msg = (f"Tagihan EduGateID - {school['name']}\n"
+    msg = (f"Tagihan RadiusGate - {school['name']}\n"
            f"No: {inv['invoice_no']}\nPeriode: {inv['period']}\n"
            f"Total: {amount}\nBayar: {pay_url}")
     wa = None

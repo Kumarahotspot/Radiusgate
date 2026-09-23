@@ -33,7 +33,7 @@ export default function ResetPassword() {
       <div className="w-full max-w-sm">
         <div className="flex items-center gap-2.5 mb-8 justify-center">
           <div className="w-10 h-10 rounded-2xl bg-white flex items-center justify-center overflow-hidden p-1">
-            <img src="/logo.png" alt="EduGateID" className="w-full h-full object-contain" />
+            <img src="/logo.png" alt="RadiusGate" className="w-full h-full object-contain" />
           </div>
           <p className="text-white font-extrabold text-lg">{t("app_name")}</p>
         </div>

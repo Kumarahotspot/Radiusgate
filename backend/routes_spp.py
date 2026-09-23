@@ -64,7 +64,7 @@ async def _receipt_notify(sid: str, bill: dict, amount: int, reference: str):
         status_txt = "LUNAS" if lunas else "Cicilan tercatat"
         nominal = f"Rp {amount:,}".replace(",", ".")
         if st.get("parent_phone"):
-            msg = (f"EduGateID - {sname}\nKuitansi Pembayaran\n"
+            msg = (f"RadiusGate - {sname}\nKuitansi Pembayaran\n"
                    f"Siswa: *{bill['student_name']}*\nTagihan: {bill['title']}\n"
                    f"Bayar: {nominal}\nRef: {reference}\nStatus: {status_txt}")
             await send_whatsapp(st["parent_phone"], msg)
@@ -77,7 +77,7 @@ async def _receipt_notify(sid: str, bill: dict, amount: int, reference: str):
                     f"<tr><td>Jumlah Bayar</td><td><b>{nominal}</b></td></tr>"
                     f"<tr><td>Referensi</td><td>{reference}</td></tr>"
                     f"<tr><td>Status</td><td><b>{status_txt}</b></td></tr></table>"
-                    f"<p>Terima kasih.<br>EduGateID</p>")
+                    f"<p>Terima kasih.<br>RadiusGate</p>")
             await send_email(to=st["parent_email"],
                              subject=f"Kuitansi Pembayaran {bill['title']} - {sname}", html=html)
     except Exception:

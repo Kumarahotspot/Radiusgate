@@ -60,10 +60,10 @@ class TestIn(BaseModel):
 async def test_send(body: TestIn, user: dict = Depends(owner_dep)):
     if body.channel == "email":
         used = await send_email_unified(
-            to=body.to, subject="Tes Email - EduGateID",
-            html='<p>Ini email tes dari <strong>EduGateID</strong>. Konfigurasi email berhasil.</p>')
+            to=body.to, subject="Tes Email - RadiusGate",
+            html='<p>Ini email tes dari <strong>RadiusGate</strong>. Konfigurasi email berhasil.</p>')
         return {"ok": True, "via": used}
     if body.channel == "whatsapp":
-        res = await send_whatsapp(body.to, "Tes WhatsApp dari EduGateID. Konfigurasi berhasil.")
+        res = await send_whatsapp(body.to, "Tes WhatsApp dari RadiusGate. Konfigurasi berhasil.")
         return {"ok": True, **res}
     raise HTTPException(status_code=400, detail="Channel tidak valid")

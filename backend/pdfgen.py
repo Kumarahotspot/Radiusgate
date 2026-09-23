@@ -44,7 +44,7 @@ def build_invoice_pdf(inv: dict, school: dict) -> str:
     c.setFont("Helvetica-Bold", 20)
     c.drawString(tx, h - 20 * mm, "INVOICE")
     c.setFont("Helvetica", 11)
-    c.drawRightString(w - 20 * mm, h - 20 * mm, "EduGateID · PT. Pusaka Kreasi Mandiri")
+    c.drawRightString(w - 20 * mm, h - 20 * mm, "RadiusGate · PT. Pusaka Kreasi Mandiri")
 
     c.setFillColorRGB(0.1, 0.1, 0.1)
     c.setFont("Helvetica-Bold", 11)
@@ -80,7 +80,7 @@ def build_invoice_pdf(inv: dict, school: dict) -> str:
 
     c.setFont("Helvetica", 9)
     c.setFillColorRGB(0.45, 0.45, 0.45)
-    c.drawString(20 * mm, 25 * mm, "Pembayaran via Tripay (QRIS / VA / e-wallet). Invoice ini dibuat otomatis oleh EduGateID — PT. Pusaka Kreasi Mandiri.")
+    c.drawString(20 * mm, 25 * mm, "Pembayaran via Tripay (QRIS / VA / e-wallet). Invoice ini dibuat otomatis oleh RadiusGate — PT. Pusaka Kreasi Mandiri.")
     c.save()
     return path
 
@@ -179,7 +179,7 @@ def build_kiosk_poster_pdf(school: dict, pair_url: str) -> str:
         c.drawImage(logo_path, w / 2 - 10 * mm, h - 28 * mm, width=20 * mm, height=20 * mm, mask="auto")
     c.setFillColorRGB(1, 1, 1)
     c.setFont("Helvetica-Bold", 15)
-    c.drawCentredString(w / 2, h - 37 * mm, "EduGateID · Kiosk Absensi")
+    c.drawCentredString(w / 2, h - 37 * mm, "RadiusGate · Kiosk Absensi")
 
     c.setFillColorRGB(0.1, 0.1, 0.1)
     c.setFont("Helvetica-Bold", 20)
@@ -199,7 +199,7 @@ def build_kiosk_poster_pdf(school: dict, pair_url: str) -> str:
     c.drawCentredString(w / 2, h - 191 * mm, "atau buka halaman Kiosk lalu masukkan kode di atas secara manual.")
 
     c.setFont("Helvetica", 9)
-    c.drawCentredString(w / 2, 20 * mm, "EduGateID · PT. Pusaka Kreasi Mandiri")
+    c.drawCentredString(w / 2, 20 * mm, "RadiusGate · PT. Pusaka Kreasi Mandiri")
     c.save()
     return path
 
@@ -346,7 +346,7 @@ def build_spp_invoice_pdf(path: str, school_name: str, bill: dict) -> str:
     y -= 14 * mm
     c.setFont("Helvetica", 9)
     c.setFillColorRGB(0.45, 0.45, 0.45)
-    c.drawString(20 * mm, y, "Pembayaran dapat dilakukan tunai ke bendahara sekolah atau online melalui portal orang tua (EduGateID).")
+    c.drawString(20 * mm, y, "Pembayaran dapat dilakukan tunai ke bendahara sekolah atau online melalui portal orang tua (RadiusGate).")
     _signature(c, y - 15 * mm)
     c.save()
     return path

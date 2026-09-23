@@ -89,7 +89,7 @@ async def forgot_password(body: ForgotIn):
         try:
             await send_email(
                 to=user["email"],
-                subject="Reset Password EduGateID",
+                subject="Reset Password RadiusGate",
                 html=(
                     '<table role="presentation" width="100%"><tr><td style="padding:24px;font-family:Arial,sans-serif;color:#1a1a1a">'
                     '<h2 style="margin:0 0 8px;color:#0F766E">Reset Password</h2>'
@@ -173,17 +173,17 @@ async def register_trial(body: TrialIn):
         login_url = f"{FRONTEND_URL}/login?email={body.email.lower()}"
         await send_email(
             to=body.email.lower(),
-            subject="Selamat Datang di EduGateID — Akun Trial Aktif",
+            subject="Selamat Datang di RadiusGate — Akun Trial Aktif",
             html=(
                 '<table role="presentation" width="100%"><tr><td style="padding:24px;font-family:Arial,sans-serif;color:#1a1a1a">'
-                '<h2 style="margin:0 0 8px;color:#0F766E">Selamat Datang di EduGateID!</h2>'
+                '<h2 style="margin:0 0 8px;color:#0F766E">Selamat Datang di RadiusGate!</h2>'
                 f'<p>Akun trial <strong>{escape(body.school_name)}</strong> aktif selama {TRIAL_DAYS} hari (s/d {trial_ends[:10]}).</p>'
                 '<table style="border-collapse:collapse;margin:12px 0">'
                 f'<tr><td style="padding:6px 16px 6px 0;color:#666">Email</td><td style="padding:6px 0"><strong>{escape(body.email.lower())}</strong></td></tr>'
                 f'<tr><td style="padding:6px 16px 6px 0;color:#666">Password</td><td style="padding:6px 0"><strong>{escape(body.password)}</strong></td></tr>'
                 '</table>'
                 f'<p><a href="{login_url}" style="display:inline-block;background:#0F766E;color:#ffffff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:bold">Masuk Portal Admin</a></p>'
-                '<p style="font-size:12px;color:#888;margin-top:16px">EduGateID oleh PT. Pusaka Kreasi Mandiri.</p>'
+                '<p style="font-size:12px;color:#888;margin-top:16px">RadiusGate oleh PT. Pusaka Kreasi Mandiri.</p>'
                 "</td></tr></table>"
             ),
         )

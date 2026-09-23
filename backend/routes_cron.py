@@ -108,7 +108,7 @@ async def _run_invoice_reminders(run_id: str):
                     amount = f"Rp {inv['amount']:,}".replace(",", ".")
                     await send_whatsapp(
                         school["phone"],
-                        f"PENGINGAT Tagihan EduGateID - {school['name']}\n"
+                        f"PENGINGAT Tagihan RadiusGate - {school['name']}\n"
                         f"No: {inv['invoice_no']}\nPeriode: {inv['period']}\nTotal: {amount}\nBayar: {pay_url}",
                         pdf_url)
             except Exception as e:
@@ -172,7 +172,7 @@ async def _run_weekly_parent_summary(run_id: str):
                 sakit = len([r for r in recs if r.get("att_status") == "sakit"])
                 izin = len([r for r in recs if r.get("att_status") == "izin"])
                 alpha = max(0, weekdays_elapsed - hadir - sakit - izin)
-                msg = (f"EduGateID - {school['name']}\n"
+                msg = (f"RadiusGate - {school['name']}\n"
                        f"Ringkasan absensi minggu ini ({date_from} s/d {date_to})\n"
                        f"Ananda *{s['name']}* ({s.get('class', '-')})\n"
                        f"Hadir: {hadir} hari" + (f" (telat {telat}x)" if telat else "") + "\n"
@@ -248,7 +248,7 @@ async def _run_spp_reminders(run_id: str):
                             f"<tr><td>Siswa</td><td><b>{bill['student_name']}</b></td></tr>"
                             f"<tr><td>Tagihan</td><td>{bill['title']}</td></tr>"
                             f"<tr><td>Sisa Tagihan</td><td><b>{sisa}</b></td></tr></table>"
-                            f"<p>Silakan bayar via Portal Orang Tua atau ke bendahara sekolah.<br>EduGateID</p>")
+                            f"<p>Silakan bayar via Portal Orang Tua atau ke bendahara sekolah.<br>RadiusGate</p>")
                     await send_email(to=st["parent_email"],
                                      subject=f"Pengingat Tagihan {bill['title']} - {sname}", html=html)
                     email_sent += 1

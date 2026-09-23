@@ -2,7 +2,7 @@ import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
 
 const id = {
-  app_name: "EduGateID",
+  app_name: "RadiusGate",
   app_tagline: "Gerbang Absensi Digital Sekolah Masa Kini.",
   company_name: "PT. Pusaka Kreasi Mandiri",
   tagline: "Absensi wajah + GPS untuk sekolah modern",
@@ -282,7 +282,7 @@ const id = {
   back_to_login: "Kembali ke Masuk",
   no_account: "Belum punya akun?",
   register_trial: "Daftar Trial Gratis",
-  trial_expired: "Masa trial sekolah Anda telah berakhir. Hubungi EduGateID untuk perpanjangan.",
+  trial_expired: "Masa trial sekolah Anda telah berakhir. Hubungi RadiusGate untuk perpanjangan.",
   email_taken: "Email sudah terdaftar. Silakan masuk atau gunakan email lain.",
   reset_invalid: "Link reset tidak valid atau sudah kedaluwarsa. Silakan minta link baru.",
   password_too_short: "Password minimal 6 karakter.",
@@ -292,7 +292,7 @@ const id = {
   password_mismatch: "Password tidak sama.",
   reset_success: "Password berhasil diubah. Silakan masuk.",
   register_page_title: "Daftar Trial Sekolah Gratis",
-  register_subtitle: "Coba semua fitur EduGateID gratis 14 hari — tanpa kartu kredit.",
+  register_subtitle: "Coba semua fitur RadiusGate gratis 14 hari — tanpa kartu kredit.",
   register_success_title: "Pendaftaran Berhasil!",
   register_success_body: "Akun admin trial 14 hari telah dibuat. Detail login telah dikirim ke email Anda.",
   promote_class: "Kenaikan Kelas",
@@ -472,7 +472,7 @@ const id = {
 };
 
 const en = {
-  app_name: "EduGateID",
+  app_name: "RadiusGate",
   app_tagline: "The Modern Digital School Attendance Gateway.",
   company_name: "PT. Pusaka Kreasi Mandiri",
   tagline: "Face + GPS attendance for modern schools",
@@ -752,7 +752,7 @@ const en = {
   back_to_login: "Back to Login",
   no_account: "No account yet?",
   register_trial: "Start Free Trial",
-  trial_expired: "Your school's trial has expired. Contact EduGateID to extend it.",
+  trial_expired: "Your school's trial has expired. Contact RadiusGate to extend it.",
   email_taken: "Email is already registered. Please log in or use another email.",
   reset_invalid: "Reset link is invalid or expired. Please request a new one.",
   password_too_short: "Password must be at least 6 characters.",
@@ -762,7 +762,7 @@ const en = {
   password_mismatch: "Passwords do not match.",
   reset_success: "Password updated successfully. Please log in.",
   register_page_title: "Register Free School Trial",
-  register_subtitle: "Try all EduGateID features free for 14 days — no credit card required.",
+  register_subtitle: "Try all RadiusGate features free for 14 days — no credit card required.",
   register_success_title: "Registration Successful!",
   register_success_body: "Your 14-day trial admin account has been created. Login details were sent to your email.",
   promote_class: "Class Promotion",

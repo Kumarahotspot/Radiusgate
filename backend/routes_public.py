@@ -50,7 +50,7 @@ async def create_lead(body: LeadIn):
                 html=(
                     '<table role="presentation" width="100%"><tr><td style="padding:24px;font-family:Arial,sans-serif;color:#1a1a1a">'
                     '<h2 style="margin:0 0 8px;color:#0F766E">Pengajuan Pilot Baru</h2>'
-                    '<p>Ada sekolah yang mendaftar lewat halaman landing EduGateID:</p>'
+                    '<p>Ada sekolah yang mendaftar lewat halaman landing RadiusGate:</p>'
                     f'<table style="border-collapse:collapse;margin:12px 0">{rows}</table>'
                     '<p style="font-size:12px;color:#888;margin-top:16px">Lihat detail di Portal Owner &rarr; Pengajuan Pilot.</p>'
                     "</td></tr></table>"

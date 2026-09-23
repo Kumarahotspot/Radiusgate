@@ -61,8 +61,8 @@ export default function Landing() {
       <header className="sticky top-0 z-50 backdrop-blur-md bg-white/80 border-b border-teal-100/60">
         <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between gap-3">
           <a href="#" className="flex items-center gap-2.5">
-            <img src="/logo.png" alt="EduGateID" className="w-9 h-9 object-contain" />
-            <span className="font-extrabold text-lg tracking-tight">EduGateID</span>
+            <img src="/logo.png" alt="RadiusGate" className="w-9 h-9 object-contain" />
+            <span className="font-extrabold text-lg tracking-tight">RadiusGate</span>
           </a>
           <nav className="hidden md:flex items-center gap-6 text-sm font-semibold text-slate-600">
             <a data-testid="nav-link-fitur" href="#fitur" className="hover:text-teal-700 transition-colors">Fitur</a>
@@ -123,7 +123,7 @@ export default function Landing() {
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
                 <img src="/logo.png" alt="" className="w-7 h-7 object-contain bg-white rounded-lg p-0.5" />
-                <span className="text-white text-xs font-bold">EduGateID · Kiosk</span>
+                <span className="text-white text-xs font-bold">RadiusGate · Kiosk</span>
               </div>
               <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
             </div>
@@ -168,7 +168,7 @@ export default function Landing() {
 
       {/* Cara kerja */}
       <section id="cara-kerja" className="max-w-6xl mx-auto px-4 py-20">
-        <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-center">3 Langkah Menerapkan EduGateID</h2>
+        <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-center">3 Langkah Menerapkan RadiusGate</h2>
         <div className="mt-12 grid md:grid-cols-3 gap-6">
           {STEPS.map((s) => (
             <div key={s.n} className="relative bg-white border border-slate-200 rounded-2xl p-6">
@@ -233,7 +233,7 @@ export default function Landing() {
               Isi formulir ini — tim PT. Pusaka Kreasi Mandiri akan menghubungi Anda untuk demo dan onboarding.
             </p>
             <div className="mt-8 space-y-3 text-sm text-slate-600">
-              <p className="flex items-center gap-2.5"><img src="/logo.png" alt="" className="w-5 h-5 object-contain" /> <strong>EduGateID</strong>&nbsp;— PT. Pusaka Kreasi Mandiri</p>
+              <p className="flex items-center gap-2.5"><img src="/logo.png" alt="" className="w-5 h-5 object-contain" /> <strong>RadiusGate</strong>&nbsp;— PT. Pusaka Kreasi Mandiri</p>
               <p>Email: <a className="text-teal-700 font-semibold hover:underline" href="mailto:susyanto@gmail.com">susyanto@gmail.com</a></p>
               <p>Jakarta, Indonesia</p>
             </div>
@@ -269,9 +269,9 @@ export default function Landing() {
       <footer className="bg-slate-900 text-slate-400">
         <div className="max-w-6xl mx-auto px-4 py-12 flex flex-col sm:flex-row items-center justify-between gap-6">
           <div className="flex items-center gap-3">
-            <img src="/logo.png" alt="EduGateID" className="w-9 h-9 object-contain bg-white rounded-xl p-1" />
+            <img src="/logo.png" alt="RadiusGate" className="w-9 h-9 object-contain bg-white rounded-xl p-1" />
             <div>
-              <p className="text-white font-bold text-sm">EduGateID</p>
+              <p className="text-white font-bold text-sm">RadiusGate</p>
               <p className="text-xs">Gerbang Absensi Digital Sekolah Masa Kini.</p>
             </div>
           </div>

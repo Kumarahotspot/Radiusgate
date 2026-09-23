@@ -41,7 +41,7 @@ def _smtp_send(cfg: dict, to: str, subject: str, html: str):
     msg = MIMEMultipart("alternative")
     msg["Subject"] = subject
     from_email = cfg.get("smtp_from_email") or cfg.get("smtp_user")
-    msg["From"] = f"{cfg.get('smtp_from_name') or 'EduGateID'} <{from_email}>"
+    msg["From"] = f"{cfg.get('smtp_from_name') or 'RadiusGate'} <{from_email}>"
     msg["To"] = to
     msg.attach(MIMEText(html, "html"))
     port = int(cfg.get("smtp_port") or 587)

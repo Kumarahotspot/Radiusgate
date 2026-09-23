@@ -204,7 +204,7 @@ async def _notify_parent(school: dict, student: dict, doc: dict):
             return
         jenis = "masuk" if doc["type"] == "in" else "pulang"
         st_txt = f"terlambat {doc.get('late_minutes', 0)} menit" if doc["status"] == "late" else "tepat waktu"
-        msg = (f"EduGateID - {school.get('name', '')}\n"
+        msg = (f"RadiusGate - {school.get('name', '')}\n"
                f"Ananda *{student['name']}* telah absen {jenis} pukul {doc['time_local']} ({doc['date']}). "
                f"Status: {st_txt}.")
         await send_whatsapp(phone, msg)

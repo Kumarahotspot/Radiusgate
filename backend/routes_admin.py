@@ -662,7 +662,7 @@ async def send_parent_login(stid: str, user: dict = Depends(admin_dep)):
     password = st.get("nis") or phone[-6:]
     school = await db.schools.find_one({"id": sid}, {"_id": 0, "name": 1})
     portal = os.environ.get("FRONTEND_URL", "")
-    msg = (f"EduGateID - {(school or {}).get('name', '')}\n"
+    msg = (f"RadiusGate - {(school or {}).get('name', '')}\n"
            f"Info Login Portal Orang Tua untuk memantau absensi & tagihan Ananda *{st['name']}*:\n\n"
            f"Portal: {portal}\nLogin: {phone}\nPassword: {password}\n\n"
            f"Segera ganti password setelah masuk (menu Ganti Password).")
