@@ -706,3 +706,7 @@ Aplikasi absensi berbasis tablet kiosk + face recognition & liveness, geofence G
 ## 2026-09-23 — Rekap bulanan kehadiran di tab Aktivitas Anak
 - ParentHome.jsx: 4 chip rekap (`att-recap`) di atas tabel aktivitas — Hadir/Telat/Sakit/Izin bulan berjalan, dihitung client-side dari `days` (sumStatus per tanggal, filter prefix YYYY-MM). i18n baru: monthly_recap (ID/EN).
 - Terverifikasi screenshot: rekap Arto September = Hadir 1, Telat 2, Sakit 0, Izin 2 (sesuai tabel), tanpa overflow mobile 390.
+
+## 2026-09-23 — Rekap bulanan ortu bisa navigasi bulan ‹ ›
+- ParentHome.jsx: state `recapMonth` (default bulan berjalan) + `shiftMonth`; header rekap kini punya tombol ‹ (bulan lalu, selalu aktif), label bulan via helper `periodLabel(recapMonth, i18n.language)`, dan › (nonaktif saat di bulan berjalan). Hitungan chip mengikuti bulan terpilih.
+- Terverifikasi screenshot: September 2026 (Hadir 1) → ‹ Agustus 2026 (semua 0) → › kembali September (Hadir 1), tombol › disabled di bulan berjalan, tanpa overflow mobile 390.

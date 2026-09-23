@@ -3,10 +3,11 @@ import { useTranslation } from "react-i18next";
 import { useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 import api, { errMsg } from "../../api";
+import { periodLabel } from "../../i18n";
 import { CalendarClock, KeyRound, Send, FileText } from "lucide-react";
 
 export default function ParentHome() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [me, setMe] = useState(null);
   const [att, setAtt] = useState([]);
   const [spp, setSpp] = useState({ bills: [], payments: [] });
@@ -114,9 +115,14 @@ export default function ParentHome() {
   const leaveHistory = att.filter((a) => a.att_status === "sakit" || a.att_status === "izin")
     .sort((a, b) => b.date.localeCompare(a.date)).slice(0, 30);
   const thisMonth = today.slice(0, 7);
+  const [recapMonth, setRecapMonth] = useState(thisMonth);
+  const shiftMonth = (delta) => {
+    const [y, m] = recapMonth.split("-").map(Number);
+    setRecapMonth(new Date(Date.UTC(y, m - 1 + delta, 1)).toISOString().slice(0, 7));
+  };
   const recap = { ok: 0, late: 0, sakit: 0, izin: 0 };
   days.forEach(([date, d]) => {
-    if (!date.startsWith(thisMonth)) return;
+    if (!date.startsWith(recapMonth)) return;
     const s = sumStatus(d);
     if (s) recap[s] += 1;
   });
@@ -308,7 +314,16 @@ export default function ParentHome() {
 
       {tab === "main" && (<>
       <div>
-        <p className="text-[11px] font-bold uppercase tracking-wide text-slate-400 mb-2">{t("monthly_recap")}</p>
+        <div className="flex items-center justify-between mb-2">
+          <p className="text-[11px] font-bold uppercase tracking-wide text-slate-400">{t("monthly_recap")}</p>
+          <div className="flex items-center gap-1" data-testid="recap-nav">
+            <button data-testid="recap-prev" onClick={() => shiftMonth(-1)}
+              className="w-7 h-7 rounded-lg text-slate-500 hover:bg-slate-200 hover:text-teal-700 font-bold transition-colors">‹</button>
+            <span data-testid="recap-month" className="text-xs font-bold text-slate-600 min-w-[110px] text-center">{periodLabel(recapMonth, i18n.language)}</span>
+            <button data-testid="recap-next" onClick={() => shiftMonth(1)} disabled={recapMonth >= thisMonth}
+              className="w-7 h-7 rounded-lg text-slate-500 hover:bg-slate-200 hover:text-teal-700 font-bold transition-colors disabled:opacity-30 disabled:hover:bg-transparent">›</button>
+          </div>
+        </div>
         <div data-testid="att-recap" className="grid grid-cols-4 gap-2">
           {[["ok", "present", "text-emerald-600"], ["late", "late_short", "text-amber-600"], ["sakit", "att_sakit", "text-red-600"], ["izin", "att_izin", "text-sky-600"]].map(([k, label, color]) => (
             <div key={k} data-testid={`recap-${k}`} className="bg-white rounded-2xl border border-slate-200 p-3 text-center">
