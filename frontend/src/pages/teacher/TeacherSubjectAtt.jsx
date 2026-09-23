@@ -61,29 +61,31 @@ export default function TeacherSubjectAtt() {
     <div data-testid="subject-att-page" className="space-y-5">
       <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2"><BookOpen className="w-5 h-5 text-teal-700" /> {t("subject_att")}</h2>
 
-      <div className="bg-white rounded-2xl border border-slate-200 p-4 flex flex-wrap items-end gap-3">
-        <div>
+      <div className="bg-white rounded-2xl border border-slate-200 p-4 space-y-3">
+        <div className="grid grid-cols-2 sm:flex sm:flex-wrap sm:items-end gap-3">
+        <div className="min-w-0">
           <label className="text-xs font-semibold text-slate-500">{t("date")}</label>
           <input data-testid="sa-date" type="date" value={date} max={today} onChange={(e) => setDate(e.target.value)}
-            className="mt-1 block rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-teal-600" />
+            className="mt-1 block w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-teal-600" />
         </div>
-        <div>
+        <div className="min-w-0">
           <label className="text-xs font-semibold text-slate-500">{t("mapel")}</label>
           <select data-testid="sa-subject" value={subject} onChange={(e) => setSubject(e.target.value)}
-            className="mt-1 block rounded-xl border border-slate-200 px-3 py-2 text-sm bg-white outline-none focus:border-teal-600">
+            className="mt-1 block w-full rounded-xl border border-slate-200 px-3 py-2 text-sm bg-white outline-none focus:border-teal-600">
             {meta.subjects.length === 0 && <option value="">—</option>}
             {meta.subjects.map((s) => <option key={s} value={s}>{s}</option>)}
           </select>
         </div>
-        <div>
+        <div className="min-w-0 col-span-2 sm:col-span-1">
           <label className="text-xs font-semibold text-slate-500">{t("class")}</label>
           <select data-testid="sa-class" value={cls} onChange={(e) => setCls(e.target.value)}
-            className="mt-1 block rounded-xl border border-slate-200 px-3 py-2 text-sm bg-white outline-none focus:border-teal-600">
+            className="mt-1 block w-full rounded-xl border border-slate-200 px-3 py-2 text-sm bg-white outline-none focus:border-teal-600">
             {meta.classes.length === 0 && <option value="">—</option>}
             {meta.classes.map((c) => <option key={c} value={c}>{c}</option>)}
           </select>
         </div>
-        <div className="flex flex-wrap gap-2 w-full sm:w-auto sm:ml-auto">
+        </div>
+        <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2 [&>button]:justify-center">
         <button data-testid="sa-all-present" onClick={() => { const m = {}; students.forEach((s) => { m[s.id] = "hadir"; }); setMarks(m); }}
           className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 transition-colors">
           <CheckCheck className="w-4 h-4" /> {t("all_present")}
