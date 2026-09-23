@@ -554,4 +554,9 @@ Aplikasi absensi berbasis tablet kiosk + face recognition & liveness, geofence G
 - Frontend Spp.jsx: kolom baru "Tgl Bayar" (testid bill-paid-at-<id>, "—" bila belum ada pembayaran), colSpan 8→9. i18n baru: payment_date (ID "Tgl Bayar" / EN "Paid Date").
 - `MonthYearPicker` diekstrak ke `/app/frontend/src/components/MonthYearPicker.jsx` (mandiri via useTranslation, prop allowEmpty — false = tanpa opsi "Semua"). Dipakai di: Spp.jsx (tab Tagihan & Transaksi), Overtime.jsx (periode payroll, allowEmpty=false), OwnerInvoices.jsx (periode invoice, allowEmpty=false) — menggantikan semua input type="month".
 - Terverifikasi: curl (last_paid_at terisi benar untuk lunas/cicilan, kosong untuk belum lunas), screenshot 3 halaman (kolom Tgl Bayar tampil benar, picker payroll & invoice default September 2026 dan berfungsi).
+
+## 2026-09-23 — Tabel Tagihan SPP dikelompokkan per siswa (accordion)
+- Permintaan user (screenshot): "Tagihan dikelompokkan berdasarkan nama, di klik keluar semua tagihannya".
+- Spp.jsx (murni frontend, data sudah lengkap dari API): tagihan dikelompokkan per student_id; baris grup menampilkan nama+kelas, jumlah tagihan, total jumlah, total sisa, jatuh tempo terdekat yang belum lunas, badge status agregat (paid/partial/unpaid), chevron berputar saat terbuka; klik baris → expand semua tagihan siswa itu (baris detail lengkap: judul, kategori, jumlah, sisa, jatuh tempo, tgl bayar, status, aksi Bayar Manual/hapus). Testid: bill-group-<student_id>, bill-group-status-<id>, bill-row-<id> tetap untuk detail.
+- Terverifikasi screenshot: 3 grup (Siswa Demo 10, Arto 4 tagihan, Evandra 2), default tertutup, klik Arto → 4 tagihan tampil dengan tombol bayar, klik lagi → tertutup, mobile 390 expand berfungsi tanpa overflow.
 - P2: Tablet React Native (kiosk native); laporan grafik SPP; kuitansi PDF cetak; impor data tagihan lama; Midtrans/Duitku

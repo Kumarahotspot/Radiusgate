@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import api, { errMsg } from "../../api";
 import MonthYearPicker from "../../components/MonthYearPicker";
-import { Plus, Layers, Tags, Banknote, Trash2, FileDown, Wallet, AlertTriangle, TrendingUp, Receipt, X } from "lucide-react";
+import { Plus, Layers, Tags, Banknote, Trash2, FileDown, Wallet, AlertTriangle, TrendingUp, Receipt, X, ChevronRight } from "lucide-react";
 
 const rp = (n) => `Rp ${Number(n || 0).toLocaleString("id-ID")}`;
 
@@ -117,6 +117,20 @@ export default function Spp() {
   const stBadge = (s) => s === "paid" ? "bg-emerald-100 text-emerald-700" : s === "partial" ? "bg-amber-100 text-amber-700" : "bg-red-100 text-red-600";
   const overdue = (b) => b.status !== "paid" && b.due_date < new Date().toISOString().slice(0, 10);
 
+  const [expanded, setExpanded] = useState(new Set());
+  const toggleGroup = (k) => {
+    const n = new Set(expanded);
+    if (n.has(k)) n.delete(k); else n.add(k);
+    setExpanded(n);
+  };
+  const groups = [];
+  const gmap = new Map();
+  for (const b of bills) {
+    const k = b.student_id || b.student_name;
+    if (!gmap.has(k)) { gmap.set(k, []); groups.push(gmap.get(k)); }
+    gmap.get(k).push(b);
+  }
+
   return (
     <div data-testid="spp-page" className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -199,32 +213,63 @@ export default function Spp() {
                   </tr>
                 </thead>
                 <tbody>
-                  {bills.map((b) => (
-                    <tr key={b.id} data-testid={`bill-row-${b.id}`} className="border-b last:border-0 hover:bg-slate-50/60">
-                      <td className="px-4 py-3"><p className="font-semibold text-slate-800">{b.student_name}</p><p className="text-xs text-slate-400">{b.class}</p></td>
-                      <td className="px-4 py-3">{b.title}</td>
-                      <td className="px-4 py-3 text-slate-600">{b.category}</td>
-                      <td className="px-4 py-3">{rp(b.amount)}</td>
-                      <td className="px-4 py-3 font-semibold text-amber-600">{b.remaining > 0 ? rp(b.remaining) : "—"}</td>
-                      <td className={`px-4 py-3 font-mono text-xs ${overdue(b) ? "text-red-600 font-bold" : ""}`}>{b.due_date}</td>
-                      <td className="px-4 py-3 font-mono text-xs" data-testid={`bill-paid-at-${b.id}`}>{b.last_paid_at ? b.last_paid_at.slice(0, 10) : "—"}</td>
-                      <td className="px-4 py-3"><span className={`px-2 py-0.5 rounded-full text-[11px] font-bold ${stBadge(b.status)}`}>{t(`status_${b.status}`)}</span></td>
-                      <td className="px-4 py-3">
-                        <div className="flex gap-1">
-                          {b.status !== "paid" && (
-                            <button data-testid={`pay-bill-${b.id}`} onClick={() => { setPayForm({ bill: b, amount: String(b.remaining), method: "Tunai", note: "" }); setModal("pay"); }}
-                              className="flex items-center gap-1 text-xs font-bold text-emerald-600 hover:bg-emerald-50 px-2 py-1.5 rounded-lg transition-colors">
-                              <Banknote className="w-4 h-4" /> {t("pay_manual")}
-                            </button>
-                          )}
-                          {b.paid_amount === 0 && (
-                            <button data-testid={`del-bill-${b.id}`} onClick={() => delBill(b)}
-                              className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-colors"><Trash2 className="w-4 h-4" /></button>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
+                  {groups.map((g) => {
+                    const first = g[0];
+                    const key = first.student_id || first.student_name;
+                    const open = expanded.has(key);
+                    const tot = g.reduce((a, b) => a + (b.amount || 0), 0);
+                    const sisa = g.reduce((a, b) => a + (b.remaining || 0), 0);
+                    const gStatus = g.every((b) => b.status === "paid") ? "paid" : g.some((b) => b.status === "partial") ? "partial" : "unpaid";
+                    const nextDue = g.filter((b) => b.status !== "paid").map((b) => b.due_date).sort()[0] || "—";
+                    return [
+                      <tr key={key} data-testid={`bill-group-${key}`} onClick={() => toggleGroup(key)}
+                        className="border-b cursor-pointer bg-slate-50/60 hover:bg-teal-50/60 transition-colors">
+                        <td className="px-4 py-3">
+                          <div className="flex items-center gap-2">
+                            <ChevronRight className={`w-4 h-4 text-teal-700 transition-transform ${open ? "rotate-90" : ""}`} />
+                            <div>
+                              <p className="font-semibold text-slate-800">{first.student_name}</p>
+                              <p className="text-xs text-slate-400">{first.class}</p>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-4 py-3 text-xs font-bold text-slate-500">{g.length} {t("spp_bills_tab").toLowerCase()}</td>
+                        <td className="px-4 py-3 text-slate-300">—</td>
+                        <td className="px-4 py-3 font-semibold text-slate-700">{rp(tot)}</td>
+                        <td className="px-4 py-3 font-semibold text-amber-600">{sisa > 0 ? rp(sisa) : "—"}</td>
+                        <td className="px-4 py-3 font-mono text-xs text-slate-500">{nextDue}</td>
+                        <td className="px-4 py-3 text-slate-300">—</td>
+                        <td className="px-4 py-3"><span data-testid={`bill-group-status-${key}`} className={`px-2 py-0.5 rounded-full text-[11px] font-bold ${stBadge(gStatus)}`}>{t(`status_${gStatus}`)}</span></td>
+                        <td></td>
+                      </tr>,
+                      ...(open ? g.map((b) => (
+                        <tr key={b.id} data-testid={`bill-row-${b.id}`} className="border-b last:border-0 hover:bg-slate-50/60">
+                          <td className="px-4 py-3 pl-11 text-xs text-slate-300">↳</td>
+                          <td className="px-4 py-3">{b.title}</td>
+                          <td className="px-4 py-3 text-slate-600">{b.category}</td>
+                          <td className="px-4 py-3">{rp(b.amount)}</td>
+                          <td className="px-4 py-3 font-semibold text-amber-600">{b.remaining > 0 ? rp(b.remaining) : "—"}</td>
+                          <td className={`px-4 py-3 font-mono text-xs ${overdue(b) ? "text-red-600 font-bold" : ""}`}>{b.due_date}</td>
+                          <td className="px-4 py-3 font-mono text-xs" data-testid={`bill-paid-at-${b.id}`}>{b.last_paid_at ? b.last_paid_at.slice(0, 10) : "—"}</td>
+                          <td className="px-4 py-3"><span className={`px-2 py-0.5 rounded-full text-[11px] font-bold ${stBadge(b.status)}`}>{t(`status_${b.status}`)}</span></td>
+                          <td className="px-4 py-3">
+                            <div className="flex gap-1">
+                              {b.status !== "paid" && (
+                                <button data-testid={`pay-bill-${b.id}`} onClick={() => { setPayForm({ bill: b, amount: String(b.remaining), method: "Tunai", note: "" }); setModal("pay"); }}
+                                  className="flex items-center gap-1 text-xs font-bold text-emerald-600 hover:bg-emerald-50 px-2 py-1.5 rounded-lg transition-colors">
+                                  <Banknote className="w-4 h-4" /> {t("pay_manual")}
+                                </button>
+                              )}
+                              {b.paid_amount === 0 && (
+                                <button data-testid={`del-bill-${b.id}`} onClick={() => delBill(b)}
+                                  className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-colors"><Trash2 className="w-4 h-4" /></button>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      )) : []),
+                    ];
+                  })}
                   {bills.length === 0 && <tr><td colSpan={9} className="px-4 py-8 text-center text-slate-400">{t("no_data")}</td></tr>}
                 </tbody>
               </table>
