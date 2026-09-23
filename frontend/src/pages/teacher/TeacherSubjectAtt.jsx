@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import api, { errMsg } from "../../api";
-import { Save, CheckCheck, BookOpen, Lock, LockOpen, Megaphone, X } from "lucide-react";
+import { Save, BookOpen, Lock, LockOpen, Megaphone, X } from "lucide-react";
 
 const STATUSES = ["hadir", "sakit", "izin", "alpha"];
 const ON = { hadir: "bg-emerald-600 text-white border-emerald-600", sakit: "bg-red-500 text-white border-red-500", izin: "bg-sky-500 text-white border-sky-500", alpha: "bg-slate-500 text-white border-slate-500" };
@@ -86,12 +86,8 @@ export default function TeacherSubjectAtt() {
         </div>
         </div>
         <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2 [&>button]:justify-center">
-        <button data-testid="sa-all-present" onClick={() => { const m = {}; students.forEach((s) => { m[s.id] = "hadir"; }); setMarks(m); }}
-          className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 transition-colors">
-          <CheckCheck className="w-4 h-4" /> {t("all_present")}
-        </button>
         <button data-testid="sa-call-start" onClick={() => setCallIdx(0)} disabled={!students.length}
-          className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-teal-800 bg-teal-50 border border-teal-200 hover:bg-teal-100 disabled:opacity-50 transition-colors">
+          className="col-span-2 sm:col-span-1 flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-teal-800 bg-teal-50 border border-teal-200 hover:bg-teal-100 disabled:opacity-50 transition-colors">
           <Megaphone className="w-4 h-4" /> {t("call_start")}
         </button>
         <button data-testid="sa-save" onClick={() => save(null)} disabled={busy || !students.length}
@@ -169,7 +165,7 @@ export default function TeacherSubjectAtt() {
             <div className="grid grid-cols-2 gap-2">
               {STATUSES.map((st) => (
                 <button key={st} data-testid={`sa-m-${st}-${s.id}`} onClick={() => setMarks({ ...marks, [s.id]: st })}
-                  className={`py-2.5 rounded-xl text-xs font-bold border-2 transition-all ${(marks[s.id] || "hadir") === st ? ON[st] : OFF}`}>
+                  className={`py-2 rounded-lg text-[11px] font-bold border transition-all ${(marks[s.id] || "hadir") === st ? ON[st] : OFF}`}>
                   {t(`att_${st}`)}
                 </button>
               ))}
