@@ -791,3 +791,9 @@ Aplikasi absensi berbasis tablet kiosk + face recognition & liveness, geofence G
 - Fix AdminDashboard.jsx: todayStr kini `new Date().toLocaleDateString("en-CA")` (tanggal lokal perangkat, format YYYY-MM-DD) — picker default & batas max benar untuk pengguna WIB. Backend sendiri sudah benar (school_today zona sekolah).
 - Catatan: rekaman Adi & Danil tgl 24/09 kemudian terhapus (indikasi user menghapusnya sendiri saat mencoba fitur hapus rekaman di dasbor) — bukan oleh perbaikan ini.
 - Terverifikasi: logika tanggal dibuktikan via node (WIB: toISOString→09-23 vs en-CA→09-24), UI regresi OK (picker default = tanggal lokal browser, tabel tampil normal, tanpa overflow mobile).
+
+## 2026-09-24 — Fix UX: mapel/kelas lama guru tidak bisa dihapus dari modal Ubah
+- Laporan user: ganti mapel Lukman tidak berfungsi. Akar masalah: CheckGroup menggabungkan nilai lama ke daftar checkbox, tetapi kotak kecil (max-h-32, scroll) menyembunyikan checkbox nilai lama di bawah fold → nilai lama tetap tercentang & ikut tersimpan.
+- Fix Teachers.jsx `CheckGroup`: (1) urutan checkbox kini **terpilih dulu** di atas; (2) daftar nilai terpilih tampil sebagai **chip dengan tombol ×** di atas kotak sehingga selalu terlihat & bisa dihapus langsung. Berlaku untuk mapel & kelas, form tambah & edit.
+- Insiden saat verifikasi: sempat runtime error "t is not a function" (CheckGroup tanpa useTranslation memakai t()) — diperbaiki (title dihapus).
+- Terverifikasi e2e via UI: chip "Agama" + "Penerapan Rangkaian Elektronika & Sistem Digital" tampil → hapus via × → Simpan → tabel menampilkan Lukman = "Agama" saja (data user sekalian terkoreksi sesuai keinginan).
