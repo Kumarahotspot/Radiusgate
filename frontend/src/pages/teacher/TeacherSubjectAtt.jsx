@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import api, { errMsg } from "../../api";
-import { Save, CheckCheck, BookOpen, Lock } from "lucide-react";
+import { Save, CheckCheck, BookOpen, Lock, Megaphone, X } from "lucide-react";
 
 const STATUSES = ["hadir", "sakit", "izin", "alpha"];
 const ON = { hadir: "bg-emerald-600 text-white border-emerald-600", sakit: "bg-red-500 text-white border-red-500", izin: "bg-sky-500 text-white border-sky-500", alpha: "bg-slate-500 text-white border-slate-500" };
@@ -20,6 +20,7 @@ export default function TeacherSubjectAtt() {
   const [saved, setSaved] = useState(false);
   const [locked, setLocked] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [callIdx, setCallIdx] = useState(null);
 
   useEffect(() => {
     api.get("/teacher/subject-att/meta").then((r) => {
@@ -85,6 +86,10 @@ export default function TeacherSubjectAtt() {
           className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 transition-colors">
           <CheckCheck className="w-4 h-4" /> {t("all_present")}
         </button>
+        <button data-testid="sa-call-start" onClick={() => setCallIdx(0)} disabled={!students.length}
+          className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-teal-800 bg-teal-50 border border-teal-200 hover:bg-teal-100 disabled:opacity-50 transition-colors">
+          <Megaphone className="w-4 h-4" /> {t("call_start")}
+        </button>
         <button data-testid="sa-save" onClick={() => save(false)} disabled={busy || !students.length}
           className="flex items-center gap-1.5 px-5 py-2 rounded-xl text-xs font-bold text-white bg-teal-700 hover:bg-teal-800 disabled:opacity-50 transition-colors ml-auto">
           <Save className="w-4 h-4" /> {busy ? t("loading") : t("save")}
@@ -138,6 +143,46 @@ export default function TeacherSubjectAtt() {
           </table>
         </div>
       </div>
+
+      {callIdx !== null && students[callIdx] && (
+        <div data-testid="sa-call-modal" className="fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl w-full max-w-md p-6 shadow-2xl">
+            <div className="flex items-center justify-between mb-4">
+              <span data-testid="sa-call-progress" className="text-xs font-bold text-slate-400">{callIdx + 1} / {students.length}</span>
+              <button data-testid="sa-call-close" onClick={() => setCallIdx(null)} className="text-slate-400 hover:text-slate-700 transition-colors"><X className="w-5 h-5" /></button>
+            </div>
+            <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden mb-6">
+              <div className="h-full bg-teal-600 rounded-full transition-all" style={{ width: `${((callIdx + 1) / students.length) * 100}%` }} />
+            </div>
+            <div className="text-center mb-6">
+              <span className="inline-flex w-16 h-16 rounded-full bg-teal-700/10 text-teal-800 text-xl font-extrabold items-center justify-center mb-3">
+                {students[callIdx].name.split(" ").map((w) => w[0]).slice(0, 2).join("")}
+              </span>
+              <p data-testid="sa-call-name" className="text-2xl font-extrabold text-slate-800">{students[callIdx].name}</p>
+              <p className="text-sm text-slate-400 font-mono mt-1">NIS {students[callIdx].nis}</p>
+            </div>
+            <div className="grid grid-cols-2 gap-2.5">
+              {STATUSES.map((st) => (
+                <button key={st} data-testid={`sa-call-${st}`}
+                  onClick={() => {
+                    setMarks({ ...marks, [students[callIdx].id]: st });
+                    if (callIdx + 1 < students.length) setCallIdx(callIdx + 1);
+                    else { setCallIdx(null); toast.success(t("call_done")); }
+                  }}
+                  className={`py-4 rounded-2xl text-sm font-extrabold border-2 transition-all ${(marks[students[callIdx].id] || "hadir") === st ? ON[st] : OFF}`}>
+                  {t(`att_${st}`)}
+                </button>
+              ))}
+            </div>
+            <div className="flex justify-between mt-5">
+              <button data-testid="sa-call-prev" disabled={callIdx === 0} onClick={() => setCallIdx(callIdx - 1)}
+                className="text-xs font-bold text-slate-500 hover:text-teal-700 disabled:opacity-30 transition-colors">← {t("call_prev")}</button>
+              <button data-testid="sa-call-skip" onClick={() => callIdx + 1 < students.length ? setCallIdx(callIdx + 1) : setCallIdx(null)}
+                className="text-xs font-bold text-slate-500 hover:text-teal-700 transition-colors">{t("call_skip")} →</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
