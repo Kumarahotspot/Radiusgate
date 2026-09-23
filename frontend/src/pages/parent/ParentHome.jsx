@@ -12,6 +12,20 @@ export default function ParentHome() {
   const [payFor, setPayFor] = useState(null);
   const [payAmount, setPayAmount] = useState("");
   const [paidReceipt, setPaidReceipt] = useState(null);
+  const [tab, setTab] = useState("main");
+  const [waPhone, setWaPhone] = useState("");
+
+  useEffect(() => { if (me) setWaPhone(me.parent?.phone || ""); }, [me]);
+
+  const submitProfile = async (e) => {
+    e.preventDefault();
+    setBusy(true);
+    try {
+      await api.put("/parent/profile", { phone: waPhone });
+      toast.success(t("save"));
+      load();
+    } catch (err) { toast.error(errMsg(err)); } finally { setBusy(false); }
+  };
   const today = new Date().toISOString().slice(0, 10);
   const [leave, setLeave] = useState({ status: "sakit", date: today, note: "" });
   const [pw, setPw] = useState({ current_password: "", new_password: "" });
@@ -95,6 +109,18 @@ export default function ParentHome() {
         </div>
       )}
 
+      <div className="flex gap-2">
+        <button data-testid="parent-tab-main" onClick={() => setTab("main")}
+          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${tab === "main" ? "bg-teal-700 text-white shadow-sm" : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-100"}`}>
+          {t("child_activity")}
+        </button>
+        <button data-testid="parent-tab-profile" onClick={() => setTab("profile")}
+          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${tab === "profile" ? "bg-teal-700 text-white shadow-sm" : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-100"}`}>
+          {t("profile")}
+        </button>
+      </div>
+
+      {tab === "main" && (<>
       <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden" data-testid="spp-section">
         <p className="px-4 pt-4 font-bold text-slate-800">{t("spp_my_bills")}</p>
         <p className="px-4 text-[11px] text-slate-400">{t("spp_demo_note")}</p>
@@ -146,7 +172,7 @@ export default function ParentHome() {
         )}
       </div>
 
-      <div className="grid lg:grid-cols-2 gap-6 items-start">
+      <div>
         <form onSubmit={submitLeave} data-testid="parent-leave-form" className="bg-white rounded-2xl border border-slate-200 p-5">
           <p className="font-bold text-slate-800 mb-4 flex items-center gap-2"><CalendarClock className="w-4 h-4 text-teal-700" /> {t("leave_title")}</p>
           <div className="grid grid-cols-2 gap-3">
@@ -173,24 +199,6 @@ export default function ParentHome() {
             className="mt-4 flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-teal-700 hover:bg-teal-800 disabled:opacity-50">
             <Send className="w-3.5 h-3.5" /> {t("leave_title")}
           </button>
-        </form>
-
-        <form onSubmit={submitPw} data-testid="parent-pw-form" className="bg-white rounded-2xl border border-slate-200 p-5">
-          <p className="font-bold text-slate-800 mb-4 flex items-center gap-2"><KeyRound className="w-4 h-4 text-teal-700" /> {t("change_password")}</p>
-          <div className="space-y-3">
-            <div>
-              <label className="text-xs font-semibold text-slate-500">{t("current_password")}</label>
-              <input data-testid="pw-current" type="password" required value={pw.current_password} onChange={(e) => setPw({ ...pw, current_password: e.target.value })}
-                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-teal-600" />
-            </div>
-            <div>
-              <label className="text-xs font-semibold text-slate-500">{t("new_password")}</label>
-              <input data-testid="pw-new" type="password" required minLength={6} value={pw.new_password} onChange={(e) => setPw({ ...pw, new_password: e.target.value })}
-                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-teal-600" />
-            </div>
-          </div>
-          <button data-testid="pw-submit" disabled={busy}
-            className="mt-4 px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-teal-700 hover:bg-teal-800 disabled:opacity-50">{t("change_password")}</button>
         </form>
       </div>
 
@@ -266,6 +274,53 @@ export default function ParentHome() {
           </table>
         </div>
       </div>
+      </>)}
+
+      {tab === "profile" && (
+        <div className="grid lg:grid-cols-2 gap-6 items-start">
+          <form onSubmit={submitProfile} data-testid="parent-profile-form" className="bg-white rounded-2xl border border-slate-200 p-5">
+            <p className="font-bold text-slate-800 mb-4">{t("profile")}</p>
+            <div className="space-y-3">
+              <div>
+                <label className="text-xs font-semibold text-slate-500">{t("name")}</label>
+                <input data-testid="profile-name" value={me?.parent?.name || ""} disabled
+                  className="mt-1 w-full rounded-xl border border-slate-100 bg-slate-50 px-3 py-2.5 text-sm text-slate-500" />
+              </div>
+              <div>
+                <label className="text-xs font-semibold text-slate-500">{t("email")}</label>
+                <input data-testid="profile-email" value={me?.parent?.email || ""} disabled
+                  className="mt-1 w-full rounded-xl border border-slate-100 bg-slate-50 px-3 py-2.5 text-sm text-slate-500" />
+              </div>
+              <div>
+                <label className="text-xs font-semibold text-slate-500">{t("phone")}</label>
+                <input data-testid="profile-phone" required value={waPhone} onChange={(e) => setWaPhone(e.target.value)}
+                  className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-teal-600" />
+                <p className="text-[11px] text-slate-400 mt-1">{t("profile_phone_hint")}</p>
+              </div>
+            </div>
+            <button data-testid="profile-save" disabled={busy}
+              className="mt-4 px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-teal-700 hover:bg-teal-800 disabled:opacity-50">{t("save")}</button>
+          </form>
+
+          <form onSubmit={submitPw} data-testid="parent-pw-form" className="bg-white rounded-2xl border border-slate-200 p-5">
+            <p className="font-bold text-slate-800 mb-4 flex items-center gap-2"><KeyRound className="w-4 h-4 text-teal-700" /> {t("change_password")}</p>
+            <div className="space-y-3">
+              <div>
+                <label className="text-xs font-semibold text-slate-500">{t("current_password")}</label>
+                <input data-testid="pw-current" type="password" required value={pw.current_password} onChange={(e) => setPw({ ...pw, current_password: e.target.value })}
+                  className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-teal-600" />
+              </div>
+              <div>
+                <label className="text-xs font-semibold text-slate-500">{t("new_password")}</label>
+                <input data-testid="pw-new" type="password" required minLength={6} value={pw.new_password} onChange={(e) => setPw({ ...pw, new_password: e.target.value })}
+                  className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-teal-600" />
+              </div>
+            </div>
+            <button data-testid="pw-submit" disabled={busy}
+              className="mt-4 px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-teal-700 hover:bg-teal-800 disabled:opacity-50">{t("change_password")}</button>
+          </form>
+        </div>
+      )}
     </div>
   );
 }

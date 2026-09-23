@@ -121,11 +121,12 @@ export default function Kiosk() {
   const lastActRef = useRef(Date.now());
 
   const todayStr = new Date().toISOString().slice(0, 10);
+  const saverPhotosOn = info?.settings?.saver_photos_enabled !== false;
   const customPhotos = (info?.settings?.saver_photos || []).map(
     (p) => `${process.env.REACT_APP_BACKEND_URL}/api/admin/saver-photos/file/${p}`
   );
   const saverSlides = [
-    ...(customPhotos.length ? customPhotos : SAVER_SLIDES).map((src) => ({ img: src })),
+    ...(saverPhotosOn ? (customPhotos.length ? customPhotos : SAVER_SLIDES) : []).map((src) => ({ img: src })),
     ...((info?.settings?.saver_notes || [])
       .filter((n) => (n.title || n.body)
         && (!n.valid_from || n.valid_from <= todayStr)
@@ -145,10 +146,11 @@ export default function Kiosk() {
   useEffect(() => {
     if (!token || !info) return;
     const iv = setInterval(() => {
+      if (info.settings?.saver_enabled === false || saverSlides.length === 0) return;
       if (phase === "idle" && !offlinePick && Date.now() - lastActRef.current > 45000) setSaver(true);
     }, 5000);
     return () => clearInterval(iv);
-  }, [token, info, phase, offlinePick]);
+  }, [token, info, phase, offlinePick, saverSlides.length]);
 
   useEffect(() => {
     if (!saver) return;

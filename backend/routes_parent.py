@@ -28,7 +28,7 @@ async def me(user: dict = Depends(parent_dep)):
     st = await my_child(user)
     school = await db.schools.find_one({"id": user["school_id"]}, {"_id": 0, "name": 1})
     return {
-        "parent": {"name": user.get("name", ""), "phone": user.get("phone", "")},
+        "parent": {"name": user.get("name", ""), "phone": user.get("phone", ""), "email": user.get("email", "")},
         "school_name": (school or {}).get("name", ""),
         "child": {"id": st["id"], "name": st["name"], "nis": st.get("nis", ""),
                   "nisn": st.get("nisn", ""), "class": st.get("class", ""),
@@ -103,6 +103,20 @@ async def pay_bill(body: SppPayIn, user: dict = Depends(parent_dep)):
     await db.bills.update_one({"id": bill["id"]}, {"$inc": {"paid_amount": body.amount}})
     asyncio.create_task(_receipt_notify(user["school_id"], bill, body.amount, ref))
     return {"ok": True, "id": pay["id"], "reference": ref, "mode": "demo"}
+
+
+class ProfileIn(BaseModel):
+    phone: str
+
+
+@router.put("/parent/profile")
+async def update_parent_profile(body: ProfileIn, user: dict = Depends(parent_dep)):
+    phone = body.phone.strip().replace(" ", "").replace("-", "")
+    if not phone.startswith("62") or len(phone) < 10 or not phone.isdigit():
+        raise HTTPException(status_code=400, detail="Format nomor WA tidak valid (contoh: 62812...)")
+    await db.users.update_one({"id": user["id"]}, {"$set": {"phone": phone}})
+    await db.students.update_one({"id": user.get("student_id")}, {"$set": {"parent_phone": phone}})
+    return {"ok": True}
 
 
 @router.get("/parent/spp/payments/{pid}/receipt.pdf")

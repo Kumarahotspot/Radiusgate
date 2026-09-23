@@ -647,6 +647,13 @@ Aplikasi absensi berbasis tablet kiosk + face recognition & liveness, geofence G
 - Kiosk.jsx: saverSlides = 3 foto + slide teks dari info.settings.saver_notes; slide teks dirender sebagai kartu gradasi teal gelap dengan badge "Pengumuman", judul besar, isi; dot indikator & rotasi mengikuti jumlah total slide. i18n baru: saver_announcement, saver_board, saver_board_hint, add_note, note_title, note_body (ID/EN).
 - Terverifikasi E2E: admin menambah slide "Upacara Bendera" → tersimpan (masih ada setelah reload) → kiosk menampilkan slide pengumuman dalam rotasi screensaver.
 
+## 2026-09-23 — Portal Ortu: tab Profil (email + no. WA) & Ganti Password pindah ke Profil
+- Permintaan user (screenshot): "Ganti Password" pindah ke Profil; profil berisi email & no. WA.
+- Backend routes_parent.py: `GET /parent/me` kini menyertakan email ortu; endpoint baru `PUT /parent/profile` {phone} — validasi format 62xxx, update users.phone DAN students.parent_phone (agar notifikasi WA ortu mengikuti nomor baru).
+- Frontend ParentHome.jsx: tab switcher "Aktivitas Anak | Profil" (parent-tab-main/profile); tab utama berisi SPP + form izin + tabel aktivitas (form password dikeluarkan); tab Profil berisi kartu Profil (Nama & Email read-only, No. WhatsApp editable + Simpan, testid parent-profile-form/profile-name/email/phone/save) + kartu Ganti Password (testid tetap parent-pw-form dsb).
+- i18n baru: profile, profile_phone_hint (ID/EN).
+- Terverifikasi: curl (/parent/me ada email, PUT profile ok, 400 format salah, sinkron ke student.parent_phone & user.phone) + screenshot (tab switcher, profil terisi benar, password form di tab Profil, tab utama bersih, mobile 390 tanpa overflow).
+
 ## 2026-09-23 — Papan info kiosk: tanggal berlaku slide + upload foto sendiri (object storage)
 - Permintaan user: slide pengumuman punya tanggal berlaku + gambar slideshow bisa diganti sendiri oleh admin.
 - **Emergent Object Storage** (playbook integration_expert): modul baru /app/backend/storage.py (init_storage lazy + put_object/get_object dengan retry force-reinit saat 404); EMERGENT_LLM_KEY ditambahkan ke backend/.env (belum ada sebelumnya); endpoint routes_admin.py: POST /admin/saver-photos (upload JPG/PNG/WEBP maks 2MB → radiusgate/saver/{school_id}/{uuid}, $push ke settings.saver_photos), DELETE /admin/saver-photos?path= ($pull; storage tak punya delete API → cukup hapus referensi), GET /admin/saver-photos/file/{path} (publik — dipakai <img> kiosk). SettingsIn + saver_photos: list[str].

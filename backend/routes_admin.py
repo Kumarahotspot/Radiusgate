@@ -339,6 +339,8 @@ class SettingsIn(BaseModel):
     overtime_rate: int | None = None
     saver_notes: list[dict] | None = None
     saver_photos: list[str] | None = None
+    saver_enabled: bool | None = None
+    saver_photos_enabled: bool | None = None
 
 
 @router.get("/admin/settings")

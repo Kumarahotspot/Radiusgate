@@ -200,6 +200,20 @@ export default function SettingsPage() {
           <p className="font-bold text-slate-800 text-sm">{t("saver_board")}</p>
           <p className="text-xs text-slate-400 mt-0.5">{t("saver_board_hint")}</p>
         </div>
+        <div className="flex flex-wrap gap-5 text-sm">
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input type="checkbox" data-testid="saver-enabled" checked={settings.saver_enabled !== false}
+              onChange={(e) => setSettings({ ...settings, saver_enabled: e.target.checked })}
+              className="w-4 h-4 accent-teal-700" />
+            <span className="font-semibold text-slate-700">{t("saver_enabled")}</span>
+          </label>
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input type="checkbox" data-testid="saver-photos-enabled" checked={settings.saver_photos_enabled !== false}
+              onChange={(e) => setSettings({ ...settings, saver_photos_enabled: e.target.checked })}
+              className="w-4 h-4 accent-teal-700" />
+            <span className="font-semibold text-slate-700">{t("saver_photos_enabled")}</span>
+          </label>
+        </div>
         <div>
           <p className="text-xs font-semibold text-slate-500">{t("saver_photos")}</p>
           <p className="text-[11px] text-slate-400">{t("saver_photos_hint")}</p>
