@@ -1,0 +1,20 @@
+{
+  "summary": "Iterasi 13 - Verifikasi responsif area filter & tombol aksi di /guru/mapel. Mobile 390x844: filter Tanggal & Mata Pelajaran sejajar (y=210, x=33 dan x=201) di baris 1, Kelas selebar penuh (width=324, col-span-2) di baris 2. 4 tombol aksi tampil grid 2x2 dengan lebar konsisten (158px): [Semua Hadir | Mulai Panggil] y=340 lalu [Simpan | Selesai & Kunci] y=382. Tidak ada horizontal overflow (scrollWidth=clientWidth=390). Kartu siswa (sa-card-*) tetap tampil di bawah. Desktop 1920: filter tetap sebaris (semua y=210-212), tombol flex wrap (y=262), tabel siswa terlihat, kartu mobile tersembunyi. Tidak ada regresi. Layout PASS.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [],
+  "action_items": [],
+  "critical_code_review_comments": [],
+  "updated_files": [],
+  "success_rate": {"backend": "N/A", "frontend": "100%"},
+  "test_credentials": "guru@nusantara.sch.id / Guru123!",
+  "seed_data_creation": "None",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Layout responsif TeacherSubjectAtt (filter grid 2 kolom + tombol aksi grid 2x2 di mobile, flex di sm+) sudah PASS. Verifikasi via boundingBox: mobile filter row1 (Tanggal x=33, Mapel x=201, y=210), row2 (Kelas full-width 324px), tombol 2x2 y=340/382 semua width=158. Desktop tetap sebaris, tabel visible.",
+  "rca of the issue": "Tidak ada issue. Perubahan CSS grid pada lines 65 (fields) dan 88 (actions) bekerja sesuai design: grid-cols-2 sm:flex sm:flex-wrap dengan col-span-2 pada Kelas."
+}

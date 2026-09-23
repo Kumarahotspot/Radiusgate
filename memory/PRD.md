@@ -845,4 +845,9 @@ Keputusan user via ask_human: auto-Alpa; prefill mapel dari kiosk; absen pulang 
 ## 2026-09-24 — ZIP Hostinger di-build ulang berisi fix kartu mobile
 - ZIP sebelumnya (20:44) masih versi pra-perbaikan kartu — penyebab domain belum berubah meski Emergent sudah. Build ulang: bundle baru `main.89dc265e.js` (memuat kode `sa-card-`), `landing-radiusgate.zip` 5,3 MB, endpoint download terverifikasi menyajikan bundle baru.
 - Instruksi ke user: unduh ulang ZIP dari link yang sama → upload ke public_html → ekstrak timpa semua → di HP pastikan mode "Situs Desktop" mati & hard-refresh (atau mode samaran) karena cache browser/CDN Hostinger.
+
+## 2026-09-24 — Rapikan area filter & tombol aksi Absen Mapel di HP
+- TeacherSubjectAtt.jsx: (1) field filter kini grid 2 kolom di mobile (Tanggal+Mapel sejajar w-full, Kelas col-span-2 lebar penuh), di sm+ kembali flex sebaris items-end; (2) 4 tombol aksi (Semua Hadir/Mulai Panggil/Simpan/Kunci) kini grid 2×2 lebar konsisten + justify-center di mobile, flex di sm+.
+- ZIP Hostinger di-build ulang (bundle main.11d48ba4.js, 6,2 MB).
+- Terverifikasi testing_agent (iterasi 13): 100% pass — posisi boundingBox presisi (filter sejajar y=210, Kelas full-width 324px, tombol 2×2 seragam 158px), tanpa overflow, desktop tak regresi.
 Terverifikasi: prefill alpha✓; HSIA izin→hadir menimpa status harian✓; guard 01:30→422 not_dismissal_time:15:30, setelah 00:30→lolos gate✓; cron manual marked_alpa=429 lalu dibersihkan (auth via dotenv — jangan ekstrak secret pakai grep/cut, nilai mengandung karakter khusus)✓; UI settings 7 input tanpa overflow✓; UI guru prefill tampil (5 hadir/1 izin/2 alpha dari 8 siswa)✓.
