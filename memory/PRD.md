@@ -607,4 +607,10 @@ Aplikasi absensi berbasis tablet kiosk + face recognition & liveness, geofence G
 - Konversi final: numpy alpha berbasis saturasi+kecerahan — latar JPEG (mn>205 & spread<28) → transparan, mark opaque, alpha di-GaussianBlur 1.2 untuk tepi halus, crop ketat. Pendekatan ambang global & flood-fill sebelumnya gagal karena noise JPEG (halo abu-abu tetap opaque / gradasi terkikis).
 - Desain di-regenerate sekali lagi (konsep tetap pin orbit) untuk bentuk yang lebih bersih & lebih kuat terbaca di ukuran kecil → hasil akhir 801×628 PNG transparan penuh (53,8% transparan).
 - Terverifikasi: kuitansi PDF 200 dengan logo baru; screenshot login (panel gelap tanpa kotak), header admin, landing, mobile.
+
+## 2026-09-23 — Logo diganti ke desain upload user
+- User mengupload logo resmi RadiusGate (file aset: "Logo RadiusGate modern.webp", 2000×2000, mark bundar "R" + wordmark).
+- Proses: deteksi celah kolom kosong (proyeksi vertikal numpy) untuk memisahkan ikon dari wordmark (celah di x=631–694) → crop ikon → pad ke kanvas persegi 613×613 → transparansi saturasi+kecerahan (mn>205 & spread<28 → alpha 0, GaussianBlur 1.2) → ditempatkan di /app/frontend/public/logo.png + /app/backend/assets/logo.png.
+- Catatan: crop ikon+wordmark versi horizontal juga tersedia di /tmp/rg_new.webp bila kelak dibutuhkan untuk kop dokumen landscape.
+- Terverifikasi: view PNG (mark utuh, 59,7% transparan), screenshot login desktop+mobile (mengapung di panel gelap tanpa kotak), header admin, landing page (header + mock kiosk), kuitansi PDF 200 dengan logo baru.
 - P2: Tablet React Native (kiosk native); laporan grafik SPP; kuitansi PDF cetak; impor data tagihan lama; Midtrans/Duitku
