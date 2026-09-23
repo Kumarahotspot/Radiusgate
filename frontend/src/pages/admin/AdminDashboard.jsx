@@ -16,7 +16,7 @@ export default function AdminDashboard() {
   const [expanded, setExpanded] = useState(null);
   const [flt, setFlt] = useState(() => new URLSearchParams(window.location.search).get("f") || "");
   const tableRef = useRef(null);
-  const todayStr = new Date().toISOString().slice(0, 10);
+  const todayStr = new Date().toLocaleDateString("en-CA");
   const [attDate, setAttDate] = useState(todayStr);
   const q = query.trim().toLowerCase();
   const filtered = today.filter((a) => !q || [a.teacher_name, a.status, a.class, a.type === "in" ? t("check_in") : t("check_out")].some((f) => (f || "").toLowerCase().includes(q)));

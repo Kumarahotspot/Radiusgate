@@ -785,3 +785,9 @@ Aplikasi absensi berbasis tablet kiosk + face recognition & liveness, geofence G
 - Laporan user: ortu siswa Danil (628888222888) tidak bisa login ("Email atau password salah"). Akun ortu ADA & tertaut benar, tetapi hash password tidak cocok dengan NIS saat ini (12345678) maupun fallback 6 digit HP — kemungkinan NIS diubah setelah akun ortu otomatis dibuat (password awal = NIS saat itu), sehingga kredensial terdokumentasi tidak berlaku.
 - Perbaikan langsung: password akun ortu Danil di-reset ke NIS saat ini (12345678) via DB; login terverifikasi 200.
 - Akar masalah struktural (belum di-fix): perubahan NIS siswa tidak menyinkronkan password akun ortu. Rekomendasi: tombol "Reset Password Ortu" di halaman Siswa (reset ke NIS kapan saja, tanpa tergantung Wablas).
+
+## 2026-09-24 — Bug: absen lewat tengah malam "hilang" dari dasbor admin
+- Laporan user: Adi Nugroho sudah absen tapi tidak muncul di dasbor. Rekaman tersimpan benar bertanggal 2026-09-24 (absen 00:05 WIB, zona sekolah), tetapi default date picker dasbor memakai `new Date().toISOString().slice(0,10)` = **tanggal UTC** → antara pukul 00:00–07:00 WIB dasbor membuka tanggal KEMARIN (23/09) dan batas `max` ikut salah, sehingga rekaman 24/09 tak terlihat.
+- Fix AdminDashboard.jsx: todayStr kini `new Date().toLocaleDateString("en-CA")` (tanggal lokal perangkat, format YYYY-MM-DD) — picker default & batas max benar untuk pengguna WIB. Backend sendiri sudah benar (school_today zona sekolah).
+- Catatan: rekaman Adi & Danil tgl 24/09 kemudian terhapus (indikasi user menghapusnya sendiri saat mencoba fitur hapus rekaman di dasbor) — bukan oleh perbaikan ini.
+- Terverifikasi: logika tanggal dibuktikan via node (WIB: toISOString→09-23 vs en-CA→09-24), UI regresi OK (picker default = tanggal lokal browser, tabel tampil normal, tanpa overflow mobile).
