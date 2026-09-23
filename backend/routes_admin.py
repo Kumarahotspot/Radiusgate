@@ -1178,6 +1178,43 @@ async def report_payroll_export(period: str, user: dict = Depends(admin_dep)):
         headers={"Content-Disposition": f"attachment; filename=penggajian-{period}.xlsx"})
 
 
+
+# ---------- Sesi absen mapel (kunci/buka oleh admin) ----------
+@router.get("/admin/subject-sessions")
+async def subject_sessions(date: str, user: dict = Depends(admin_dep)):
+    pipeline = [
+        {"$match": {"school_id": user["school_id"], "date": date}},
+        {"$group": {"_id": {"teacher_id": "$teacher_id", "subject": "$subject", "class_name": "$class_name"},
+                    "teacher_name": {"$first": "$teacher_name"},
+                    "count": {"$sum": 1},
+                    "locked": {"$max": {"$cond": [{"$eq": ["$locked", True]}, 1, 0]}}}},
+        {"$sort": {"_id.class_name": 1, "_id.subject": 1}},
+    ]
+    rows = await db.subject_attendance.aggregate(pipeline).to_list(500)
+    return [{"teacher_id": r["_id"]["teacher_id"], "subject": r["_id"]["subject"],
+             "class_name": r["_id"]["class_name"], "teacher_name": r["teacher_name"],
+             "count": r["count"], "locked": bool(r["locked"])} for r in rows]
+
+
+class SessionLockIn(BaseModel):
+    date: str
+    teacher_id: str
+    subject: str
+    class_name: str
+    lock: bool
+
+
+@router.post("/admin/subject-sessions/lock")
+async def lock_subject_session(body: SessionLockIn, user: dict = Depends(admin_dep)):
+    key = {"school_id": user["school_id"], "date": body.date, "teacher_id": body.teacher_id,
+           "subject": body.subject, "class_name": body.class_name}
+    if body.lock:
+        r = await db.subject_attendance.update_many(key, {"$set": {"locked": True, "locked_by": user["email"]}})
+    else:
+        r = await db.subject_attendance.update_many(key, {"$unset": {"locked": "", "locked_by": ""}})
+    return {"ok": True, "modified": r.modified_count}
+
+
 # ---------- Reports ----------
 @router.get("/admin/reports/attendance")
 async def report_attendance(date_from: str, date_to: str, teacher_id: str | None = None,

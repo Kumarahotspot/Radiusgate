@@ -279,6 +279,7 @@ async def _run_auto_alpa(run_id: str):
     sore hari — kiosk sudah menolak absen masuk lewat jam pulang, jadi aman dari duplikat."""
     try:
         marked = 0
+        locked_total = 0
         for school in await db.schools.find({}, {"_id": 0, "id": 1}).to_list(1000):
             sid = school["id"]
             st = await db.settings.find_one({"school_id": sid}, {"_id": 0, "timezone": 1}) or {}
@@ -310,7 +311,11 @@ async def _run_auto_alpa(run_id: str):
                     marked += 1
                 except HTTPException:
                     pass
-        await _finish_run(run_id, {"marked_alpa": marked})
+            lock_res = await db.subject_attendance.update_many(
+                {"school_id": sid, "date": today, "locked": {"$ne": True}},
+                {"$set": {"locked": True, "auto_locked": True}})
+            locked_total += lock_res.modified_count
+        await _finish_run(run_id, {"marked_alpa": marked, "auto_locked": locked_total})
     except Exception as e:
         await _finish_run(run_id, error=str(e))
 

@@ -828,4 +828,12 @@ Keputusan user via ask_human: auto-Alpa; prefill mapel dari kiosk; absen pulang 
 - Backend: SubjectAttIn `lock` kini tri-state (None=tak diubah, True=kunci/$set locked, False=buka/$unset locked).
 - Frontend TeacherSubjectAtt.jsx: tombol `sa-lock` menampilkan ikon LockOpen + "Selesai & Kunci" saat terbuka; saat terkunci berubah jadi ikon Lock + "Buka Kunci" (gaya abu-abu) dengan konfirmasi `unlock_confirm`. Lencana Terkunci tetap. i18n baru: unlock_session, unlock_confirm (ID/EN).
 - Terverifikasi UI: default terbuka → kunci (Buka Kunci + lencana) → buka kembali; tanpa overflow mobile. Data tes sesi dibersihkan, rekaman asli utuh.
+
+## 2026-09-24 — Kunci sesi oleh admin + auto-lock malam hari
+- Keputusan user: admin bisa kunci/buka sesi mapel kapan saja + sistem mengunci otomatis malam hari sebagai pengaman (guru yang lupa kunci tetap aman).
+- Backend routes_admin.py: `GET /admin/subject-sessions?date=` (agregasi sesi per guru+mapel+kelas: jumlah siswa, status locked) dan `POST /admin/subject-sessions/lock` (lock=True → set locked+locked_by; False → unset).
+- Auto-lock digabung ke cron harian `auto-alpa` (batas 5 cron platform): setelah tandai Alpa, semua sesi mapel hari ini yang belum terkunci di-set locked+auto_locked. Jadwal digeser ke 19:00 WIB ("0 12 * * 1-6").
+- Frontend Reports.jsx: tab baru "Sesi Mapel" (`tab-sessions`) — pemilih tanggal + tabel sesi (kelas/mapel/guru/jumlah siswa/status Terbuka-Terkunci) dengan tombol Kunci/Buka Kunci per sesi. i18n baru: sessions_tab, session_open, lock_action, sessions_hint (ID/EN). Fix bonus: tanggal default Reports kini toLocaleDateString("en-CA") (bug UTC).
+- Terverifikasi: UI toggle kunci↔buka pada sesi asli (dikembalikan), cron manual mengunci sesi uji (auto_locked=true) tanpa menyentuh kunci manual Lukman, cleanup bersih (0 sisa), tanpa overflow mobile.
+- Pelajaran tes: path halaman laporan adalah `/admin/reports` (bukan /admin/laporan); URL salah → redirect ke landing oleh route "*".
 Terverifikasi: prefill alpha✓; HSIA izin→hadir menimpa status harian✓; guard 01:30→422 not_dismissal_time:15:30, setelah 00:30→lolos gate✓; cron manual marked_alpa=429 lalu dibersihkan (auth via dotenv — jangan ekstrak secret pakai grep/cut, nilai mengandung karakter khusus)✓; UI settings 7 input tanpa overflow✓; UI guru prefill tampil (5 hadir/1 izin/2 alpha dari 8 siswa)✓.

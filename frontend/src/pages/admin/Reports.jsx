@@ -165,8 +165,8 @@ function PersonReport({ t, person, from, to, setFrom, setTo, classes }) {
 
 export default function Reports() {
   const { t } = useTranslation();
-  const today = new Date().toISOString().slice(0, 10);
-  const monthAgo = new Date(Date.now() - 29 * 864e5).toISOString().slice(0, 10);
+  const today = new Date().toLocaleDateString("en-CA");
+  const monthAgo = new Date(Date.now() - 29 * 864e5).toLocaleDateString("en-CA");
   const [from, setFrom] = useState(monthAgo);
   const [to, setTo] = useState(today);
   const [person, setPerson] = useState("");
@@ -176,6 +176,8 @@ export default function Reports() {
   const [saClass, setSaClass] = useState("");
   const [saSubject, setSaSubject] = useState("");
   const [saRows, setSaRows] = useState([]);
+  const [sessDate, setSessDate] = useState(today);
+  const [sessions, setSessions] = useState([]);
 
   useEffect(() => {
     api.get("/admin/meta/options").then((r) => setOpts(r.data));
@@ -191,6 +193,18 @@ export default function Reports() {
       params: { date_from: from, date_to: to, class_name: saClass || undefined, subject: saSubject || undefined },
     }).then((r) => setSaRows(r.data));
   }, [tab, from, to, saClass, saSubject]);
+
+  useEffect(() => {
+    if (tab !== "sessions") return;
+    api.get("/admin/subject-sessions", { params: { date: sessDate } }).then((r) => setSessions(r.data));
+  }, [tab, sessDate]);
+
+  const toggleLock = async (s) => {
+    await api.post("/admin/subject-sessions/lock", {
+      date: sessDate, teacher_id: s.teacher_id, subject: s.subject, class_name: s.class_name, lock: !s.locked,
+    });
+    setSessions(sessions.map((x) => (x === s ? { ...x, locked: !s.locked } : x)));
+  };
 
   const doExport = async (fmt) => {
     const r = await api.get("/admin/reports/export", { params: { format: fmt, date_from: from, date_to: to, person: person || undefined }, responseType: "blob" });
@@ -218,6 +232,8 @@ export default function Reports() {
           className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-colors ${tab === "teachers" ? "bg-teal-700 text-white" : "text-slate-600 hover:bg-slate-100"}`}>{t("teacher_att_tab")}</button>
         <button data-testid="tab-employees" onClick={() => setTab("employees")}
           className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-colors ${tab === "employees" ? "bg-teal-700 text-white" : "text-slate-600 hover:bg-slate-100"}`}>{t("employee_att_tab")}</button>
+        <button data-testid="tab-sessions" onClick={() => setTab("sessions")}
+          className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-colors ${tab === "sessions" ? "bg-teal-700 text-white" : "text-slate-600 hover:bg-slate-100"}`}>{t("sessions_tab")}</button>
       </div>
       {tab === "daily" && (<>
       <div className="bg-white rounded-2xl border border-slate-200 p-4 flex flex-wrap items-end gap-3">
@@ -362,6 +378,55 @@ export default function Reports() {
           </div>
         </>
       )}
+
+      {tab === "sessions" && (<>
+        <div className="bg-white rounded-2xl border border-slate-200 p-4 flex flex-wrap items-end gap-3">
+          <div>
+            <label className="text-xs font-semibold text-slate-500">{t("date")}</label>
+            <input data-testid="sessions-date" type="date" value={sessDate} onChange={(e) => setSessDate(e.target.value)}
+              className="mt-1 block rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-teal-600" />
+          </div>
+          <p className="text-[11px] text-slate-400 max-w-md">{t("sessions_hint")}</p>
+        </div>
+        <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="text-left text-xs uppercase tracking-wide text-slate-500 border-b bg-slate-50">
+                  <th className="px-4 py-3">{t("class")}</th>
+                  <th className="px-4 py-3">{t("mapel")}</th>
+                  <th className="px-4 py-3">{t("teachers")}</th>
+                  <th className="px-4 py-3">{t("students")}</th>
+                  <th className="px-4 py-3">{t("status")}</th>
+                  <th className="px-4 py-3"></th>
+                </tr>
+              </thead>
+              <tbody>
+                {sessions.map((s) => (
+                  <tr key={`${s.teacher_id}-${s.subject}-${s.class_name}`} data-testid={`session-${s.class_name}-${s.subject}`} className="border-b last:border-0 hover:bg-slate-50/60">
+                    <td className="px-4 py-2.5">{s.class_name}</td>
+                    <td className="px-4 py-2.5 font-semibold text-slate-800">{s.subject}</td>
+                    <td className="px-4 py-2.5 text-slate-600">{s.teacher_name}</td>
+                    <td className="px-4 py-2.5">{s.count}</td>
+                    <td className="px-4 py-2.5">
+                      <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${s.locked ? "bg-slate-200 text-slate-600" : "bg-emerald-100 text-emerald-700"}`}>
+                        {s.locked ? t("session_locked") : t("session_open")}
+                      </span>
+                    </td>
+                    <td className="px-4 py-2.5 text-right">
+                      <button data-testid={`session-lock-${s.class_name}-${s.subject}`} onClick={() => toggleLock(s)}
+                        className={`px-3 py-1 rounded-lg text-[11px] font-bold transition-colors ${s.locked ? "text-teal-700 bg-teal-50 hover:bg-teal-100" : "text-slate-600 bg-slate-100 hover:bg-slate-200"}`}>
+                        {s.locked ? t("unlock_session") : t("lock_action")}
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+                {sessions.length === 0 && <tr><td colSpan={6} className="px-4 py-8 text-center text-slate-400">{t("no_data")}</td></tr>}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </>)}
 
       {tab === "students" && <PersonReport {...personProps} person="student" classes={opts.classes || []} />}
       {tab === "teachers" && <PersonReport {...personProps} person="teacher" classes={[]} />}
