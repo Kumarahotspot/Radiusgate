@@ -32,6 +32,7 @@ export default function TeacherSubjectAtt() {
 
   useEffect(() => {
     if (!subject || !cls) return;
+    confirmedRef.current = false;
     api.get("/teacher/subject-att", { params: { date, subject, class_name: cls } }).then((r) => {
       setStudents(r.data.students);
       const m = {};
@@ -106,9 +107,6 @@ export default function TeacherSubjectAtt() {
         <button data-testid="sa-call-start" onClick={() => setCallIdx(0)} disabled={!students.length}
           className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-teal-800 bg-teal-50 border border-teal-200 hover:bg-teal-100 disabled:opacity-50 transition-colors">
           <Megaphone className="w-4 h-4" /> {t("call_start")}
-        </button>
-        <button data-testid="sa-save" onClick={() => save(null)} disabled={busy || !students.length}
-          className="hidden">
         </button>
         {locked ? (
           <button data-testid="sa-lock" onClick={() => { if (window.confirm(t("unlock_confirm"))) save(false); }} disabled={busy || !students.length}
