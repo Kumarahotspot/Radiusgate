@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import api, { errMsg } from "@/api";
@@ -47,6 +47,18 @@ export default function Landing() {
     return () => clearInterval(t);
   }, []);
 
+  const attRef = useRef(null);
+  const [attIn, setAttIn] = useState(false);
+  useEffect(() => {
+    const el = attRef.current;
+    if (!el) return;
+    const io = new IntersectionObserver(([e]) => {
+      if (e.isIntersecting) { setAttIn(true); io.disconnect(); }
+    }, { threshold: 0.3 });
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+
   const submit = async (e) => {
     e.preventDefault();
     setBusy(true);
@@ -72,6 +84,12 @@ export default function Landing() {
 
   return (
     <div data-testid="landing-page" className="min-h-screen bg-slate-50 text-slate-900" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+      <style>{`
+        .att-anim { opacity: 0; }
+        .att-anim.att-in { animation: attRowIn .5s cubic-bezier(.22,.8,.36,1) forwards; }
+        @keyframes attRowIn { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+        @media (prefers-reduced-motion: reduce) { .att-anim { opacity: 1; } .att-anim.att-in { animation: none; } }
+      `}</style>
       {/* Navbar */}
       <header className="sticky top-0 z-50 backdrop-blur-md bg-white/80 border-b border-teal-100/60">
         <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between gap-3">
@@ -230,7 +248,7 @@ export default function Landing() {
           </div>
           <div className="relative mx-auto w-full max-w-md">
             <div className="absolute -inset-4 sm:-inset-6 bg-gradient-to-br from-teal-100/70 to-emerald-50 rounded-[3rem] -z-10" />
-            <div data-testid="absensi-mock-card" className="bg-white border border-slate-200 rounded-3xl p-6 shadow-2xl">
+            <div ref={attRef} data-testid="absensi-mock-card" className="bg-white border border-slate-200 rounded-3xl p-6 shadow-2xl">
               <div className="flex items-center gap-2.5 pb-4 border-b border-slate-100">
                 <img src="/logo.png" alt="" className="w-8 h-8 object-contain" />
                 <div>
@@ -248,8 +266,8 @@ export default function Landing() {
                   ["Bima Prasetyo", "XI TKJ", "07:14", "Telat +4m", "bg-amber-100 text-amber-700"],
                   ["Salsabila Zahra", "XII TB", "—", "Izin", "bg-sky-100 text-sky-700"],
                   ["Dimas Anggara", "X TAV", "—", "Sakit", "bg-red-100 text-red-600"],
-                ].map(([nama, kelas, jam, st, cls]) => (
-                  <div key={nama} className="flex items-center gap-3 py-2.5">
+                ].map(([nama, kelas, jam, st, cls], i) => (
+                  <div key={nama} className={`att-anim ${attIn ? "att-in" : ""} flex items-center gap-3 py-2.5`} style={{ animationDelay: `${i * 120}ms` }}>
                     <span className="w-8 h-8 rounded-full bg-teal-700/10 text-teal-800 text-[10px] font-extrabold flex items-center justify-center shrink-0">
                       {nama.split(" ").map((w) => w[0]).slice(0, 2).join("")}
                     </span>
@@ -266,8 +284,8 @@ export default function Landing() {
                 {[["Hadir", "1.128", "bg-emerald-50 text-emerald-700 border-emerald-100"],
                   ["Telat", "34", "bg-amber-50 text-amber-700 border-amber-100"],
                   ["Izin", "12", "bg-sky-50 text-sky-700 border-sky-100"],
-                  ["Sakit", "8", "bg-red-50 text-red-600 border-red-100"]].map(([label, val, cls]) => (
-                  <span key={label} className={`text-[10px] font-bold border rounded-full px-2.5 py-1 ${cls}`}>{label} {val}</span>
+                  ["Sakit", "8", "bg-red-50 text-red-600 border-red-100"]].map(([label, val, cls], ci) => (
+                  <span key={label} className={`att-anim ${attIn ? "att-in" : ""} text-[10px] font-bold border rounded-full px-2.5 py-1 ${cls}`} style={{ animationDelay: `${600 + ci * 90}ms` }}>{label} {val}</span>
                 ))}
               </div>
             </div>

@@ -715,3 +715,7 @@ Aplikasi absensi berbasis tablet kiosk + face recognition & liveness, geofence G
 - Landing.jsx: section baru `#absensi` di antara "Cara Kerja" dan "Pembayaran", bergaya section SPP (2 kolom: copy + kartu mock). Kartu mock "Absensi Hari Ini" (`absensi-mock-card`): header logo + nama sekolah + badge "Wajah + GPS", 5 baris contoh siswa (inisial avatar, nama, kelas, jam masuk, badge Hadir/Telat +4m/Izin/Sakit), footer chip ringkasan (Hadir 1.128 · Telat 34 · Izin 12 · Sakit 8). Bullets: status otomatis, notif WA ortu, rekap harian/bulanan export, absensi per mapel.
 - Navbar landing: link baru "Absensi" (nav-link-absensi) di antara Cara Kerja dan Pembayaran.
 - Terverifikasi screenshot: section + kartu + navlink tampil, tanpa overflow mobile 390.
+
+## 2026-09-23 — Animasi stagger kartu mock absensi landing
+- Landing.jsx: baris siswa & chip ringkasan di kartu mock absensi kini muncul berurutan (fade + translateY, delay 120ms/baris, chip mulai 600ms) saat section masuk viewport — via IntersectionObserver (threshold 0.3, sekali jalan) + keyframes CSS `attRowIn` di tag `<style>`; menghormati prefers-reduced-motion.
+- Terverifikasi: opacity 0 sebelum scroll → semua 9 elemen opacity 1 setelah scroll dengan delay bertingkat (0/120/240ms), tanpa overflow mobile 390.
