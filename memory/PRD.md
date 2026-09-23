@@ -740,3 +740,8 @@ Aplikasi absensi berbasis tablet kiosk + face recognition & liveness, geofence G
 - Halaman baru `LegalPage.jsx` (publik, tanpa Layout): route `/privasi` (Kebijakan Privasi — data yang dikumpulkan, penggunaan, biometrik & lokasi, penyimpanan/keamanan, hak sekolah & ortu, kontak) dan `/syarat` (Syarat & Ketentuan — layanan, akun & tanggung jawab, langganan & pembayaran, larangan, batasan tanggung jawab, perubahan). Header minimal logo + tombol Kembali.
 - Footer landing: link baru "Daftar Trial Gratis" (/daftar), "Kebijakan Privasi" (/privasi), "Syarat & Ketentuan" (/syarat).
 - Terverifikasi screenshot: 3 link footer tampil & berfungsi, kedua halaman legal render lengkap (6 section), tanpa overflow mobile 390.
+
+## 2026-09-23 — Checkbox persetujuan legal wajib di halaman /daftar
+- RegisterTrial.jsx: checkbox wajib (`register-agree`) "Saya menyetujui Kebijakan Privasi dan Syarat & Ketentuan" dengan link ke /privasi & /syarat (tab baru); submit tanpa centang ditolak dengan pesan `agree_required` (tanpa memanggil API).
+- i18n baru: agree_prefix, agree_and, privacy_policy, terms_conditions, agree_required (ID/EN).
+- Terverifikasi e2e: submit tanpa centang → error tampil; centang → pendaftaran trial berhasil (halaman sukses); tenant uji "SMA Uji Checkbox" + user + lead dibersihkan dari DB. Tanpa overflow mobile 390.

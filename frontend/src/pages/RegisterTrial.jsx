@@ -9,11 +9,13 @@ export default function RegisterTrial() {
   const { t } = useTranslation();
   const [form, setForm] = useState({ school_name: "", admin_name: "", email: "", password: "", student_count: "", school_type: "", majors: [], majorOther: "" });
   const [busy, setBusy] = useState(false);
+  const [agree, setAgree] = useState(false);
   const [error, setError] = useState(null);
   const [done, setDone] = useState(false);
 
   const submit = async (e) => {
     e.preventDefault();
+    if (!agree) { setError(t("agree_required")); return; }
     setBusy(true);
     setError(null);
     try {
@@ -91,6 +93,16 @@ export default function RegisterTrial() {
                 </div>
               )}
               {error && <p data-testid="register-error" className="text-red-400 text-sm">{error}</p>}
+              <label className="flex items-start gap-2.5 text-xs text-slate-300 cursor-pointer">
+                <input type="checkbox" data-testid="register-agree" checked={agree} onChange={(e) => setAgree(e.target.checked)}
+                  className="accent-teal-500 w-4 h-4 mt-0.5 shrink-0" />
+                <span>
+                  {t("agree_prefix")}{" "}
+                  <Link data-testid="register-link-privasi" to="/privasi" target="_blank" className="text-teal-300 font-semibold hover:underline">{t("privacy_policy")}</Link>
+                  {" "}{t("agree_and")}{" "}
+                  <Link data-testid="register-link-syarat" to="/syarat" target="_blank" className="text-teal-300 font-semibold hover:underline">{t("terms_conditions")}</Link>
+                </span>
+              </label>
               <button data-testid="register-submit" disabled={busy}
                 className="w-full bg-teal-600 hover:bg-teal-500 text-white font-bold rounded-xl py-3 text-sm transition-colors disabled:opacity-50">
                 {busy ? t("loading") : t("register_trial")}
