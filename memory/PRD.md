@@ -589,4 +589,10 @@ Aplikasi absensi berbasis tablet kiosk + face recognition & liveness, geofence G
 - Logo baru digenerate (image_generation_tool): mark cincin radar "radius" + pin lokasi (mewakili GPS geofence), teal #0F766E, flat. File asli JPEG → dikonversi PIL (putih→transparan, crop ke konten) menjadi PNG 1024×1024, ditempatkan di /app/frontend/public/logo.png DAN /app/backend/assets/logo.png (dipakai kop PDF: laporan, kuitansi, invoice, poster kiosk).
 - Rename global case-sensitive "EduGateID"→"RadiusGate" via sed di 18 file (i18n, Landing, Login, Kiosk, RegisterTrial, Pay, ResetPassword, Layout, index.html, emailer, notif, pdfgen, routes_admin/auth/cron/kiosk/notif/owner/public/spp). SENGAJA tidak menyentuh domain internal huruf kecil `@edugateid.local` (email akun ortu existing — menggantinya akan merusak login ortu yang sudah ada).
 - Terverifikasi: grep EduGateID = 0 sisa; backend restart bersih; login API OK; kuitansi PDF 200; screenshot: halaman login (title tab "RadiusGate — Gerbang Absensi..."), header admin, landing page, mobile — semua menampilkan nama + logo baru, logo transparan rapi di background terang & gelap.
+
+## 2026-09-23 — Logo final: varian 8 (pin orbit), transparan
+- User meminta alternatif logo → digenerate 2 batch (8 konsep total); user memilih **logo 8: pin lokasi dengan cincin orbit, gradasi teal→emerald**, minta transparan.
+- File JPEG hasil generate → PIL: piksel putih (r/g/b>232) → alpha 0, crop ke konten, PNG 1024×1024, ditimpa ke /app/frontend/public/logo.png + /app/backend/assets/logo.png (semua kop PDF otomatis ikut).
+- Terverifikasi: kuitansi PDF 200 dengan logo baru; screenshot login + header admin + mobile menampilkan logo pin orbit transparan dengan rapi.
+- File sumber semua varian logo tersimpan di /tmp (logo8.png dsb) — URL generate tercatat di percakapan bila perlu varian lain.
 - P2: Tablet React Native (kiosk native); laporan grafik SPP; kuitansi PDF cetak; impor data tagihan lama; Midtrans/Duitku
