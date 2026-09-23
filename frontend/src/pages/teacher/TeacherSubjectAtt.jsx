@@ -1,8 +1,8 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import api, { errMsg } from "../../api";
-import { Save, BookOpen, Lock, LockOpen, Megaphone, X } from "lucide-react";
+import { BookOpen, Lock, LockOpen, Megaphone, X } from "lucide-react";
 
 const STATUSES = ["hadir", "sakit", "izin", "alpha"];
 const ON = { hadir: "bg-emerald-600 text-white border-emerald-600", sakit: "bg-red-500 text-white border-red-500", izin: "bg-sky-500 text-white border-sky-500", alpha: "bg-slate-500 text-white border-slate-500" };
@@ -42,8 +42,25 @@ export default function TeacherSubjectAtt() {
     }).catch((err) => { setStudents([]); toast.error(errMsg(err)); });
   }, [date, subject, cls]);
 
+  const confirmedRef = useRef(false);
+
+  const autoSave = async (studentId, status) => {
+    if (locked && !confirmedRef.current) {
+      if (!window.confirm(t("session_locked_confirm"))) return;
+      confirmedRef.current = true;
+    }
+    const prev = marks[studentId] || "hadir";
+    setMarks({ ...marks, [studentId]: status });
+    try {
+      await api.post("/teacher/subject-att", { date, subject, class_name: cls, records: [{ student_id: studentId, status }] });
+      setSaved(true);
+    } catch (err) {
+      setMarks((m) => ({ ...m, [studentId]: prev }));
+      toast.error(errMsg(err));
+    }
+  };
+
   const save = async (lock = null) => {
-    if (locked && lock === null && !window.confirm(t("session_locked_confirm"))) return;
     setBusy(true);
     try {
       const records = students.map((s) => ({ student_id: s.id, status: marks[s.id] || "hadir" }));
@@ -87,12 +104,11 @@ export default function TeacherSubjectAtt() {
         </div>
         <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2 [&>button]:justify-center">
         <button data-testid="sa-call-start" onClick={() => setCallIdx(0)} disabled={!students.length}
-          className="col-span-2 sm:col-span-1 flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-teal-800 bg-teal-50 border border-teal-200 hover:bg-teal-100 disabled:opacity-50 transition-colors">
+          className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-teal-800 bg-teal-50 border border-teal-200 hover:bg-teal-100 disabled:opacity-50 transition-colors">
           <Megaphone className="w-4 h-4" /> {t("call_start")}
         </button>
         <button data-testid="sa-save" onClick={() => save(null)} disabled={busy || !students.length}
-          className="flex items-center gap-1.5 px-5 py-2 rounded-xl text-xs font-bold text-white bg-teal-700 hover:bg-teal-800 disabled:opacity-50 transition-colors">
-          <Save className="w-4 h-4" /> {busy ? t("loading") : t("save")}
+          className="hidden">
         </button>
         {locked ? (
           <button data-testid="sa-lock" onClick={() => { if (window.confirm(t("unlock_confirm"))) save(false); }} disabled={busy || !students.length}
@@ -137,7 +153,7 @@ export default function TeacherSubjectAtt() {
                   <td className="px-4 py-2.5">
                     <div className="flex flex-wrap gap-1.5">
                       {STATUSES.map((st) => (
-                        <button key={st} data-testid={`sa-${st}-${s.id}`} onClick={() => setMarks({ ...marks, [s.id]: st })}
+                        <button key={st} data-testid={`sa-${st}-${s.id}`} onClick={() => autoSave(s.id, st)}
                           className={`px-3 py-1 rounded-lg text-[11px] font-bold border transition-colors ${(marks[s.id] || "hadir") === st ? ON[st] : OFF}`}>
                           {t(`att_${st}`)}
                         </button>
@@ -164,7 +180,7 @@ export default function TeacherSubjectAtt() {
             </div>
             <div className="grid grid-cols-2 gap-2">
               {STATUSES.map((st) => (
-                <button key={st} data-testid={`sa-m-${st}-${s.id}`} onClick={() => setMarks({ ...marks, [s.id]: st })}
+                <button key={st} data-testid={`sa-m-${st}-${s.id}`} onClick={() => autoSave(s.id, st)}
                   className={`py-2 rounded-lg text-[11px] font-bold border transition-all ${(marks[s.id] || "hadir") === st ? ON[st] : OFF}`}>
                   {t(`att_${st}`)}
                 </button>
@@ -196,7 +212,7 @@ export default function TeacherSubjectAtt() {
               {STATUSES.map((st) => (
                 <button key={st} data-testid={`sa-call-${st}`}
                   onClick={() => {
-                    setMarks({ ...marks, [students[callIdx].id]: st });
+                    autoSave(students[callIdx].id, st);
                     if (callIdx + 1 < students.length) setCallIdx(callIdx + 1);
                     else { setCallIdx(null); toast.success(t("call_done")); }
                   }}
