@@ -9,6 +9,8 @@ const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 const Q_KEY = "kiosk_queue";
 const T_KEY = "kiosk_token";
 
+const SAVER_SLIDES = ["/slides/siswa-absen.jpg", "/slides/kiosk.jpg", "/slides/dashboard.jpg"];
+
 const loadQueue = () => JSON.parse(localStorage.getItem(Q_KEY) || "[]");
 const saveQueue = (q) => localStorage.setItem(Q_KEY, JSON.stringify(q));
 
@@ -112,6 +114,34 @@ export default function Kiosk() {
     const iv = setInterval(sync, 15000);
     return () => clearInterval(iv);
   }, [token, online]);
+
+  // ---------- screensaver: slideshow saat idle ----------
+  const [saver, setSaver] = useState(false);
+  const [saverSlide, setSaverSlide] = useState(0);
+  const lastActRef = useRef(Date.now());
+
+  useEffect(() => {
+    const bump = () => { lastActRef.current = Date.now(); setSaver(false); };
+    window.addEventListener("pointerdown", bump);
+    window.addEventListener("keydown", bump);
+    return () => { window.removeEventListener("pointerdown", bump); window.removeEventListener("keydown", bump); };
+  }, []);
+
+  useEffect(() => { lastActRef.current = Date.now(); setSaver(false); }, [phase, offlinePick]);
+
+  useEffect(() => {
+    if (!token || !info) return;
+    const iv = setInterval(() => {
+      if (phase === "idle" && !offlinePick && Date.now() - lastActRef.current > 45000) setSaver(true);
+    }, 5000);
+    return () => clearInterval(iv);
+  }, [token, info, phase, offlinePick]);
+
+  useEffect(() => {
+    if (!saver) return;
+    const iv = setInterval(() => setSaverSlide((s) => (s + 1) % SAVER_SLIDES.length), 4500);
+    return () => clearInterval(iv);
+  }, [saver]);
 
   const pair = async (e) => {
     e.preventDefault();
@@ -444,6 +474,38 @@ export default function Kiosk() {
               ))}
             </div>
             <button data-testid="offline-picker-cancel" onClick={() => setOfflinePick(false)} className="mt-4 w-full py-2.5 rounded-xl bg-white/5 text-slate-400 text-sm font-bold">{t("cancel")}</button>
+          </div>
+        </div>
+      )}
+
+      {saver && (
+        <div className="fixed inset-0 z-40 bg-[#0B1320] flex flex-col" data-testid="kiosk-screensaver">
+          <div className="relative flex-1 overflow-hidden">
+            {SAVER_SLIDES.map((src, i) => (
+              <img key={src} src={src} alt=""
+                className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ${i === saverSlide ? "opacity-100" : "opacity-0"}`} />
+            ))}
+            <div className="absolute inset-0 bg-gradient-to-t from-[#0B1320] via-transparent to-[#0B1320]/60" />
+          </div>
+          <div className="absolute top-0 left-0 right-0 flex items-center justify-between px-6 py-5">
+            <div className="flex items-center gap-3">
+              <img src="/logo-white.png" alt="" className="w-10 h-10 object-contain" />
+              <div>
+                <p className="text-white font-extrabold text-sm">{info.school?.name}</p>
+                <p className="text-slate-400 text-[11px]">{t("app_name")} · Kiosk</p>
+              </div>
+            </div>
+            <p className="text-white font-mono font-bold text-2xl" data-testid="kiosk-saver-clock">
+              {new Date().toLocaleTimeString(i18n.language === "en" ? "en-US" : "id-ID", { hour: "2-digit", minute: "2-digit" })}
+            </p>
+          </div>
+          <div className="absolute bottom-0 left-0 right-0 px-6 pb-8 text-center">
+            <p className="text-white font-extrabold text-xl animate-pulse" data-testid="kiosk-saver-hint">{t("kiosk_tap_to_attend")}</p>
+            <div className="mt-4 flex justify-center gap-1.5">
+              {SAVER_SLIDES.map((_, i) => (
+                <span key={i} className={`w-2 h-2 rounded-full transition-colors ${i === saverSlide ? "bg-teal-400" : "bg-white/25"}`} />
+              ))}
+            </div>
           </div>
         </div>
       )}

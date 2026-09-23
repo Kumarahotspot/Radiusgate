@@ -634,4 +634,9 @@ Aplikasi absensi berbasis tablet kiosk + face recognition & liveness, geofence G
 - 3 gambar digenerate (siswa antre absen di kiosk gerbang SMA, tablet kiosk dengan UI face-recognition sukses, admin memantau dashboard di laptop) → disimpan lokal di /app/frontend/public/slides/ (siswa-absen.jpg, kiosk.jpg, dashboard.jpg).
 - Landing.jsx: layar mockup kiosk diganti slideshow auto-rotate 4,5 dtk (crossfade opacity 700ms) + dot indikator (klik untuk pindah) + caption dinamis per slide (judul + sub) di bar bawah frame; frame gelap "RadiusGate · Kiosk" tetap dipertahankan. Testid: hero-slideshow, slide-dot-0..2, slide-caption.
 - Terverifikasi screenshot: slideshow tampil, klik dot mengganti slide+caption, auto-rotate berjalan, mobile 390 tanpa overflow.
+
+## 2026-09-23 — Screensaver slideshow di Mode Kiosk
+- Persetujuan user atas saran: slideshow jadi screensaver kiosk. (User sempat khawatir hak cipta gambar AI — dijelaskan aman: karya orisinal hasil generate, boleh komersial.)
+- Kiosk.jsx: state saver/saverSlide + lastActRef; pointerdown/keydown mereset timer & menutup screensaver; interval 5 dtk mengaktifkan saver bila phase idle & bukan offlinePick & idle >45 dtk; slide berganti tiap 4,5 dtk. Overlay fullscreen (z-40, di bawah offline picker z-50): 3 slide /slides/*.jpg crossfade 1 dtk + gradien gelap, header logo-white+nama sekolah+jam, hint berdenyut "Sentuh layar untuk absen", dot indikator. i18n baru: kiosk_tap_to_attend (ID/EN).
+- Testid: kiosk-screensaver, kiosk-saver-clock, kiosk-saver-hint.
 - P2: Tablet React Native (kiosk native); laporan grafik SPP; kuitansi PDF cetak; impor data tagihan lama; Midtrans/Duitku
