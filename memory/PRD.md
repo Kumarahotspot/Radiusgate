@@ -754,3 +754,8 @@ Aplikasi absensi berbasis tablet kiosk + face recognition & liveness, geofence G
 - Kontak resmi PT. Pusaka Kreasi Mandiri dipasang: alamat "Telaga Golf Sawangan, Cluster Belanda Blok E10 No. 60-61, Sawangan, Depok, Jawa Barat 16551", email admin@radiusgate.id, WA 08888 200 999 (link wa.me/628888200999).
 - Diperbarui di: section Kontak landing (Landing.jsx — email + WA + alamat lengkap menggantikan susyanto@gmail.com & "Jakarta, Indonesia") dan LegalPage.jsx (kontak di Kebijakan Privasi & Syarat). Email login owner susyanto@gmail.com TIDAK diubah (kredensial).
 - Terverifikasi screenshot: kontak baru tampil lengkap, email lama hilang dari semua halaman publik, wa.me link benar, tanpa overflow mobile 390.
+
+## 2026-09-23 — Tombol Chat WhatsApp mengambang + logo navbar diperkecil
+- Landing.jsx: tombol WA floating (`wa-float`) pojok kanan bawah — hijau #25D366, ikon MessageCircle, label "Chat WhatsApp" (sembunyi di layar kecil, ikon saja), link wa.me/628888200999 dengan pesan prefilled program pilot, efek hover scale.
+- Logo navbar landing diperkecil dari w-12 (48px) → w-9 (36px) atas permintaan user.
+- Terverifikasi screenshot: logo 36×36, WA float tampil desktop & mobile dengan href benar, tanpa overflow mobile 390.

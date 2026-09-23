@@ -5,7 +5,7 @@ import api, { errMsg } from "@/api";
 import {
   ScanFace, MapPin, WifiOff, Tablet, Receipt, Send, Languages, Volume2,
   UserPlus, Camera, FileCheck, MonitorSmartphone, ArrowRight, Check,
-  Wallet, QrCode, BellRing, FileText,
+  Wallet, QrCode, BellRing, FileText, MessageCircle,
 } from "lucide-react";
 
 const FEATURES = [
@@ -105,7 +105,7 @@ export default function Landing() {
       <header className="sticky top-0 z-50 backdrop-blur-md bg-white/80 border-b border-teal-100/60">
         <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between gap-3">
           <a href="#" className="flex items-center gap-2.5">
-            <img src="/logo.png" alt="RadiusGate" className="w-12 h-12 object-contain" />
+            <img src="/logo.png" alt="RadiusGate" className="w-9 h-9 object-contain" />
             <span className="font-extrabold text-xl tracking-tight">RadiusGate</span>
           </a>
           <nav className="hidden md:flex items-center gap-6 text-sm font-semibold text-slate-600">
@@ -602,6 +602,12 @@ export default function Landing() {
       </footer>
 
       <style>{`@keyframes scanline { 0%,100% { top: 15%; } 50% { top: 80%; } }`}</style>
+
+      <a data-testid="wa-float" href="https://wa.me/628888200999?text=Halo%20RadiusGate%2C%20saya%20ingin%20bertanya%20tentang%20program%20pilot%20sekolah" target="_blank" rel="noreferrer"
+        className="fixed bottom-5 right-5 z-50 flex items-center gap-2 bg-[#25D366] hover:bg-[#1fb857] text-white rounded-full shadow-xl shadow-emerald-900/20 px-4 py-3 transition-transform hover:scale-105">
+        <MessageCircle className="w-5 h-5" />
+        <span className="hidden sm:block text-xs font-bold">Chat WhatsApp</span>
+      </a>
     </div>
   );
 }
