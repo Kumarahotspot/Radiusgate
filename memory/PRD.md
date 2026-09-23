@@ -654,6 +654,12 @@ Aplikasi absensi berbasis tablet kiosk + face recognition & liveness, geofence G
 - i18n baru: profile, profile_phone_hint (ID/EN).
 - Terverifikasi: curl (/parent/me ada email, PUT profile ok, 400 format salah, sinkron ke student.parent_phone & user.phone) + screenshot (tab switcher, profil terisi benar, password form di tab Profil, tab utama bersih, mobile 390 tanpa overflow).
 
+## 2026-09-23 — Profil ortu pindah ke menu pengguna di header (pola profesional)
+- Permintaan user (screenshot anotasi): Profil ditaruh di area tombol Keluar agar profesional.
+- Layout.jsx: untuk role parent, tombol Keluar diganti menu pengguna — avatar inisial + nama + chevron (testid user-menu-btn) membuka dropdown (user-menu) berisi "Profil" (→ /ortu?tab=profile) dan "Keluar"; tertutup saat klik di luar. Role lain tetap tombol Keluar biasa.
+- ParentHome.jsx: pill tab "Aktivitas Anak | Profil" di area konten DIHAPUS; tab kini dikendalikan URL (?tab=profile) via useSearchParams agar bisa dibuka dari menu header.
+- Terverifikasi screenshot: avatar+nama tampil di header, dropdown muncul, klik Profil → membuka tab profil via URL, Keluar via dropdown berfungsi kembali ke /login.
+
 ## 2026-09-23 — Papan info kiosk: tanggal berlaku slide + upload foto sendiri (object storage)
 - Permintaan user: slide pengumuman punya tanggal berlaku + gambar slideshow bisa diganti sendiri oleh admin.
 - **Emergent Object Storage** (playbook integration_expert): modul baru /app/backend/storage.py (init_storage lazy + put_object/get_object dengan retry force-reinit saat 404); EMERGENT_LLM_KEY ditambahkan ke backend/.env (belum ada sebelumnya); endpoint routes_admin.py: POST /admin/saver-photos (upload JPG/PNG/WEBP maks 2MB → radiusgate/saver/{school_id}/{uuid}, $push ke settings.saver_photos), DELETE /admin/saver-photos?path= ($pull; storage tak punya delete API → cukup hapus referensi), GET /admin/saver-photos/file/{path} (publik — dipakai <img> kiosk). SettingsIn + saver_photos: list[str].

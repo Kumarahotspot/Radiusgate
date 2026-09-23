@@ -1,11 +1,12 @@
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
+import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useAuth, homeFor } from "../context/AuthContext";
 import LangSwitch from "./LangSwitch";
 import {
   LayoutDashboard, School, FileText, Users, GraduationCap, Settings,
   CalendarClock, BarChart3, CreditCard, LogOut, ScanFace, MonitorSmartphone, Bell, Inbox,
-  Briefcase, Timer, Wallet, BookOpen,
+  Briefcase, Timer, Wallet, BookOpen, User, ChevronDown,
 } from "lucide-react";
 
 const menus = {
@@ -47,8 +48,16 @@ export default function Layout() {
   const { t } = useTranslation();
   const { user, logout } = useAuth();
   const nav = useNavigate();
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef(null);
+  useEffect(() => {
+    const close = (e) => { if (menuRef.current && !menuRef.current.contains(e.target)) setMenuOpen(false); };
+    document.addEventListener("pointerdown", close);
+    return () => document.removeEventListener("pointerdown", close);
+  }, []);
   if (!user) return null;
   const items = menus[user.role] || [];
+  const initials = (user.name || "?").split(" ").map((w) => w[0]).filter(Boolean).slice(0, 2).join("").toUpperCase();
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -70,6 +79,29 @@ export default function Layout() {
             >
               <MonitorSmartphone className="w-4 h-4" /> Kiosk
             </button>
+            {user.role === "parent" ? (
+              <div className="relative" ref={menuRef}>
+                <button data-testid="user-menu-btn" onClick={() => setMenuOpen(!menuOpen)}
+                  className="flex items-center gap-2 pl-1 pr-2 py-1 rounded-full hover:bg-slate-100 transition-colors">
+                  <span className="w-8 h-8 rounded-full bg-teal-700 text-white text-xs font-extrabold flex items-center justify-center shrink-0">{initials}</span>
+                  <span className="hidden sm:block text-xs font-semibold text-slate-700 max-w-[140px] truncate">{user.name}</span>
+                  <ChevronDown className={`w-3.5 h-3.5 text-slate-400 transition-transform ${menuOpen ? "rotate-180" : ""}`} />
+                </button>
+                {menuOpen && (
+                  <div data-testid="user-menu" className="absolute right-0 mt-2 w-48 bg-white border border-slate-200 rounded-xl shadow-lg py-1.5 z-50">
+                    <button data-testid="user-menu-profile" onClick={() => { setMenuOpen(false); nav("/ortu?tab=profile"); }}
+                      className="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-teal-700 transition-colors">
+                      <User className="w-4 h-4" /> {t("profile")}
+                    </button>
+                    <div className="my-1 border-t border-slate-100" />
+                    <button data-testid="user-menu-logout" onClick={() => { logout(); nav("/login"); }}
+                      className="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs font-semibold text-slate-700 hover:bg-red-50 hover:text-red-600 transition-colors">
+                      <LogOut className="w-4 h-4" /> {t("logout")}
+                    </button>
+                  </div>
+                )}
+              </div>
+            ) : (
             <button
               data-testid="logout-btn"
               onClick={() => { logout(); nav("/login"); }}
@@ -77,6 +109,7 @@ export default function Layout() {
             >
               <LogOut className="w-4 h-4" /> {t("logout")}
             </button>
+            )}
           </div>
         </div>
         <nav className="max-w-7xl mx-auto px-4 flex gap-1 overflow-x-auto pb-2">

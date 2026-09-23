@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 import api, { errMsg } from "../../api";
 import { CalendarClock, KeyRound, Send, FileText } from "lucide-react";
@@ -12,7 +13,9 @@ export default function ParentHome() {
   const [payFor, setPayFor] = useState(null);
   const [payAmount, setPayAmount] = useState("");
   const [paidReceipt, setPaidReceipt] = useState(null);
-  const [tab, setTab] = useState("main");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const tab = searchParams.get("tab") === "profile" ? "profile" : "main";
+  const setTab = (v) => setSearchParams(v === "main" ? {} : { tab: v });
   const [waPhone, setWaPhone] = useState("");
 
   useEffect(() => { if (me) setWaPhone(me.parent?.phone || ""); }, [me]);
@@ -108,17 +111,6 @@ export default function ParentHome() {
           </div>
         </div>
       )}
-
-      <div className="flex gap-2">
-        <button data-testid="parent-tab-main" onClick={() => setTab("main")}
-          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${tab === "main" ? "bg-teal-700 text-white shadow-sm" : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-100"}`}>
-          {t("child_activity")}
-        </button>
-        <button data-testid="parent-tab-profile" onClick={() => setTab("profile")}
-          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${tab === "profile" ? "bg-teal-700 text-white shadow-sm" : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-100"}`}>
-          {t("profile")}
-        </button>
-      </div>
 
       {tab === "main" && (<>
       <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden" data-testid="spp-section">
