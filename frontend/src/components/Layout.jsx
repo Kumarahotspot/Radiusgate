@@ -42,6 +42,7 @@ const menus = {
 const parentItems = [
   { tab: "", icon: GraduationCap, key: "child_activity" },
   { tab: "spp", icon: Wallet, key: "spp_bills_tab" },
+  { tab: "leave", icon: CalendarClock, key: "nav_leave" },
   { tab: "profile", icon: User, key: "profile" },
 ];
 

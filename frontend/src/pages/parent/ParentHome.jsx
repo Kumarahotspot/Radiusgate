@@ -15,7 +15,7 @@ export default function ParentHome() {
   const [paidReceipt, setPaidReceipt] = useState(null);
   const [searchParams, setSearchParams] = useSearchParams();
   const tabParam = searchParams.get("tab");
-  const tab = tabParam === "profile" || tabParam === "spp" ? tabParam : "main";
+  const tab = ["spp", "leave", "profile"].includes(tabParam) ? tabParam : "main";
   const setTab = (v) => setSearchParams(v === "main" ? {} : { tab: v });
   const [waPhone, setWaPhone] = useState("");
 
@@ -180,7 +180,7 @@ export default function ParentHome() {
       </div>
       </>)}
 
-      {tab === "main" && (<>
+      {tab === "leave" && (<>
       <div>
         <form onSubmit={submitLeave} data-testid="parent-leave-form" className="bg-white rounded-2xl border border-slate-200 p-5">
           <p className="font-bold text-slate-800 mb-4 flex items-center gap-2"><CalendarClock className="w-4 h-4 text-teal-700" /> {t("leave_title")}</p>

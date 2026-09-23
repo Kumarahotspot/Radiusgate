@@ -686,3 +686,8 @@ Aplikasi absensi berbasis tablet kiosk + face recognition & liveness, geofence G
 - ParentHome.jsx: kartu ringkasan `spp-summary` di atas daftar tagihan — **Total Belum Lunas** (jumlah `remaining` semua tagihan unpaid/partial) + **Jatuh Tempo Terdekat** (due_date paling awal dari tagihan belum lunas); jika semua lunas tampil teks "Semua tagihan sudah lunas".
 - i18n baru: spp_total_unpaid, spp_nearest_due, spp_all_paid (ID/EN).
 - Terverifikasi screenshot: total Rp 1.125.000 (975rb SPP Sept + 150rb Ujian) & due 2026-09-30 sesuai data, tanpa overflow mobile 390.
+
+## 2026-09-23 — Form Izin/Sakit jadi item bottom nav ke-3
+- Permintaan user (screenshot anotasi): form "Ajukan Izin / Sakit" dihapus dari tab utama dan dipindah ke bottom nav setelah Tagihan.
+- ParentHome.jsx: tab baru "leave" berisi form izin/sakit; tab utama kini hanya tabel Aktivitas Anak. Layout.jsx: parentItems kini 4 (Aktivitas Anak, Tagihan, Izin/Sakit, Profil). i18n baru: nav_leave (ID "Izin/Sakit" / EN "Leave / Sick").
+- Terverifikasi screenshot: 4 item nav, form tidak lagi di tab utama, tab Izin/Sakit menampilkan form, tanpa overflow mobile 390.
