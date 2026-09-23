@@ -332,9 +332,7 @@ export default function Kiosk() {
       <div className="min-h-screen bg-[#0B1320] flex items-center justify-center p-6">
         <form onSubmit={pair} data-testid="kiosk-pair-form" className="w-full max-w-sm space-y-6">
           <div className="text-center">
-            <div className="w-20 h-20 mx-auto rounded-3xl bg-white flex items-center justify-center mb-4 overflow-hidden p-3">
-              <img src="/logo.png" alt="RadiusGate" className="w-full h-full object-contain" />
-            </div>
+            <img src="/logo.png" alt="RadiusGate" className="w-20 h-20 mx-auto mb-4 object-contain" />
             <h1 className="text-white text-2xl font-extrabold">{t("app_name")} · Kiosk</h1>
             <p className="text-slate-400 text-sm mt-1">{t("kiosk_enter_code")}</p>
           </div>

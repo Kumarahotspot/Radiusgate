@@ -601,4 +601,10 @@ Aplikasi absensi berbasis tablet kiosk + face recognition & liveness, geofence G
 - Fix konversi: flood-fill BFS dari 4 sudut (hanya latar luar >240 yang jadi transparan; interior utuh termasuk lubang pin putih) + ImageEnhance Color 1.15 & Contrast 1.08 → warna lebih pekat.
 - Ukuran diperbesar: header Layout 32→44px, Login 44→64px (panel) & 40→48px (form), Landing header 36→48px (teks ikut lg→xl), Kiosk 64→80px, ResetPassword/RegisterTrial 40→48px, Pay 36→44px, mock kiosk landing 28→36px, kontak landing 36→44px.
 - Terverifikasi: view file PNG (gradasi utuh pekat), screenshot login desktop+mobile, header admin, landing — logo tampak besar & kuat, mobile tanpa overflow.
+
+## 2026-09-23 — Logo tanpa background (final)
+- Keluhan user: logo masih punya background. Dua sumber: (1) pembungkus putih (bg-white rounded box) di halaman gelap — semua div pembungkus dihapus (Layout, Login×2, Kiosk, Landing×2, ResetPassword, RegisterTrial, Pay), logo kini <img> transparan langsung; (2) lubang tengah pin & latar JPEG yang bernoise.
+- Konversi final: numpy alpha berbasis saturasi+kecerahan — latar JPEG (mn>205 & spread<28) → transparan, mark opaque, alpha di-GaussianBlur 1.2 untuk tepi halus, crop ketat. Pendekatan ambang global & flood-fill sebelumnya gagal karena noise JPEG (halo abu-abu tetap opaque / gradasi terkikis).
+- Desain di-regenerate sekali lagi (konsep tetap pin orbit) untuk bentuk yang lebih bersih & lebih kuat terbaca di ukuran kecil → hasil akhir 801×628 PNG transparan penuh (53,8% transparan).
+- Terverifikasi: kuitansi PDF 200 dengan logo baru; screenshot login (panel gelap tanpa kotak), header admin, landing, mobile.
 - P2: Tablet React Native (kiosk native); laporan grafik SPP; kuitansi PDF cetak; impor data tagihan lama; Midtrans/Duitku

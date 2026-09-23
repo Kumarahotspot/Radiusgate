@@ -39,9 +39,7 @@ export default function RegisterTrial() {
     <div className="min-h-screen bg-gradient-to-b from-teal-800 via-[#0f3d3a] to-slate-950 flex items-center justify-center p-6">
       <div className="w-full max-w-md">
         <div className="flex items-center gap-2.5 mb-6 justify-center">
-          <div className="w-12 h-12 rounded-2xl bg-white flex items-center justify-center overflow-hidden p-1">
-            <img src="/logo.png" alt="RadiusGate" className="w-full h-full object-contain" />
-          </div>
+          <img src="/logo.png" alt="RadiusGate" className="w-12 h-12 object-contain" />
           <p className="text-white font-extrabold text-lg">{t("app_name")}</p>
         </div>
         {done ? (
