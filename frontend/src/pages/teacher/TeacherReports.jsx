@@ -79,8 +79,8 @@ export default function TeacherReports() {
           </div>
         ) : (
           <>
-            <div className="flex flex-wrap items-end gap-3">
-              <div>
+            <div className="grid grid-cols-2 sm:flex sm:flex-wrap sm:items-end gap-3 [&>button]:justify-center">
+              <div className="col-span-2 sm:col-span-1">
                 <label className="text-xs font-semibold text-slate-500">{t("col_class")}</label>
                 <select
                   data-testid="report-class"
@@ -161,7 +161,7 @@ export default function TeacherReports() {
                   </button>
                 </div>
 
-                <div className="overflow-x-auto rounded-xl border border-slate-200">
+                <div className="hidden md:block overflow-x-auto rounded-xl border border-slate-200">
                   {repTab === "daily" ? (
                     <table className="w-full text-sm" data-testid="report-daily-table">
                       <thead>
@@ -248,6 +248,38 @@ export default function TeacherReports() {
                       </tbody>
                     </table>
                   )}
+                </div>
+                <div className="md:hidden space-y-2">
+                  {repTab === "daily" ? (
+                    repRows.map((r) => {
+                      const st = r.att_status && r.att_status !== "present" ? r.att_status : r.status;
+                      return (
+                        <div key={r.id} data-testid={`report-card-${r.id}`} className="bg-white rounded-2xl border border-slate-200 px-4 py-3 shadow-sm">
+                          <div className="flex items-center justify-between gap-2">
+                            <p className="text-sm font-bold text-slate-800 truncate">{r.teacher_name}</p>
+                            <span className={`text-xs font-bold px-2.5 py-0.5 rounded-full shrink-0 ${
+                              st === "ok" ? "bg-emerald-100 text-emerald-700" : st === "late" ? "bg-amber-100 text-amber-700"
+                              : st === "sakit" ? "bg-red-100 text-red-600" : "bg-sky-100 text-sky-700"}`}>{st}</span>
+                          </div>
+                          <p className="text-[11px] text-slate-400 mt-1">{r.date} · {r.class} · <span className="font-mono">{r.time}</span>{r.late_minutes ? ` · ${t("telat")} ${r.late_minutes} mnt` : ""}</p>
+                        </div>
+                      );
+                    })
+                  ) : (
+                    recapRows.map((r) => (
+                      <div key={r.id} data-testid={`recap-card-${r.id}`} className="bg-white rounded-2xl border border-slate-200 px-4 py-3 shadow-sm">
+                        <p className="text-sm font-bold text-slate-800">{r.name} <span className="text-[11px] font-normal text-slate-400">· {r.class} · {r.active_days} {t("active_days").toLowerCase()}</span></p>
+                        <div className="flex flex-wrap gap-1.5 mt-2">
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700">{t("hadir")} {r.hadir}</span>
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">{t("telat")} {r.telat}</span>
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-red-100 text-red-600">{t("sakit")} {r.sakit}</span>
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-sky-100 text-sky-700">{t("izin")} {r.izin}</span>
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-rose-100 text-rose-600">{t("alpha")} {r.alpha}</span>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                  {(repTab === "daily" ? repRows : recapRows).length === 0 && <p className="text-center text-slate-400 text-sm py-8">{t("no_data")}</p>}
                 </div>
               </div>
             )}

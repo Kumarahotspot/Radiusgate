@@ -99,7 +99,7 @@ export default function TeacherHome() {
         </div>
       )}
 
-      <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
+      <div className="hidden md:block bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
@@ -125,6 +125,19 @@ export default function TeacherHome() {
             </tbody>
           </table>
         </div>
+      </div>
+
+      <div className="md:hidden space-y-2">
+        {history.map((h) => (
+          <div key={h.id} data-testid={`th-card-${h.id}`} className="bg-white rounded-2xl border border-slate-200 px-4 py-3 flex items-center justify-between gap-2 shadow-sm">
+            <div className="min-w-0">
+              <p className="text-sm font-bold text-slate-800">{h.date} · <span className="font-mono text-xs font-semibold">{h.time_local || (h.ts_device || "").slice(11, 16)}</span></p>
+              <p className="text-[11px] text-slate-400">{h.type === "in" ? t("check_in") : t("check_out")}</p>
+            </div>
+            <span className={`text-xs font-bold px-2.5 py-1 rounded-full shrink-0 ${h.status === "late" ? "bg-amber-100 text-amber-700" : "bg-emerald-100 text-emerald-700"}`}>{h.status}</span>
+          </div>
+        ))}
+        {history.length === 0 && <p className="text-center text-slate-400 text-sm py-8">{t("no_data")}</p>}
       </div>
 
       <form onSubmit={submitPw} data-testid="teacher-pw-form" className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm max-w-md">
