@@ -67,6 +67,15 @@ export default function ParentHome() {
     } catch (err) { toast.error(errMsg(err)); } finally { setBusy(false); }
   };
 
+  const cancelLeave = async (date) => {
+    setBusy(true);
+    try {
+      await api.delete(`/parent/leave/${date}`);
+      toast.success(t("cancelled_ok"));
+      load();
+    } catch (err) { toast.error(errMsg(err)); } finally { setBusy(false); }
+  };
+
   const submitLeave = async (e) => {
     e.preventDefault();
     setBusy(true);
@@ -223,6 +232,7 @@ export default function ParentHome() {
                 <th className="px-4 py-3">{t("status")}</th>
                 <th className="px-4 py-3">{t("note")}</th>
                 <th className="px-4 py-3">{t("recorded_by")}</th>
+                <th className="px-4 py-3"></th>
               </tr>
             </thead>
             <tbody>
@@ -232,9 +242,17 @@ export default function ParentHome() {
                   <td className="px-4 py-3"><span className={`px-2 py-0.5 rounded-full text-[11px] font-bold ${sumBadge[a.att_status]}`}>{sumLabel[a.att_status]}</span></td>
                   <td className="px-4 py-3 text-xs text-slate-500">{a.note || "—"}</td>
                   <td className="px-4 py-3 text-xs text-slate-500">{a.recorded_by_name || "—"}</td>
+                  <td className="px-4 py-3 text-right">
+                    {a.date === today && (
+                      <button data-testid={`leave-cancel-${a.date}`} disabled={busy} onClick={() => cancelLeave(a.date)}
+                        className="px-3 py-1 rounded-lg text-[11px] font-bold text-red-600 bg-red-50 hover:bg-red-100 transition-colors">
+                        {t("cancel")}
+                      </button>
+                    )}
+                  </td>
                 </tr>
               ))}
-              {leaveHistory.length === 0 && <tr><td colSpan={4} className="px-4 py-8 text-center text-slate-400">{t("no_data")}</td></tr>}
+              {leaveHistory.length === 0 && <tr><td colSpan={5} className="px-4 py-8 text-center text-slate-400">{t("no_data")}</td></tr>}
             </tbody>
           </table>
         </div>

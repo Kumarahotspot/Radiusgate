@@ -8,6 +8,7 @@ from pydantic import BaseModel
 from auth import require_roles
 from db import db
 from pdfgen import build_spp_receipt_pdf
+from routes_admin import school_today
 from routes_kiosk import _record
 from routes_spp import _receipt_notify
 
@@ -61,6 +62,24 @@ async def child_leave(body: ParentLeaveIn, user: dict = Depends(parent_dep)):
         extra={"person_type": "student", "class": st.get("class", ""), "att_status": body.status,
                "note": body.note, "recorded_by": user["id"], "recorded_by_name": "Orang Tua"})
     return {"ok": True, "date": doc["date"], "att_status": body.status}
+
+
+@router.delete("/parent/leave/{date}")
+async def cancel_child_leave(date: str, user: dict = Depends(parent_dep)):
+    st = await my_child(user)
+    today = await school_today(user["school_id"])
+    if date != today:
+        raise HTTPException(status_code=400, detail="cancel_only_today")
+    rec = await db.attendance.find_one(
+        {"student_id": st["id"], "date": date, "att_status": {"$in": ["sakit", "izin"]}})
+    if not rec:
+        raise HTTPException(status_code=404, detail="leave_not_found")
+    present = await db.attendance.find_one(
+        {"student_id": st["id"], "date": date, "att_status": {"$nin": ["sakit", "izin"]}})
+    if present:
+        raise HTTPException(status_code=409, detail="already_present")
+    await db.attendance.delete_one({"id": rec["id"]})
+    return {"ok": True}
 
 
 # ---------- Tagihan SPP anak ----------
