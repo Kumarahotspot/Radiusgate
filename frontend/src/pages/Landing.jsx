@@ -82,6 +82,7 @@ export default function Landing() {
           <nav className="hidden md:flex items-center gap-6 text-sm font-semibold text-slate-600">
             <a data-testid="nav-link-fitur" href="#fitur" className="hover:text-teal-700 transition-colors">Fitur</a>
             <a data-testid="nav-link-cara-kerja" href="#cara-kerja" className="hover:text-teal-700 transition-colors">Cara Kerja</a>
+            <a data-testid="nav-link-absensi" href="#absensi" className="hover:text-teal-700 transition-colors">Absensi</a>
             <a data-testid="nav-link-pembayaran" href="#pembayaran" className="hover:text-teal-700 transition-colors">Pembayaran</a>
             <a data-testid="nav-link-harga" href="#harga" className="hover:text-teal-700 transition-colors">Harga</a>
             <a data-testid="nav-link-kontak" href="#kontak" className="hover:text-teal-700 transition-colors">Kontak</a>
@@ -201,6 +202,76 @@ export default function Landing() {
               <p className="mt-2 text-sm text-slate-500 leading-relaxed">{s.desc}</p>
             </div>
           ))}
+        </div>
+      </section>
+
+      {/* Contoh absensi siswa */}
+      <section id="absensi" data-testid="absensi-section" className="bg-white border-y border-slate-100">
+        <div className="max-w-6xl mx-auto px-4 py-20 grid lg:grid-cols-2 gap-12 items-center">
+          <div>
+            <span className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-teal-700 bg-teal-50 border border-teal-100 rounded-full px-3 py-1.5">
+              Absensi Siswa Real-Time
+            </span>
+            <h2 className="mt-5 text-3xl sm:text-4xl font-bold tracking-tight">Setiap Siswa Absen, <span className="text-teal-700">Tercatat Detik Itu Juga.</span></h2>
+            <p className="mt-4 text-slate-600 text-sm sm:text-base leading-relaxed max-w-lg">
+              Begitu wajah siswa terverifikasi di kiosk, kehadirannya langsung muncul di dashboard admin
+              dan portal orang tua — lengkap dengan jam masuk, menit keterlambatan, dan status izin/sakit.
+            </p>
+            <ul className="mt-6 space-y-2.5 text-sm text-slate-700">
+              {[
+                "Status otomatis: Hadir, Telat (plus menit keterlambatan), Izin & Sakit",
+                "Notifikasi WhatsApp ke orang tua setiap anak absen di kiosk",
+                "Rekap harian & bulanan per siswa / per kelas, siap export Excel & PDF",
+                "Absensi per mata pelajaran oleh guru mapel dari portal guru",
+              ].map((x) => (
+                <li key={x} className="flex items-start gap-2.5"><Check className="w-4 h-4 mt-0.5 text-teal-600 shrink-0" /> {x}</li>
+              ))}
+            </ul>
+          </div>
+          <div className="relative mx-auto w-full max-w-md">
+            <div className="absolute -inset-4 sm:-inset-6 bg-gradient-to-br from-teal-100/70 to-emerald-50 rounded-[3rem] -z-10" />
+            <div data-testid="absensi-mock-card" className="bg-white border border-slate-200 rounded-3xl p-6 shadow-2xl">
+              <div className="flex items-center gap-2.5 pb-4 border-b border-slate-100">
+                <img src="/logo.png" alt="" className="w-8 h-8 object-contain" />
+                <div>
+                  <p className="text-xs font-bold text-slate-800">Absensi Hari Ini</p>
+                  <p className="text-[10px] text-slate-400">SMA Nusantara · Rabu, 23/09/2026</p>
+                </div>
+                <span className="ml-auto flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-teal-50 text-teal-700 border border-teal-100">
+                  <ScanFace className="w-3 h-3" /> Wajah + GPS
+                </span>
+              </div>
+              <div className="py-2 divide-y divide-slate-100 text-xs">
+                {[
+                  ["Arto Rahman Sadad", "X TAV", "06:58", "Hadir", "bg-emerald-100 text-emerald-700"],
+                  ["Nadia Putri Anjani", "X TAV", "07:02", "Hadir", "bg-emerald-100 text-emerald-700"],
+                  ["Bima Prasetyo", "XI TKJ", "07:14", "Telat +4m", "bg-amber-100 text-amber-700"],
+                  ["Salsabila Zahra", "XII TB", "—", "Izin", "bg-sky-100 text-sky-700"],
+                  ["Dimas Anggara", "X TAV", "—", "Sakit", "bg-red-100 text-red-600"],
+                ].map(([nama, kelas, jam, st, cls]) => (
+                  <div key={nama} className="flex items-center gap-3 py-2.5">
+                    <span className="w-8 h-8 rounded-full bg-teal-700/10 text-teal-800 text-[10px] font-extrabold flex items-center justify-center shrink-0">
+                      {nama.split(" ").map((w) => w[0]).slice(0, 2).join("")}
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <p className="font-bold text-slate-800 truncate">{nama}</p>
+                      <p className="text-[10px] text-slate-400">Kelas {kelas}</p>
+                    </div>
+                    <span className="font-mono text-slate-500">{jam}</span>
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap ${cls}`}>{st}</span>
+                  </div>
+                ))}
+              </div>
+              <div className="pt-3 border-t border-slate-100 flex flex-wrap gap-1.5">
+                {[["Hadir", "1.128", "bg-emerald-50 text-emerald-700 border-emerald-100"],
+                  ["Telat", "34", "bg-amber-50 text-amber-700 border-amber-100"],
+                  ["Izin", "12", "bg-sky-50 text-sky-700 border-sky-100"],
+                  ["Sakit", "8", "bg-red-50 text-red-600 border-red-100"]].map(([label, val, cls]) => (
+                  <span key={label} className={`text-[10px] font-bold border rounded-full px-2.5 py-1 ${cls}`}>{label} {val}</span>
+                ))}
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 

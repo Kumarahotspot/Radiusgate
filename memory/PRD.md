@@ -710,3 +710,8 @@ Aplikasi absensi berbasis tablet kiosk + face recognition & liveness, geofence G
 ## 2026-09-23 — Rekap bulanan ortu bisa navigasi bulan ‹ ›
 - ParentHome.jsx: state `recapMonth` (default bulan berjalan) + `shiftMonth`; header rekap kini punya tombol ‹ (bulan lalu, selalu aktif), label bulan via helper `periodLabel(recapMonth, i18n.language)`, dan › (nonaktif saat di bulan berjalan). Hitungan chip mengikuti bulan terpilih.
 - Terverifikasi screenshot: September 2026 (Hadir 1) → ‹ Agustus 2026 (semua 0) → › kembali September (Hadir 1), tombol › disabled di bulan berjalan, tanpa overflow mobile 390.
+
+## 2026-09-23 — Landing page: section contoh absensi siswa
+- Landing.jsx: section baru `#absensi` di antara "Cara Kerja" dan "Pembayaran", bergaya section SPP (2 kolom: copy + kartu mock). Kartu mock "Absensi Hari Ini" (`absensi-mock-card`): header logo + nama sekolah + badge "Wajah + GPS", 5 baris contoh siswa (inisial avatar, nama, kelas, jam masuk, badge Hadir/Telat +4m/Izin/Sakit), footer chip ringkasan (Hadir 1.128 · Telat 34 · Izin 12 · Sakit 8). Bullets: status otomatis, notif WA ortu, rekap harian/bulanan export, absensi per mapel.
+- Navbar landing: link baru "Absensi" (nav-link-absensi) di antara Cara Kerja dan Pembayaran.
+- Terverifikasi screenshot: section + kartu + navlink tampil, tanpa overflow mobile 390.
