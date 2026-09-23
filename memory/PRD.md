@@ -618,4 +618,9 @@ Aplikasi absensi berbasis tablet kiosk + face recognition & liveness, geofence G
 - Keluhan user (screenshot lingkaran merah di panel login): ikon gelap kurang jelas di panel teal gelap.
 - Solusi: `logo-white.png` (mark diisi putih penuh memakai channel alpha dari ikon berwarna) di /app/frontend/public/. Dipakai HANYA di penempatan gelap: Login (panel kiri + sisi form), Kiosk pair, RegisterTrial, ResetPassword, Pay, Landing (mock kiosk bg-slate-900 + footer bg-slate-900). Penempatan terang (header Layout, header Landing, teks footer kecil) tetap logo berwarna. Kop PDF tetap berwarna (kertas putih).
 - Terverifikasi screenshot: logo putih kontras jelas di panel gelap (desktop+mobile), header admin tetap berwarna, mock kiosk & footer landing memakai versi putih, mobile 390 tanpa overflow.
+
+## 2026-09-23 — Landing page: konten Pembayaran Uang Sekolah (multi payment gateway)
+- Permintaan user: landing page sebelumnya hanya membahas absensi → tambahkan pembayaran uang sekolah dengan multi payment gateway.
+- Landing.jsx (hardcode ID, bukan i18n): (1) subtitle hero menyebut pembayaran SPP online (QRIS/VA/e-wallet); (2) 2 kartu fitur baru — "Pembayaran Uang Sekolah" (SPP Online, wide) & "QRIS, VA & E-Wallet" (badge Multi Payment Gateway); (3) nav baru "Pembayaran" (#pembayaran); (4) seksi baru #pembayaran: copy fitur (tagihan massal, cicilan, kuitansi PDF, pengingat WA/email, rekap tunggakan) + mock kuitansi LUNAS dengan panel "Scan untuk bayar" + badge channel (QRIS, BCA, BNI, BRI, Mandiri, OVO, DANA, GoPay, ShopeePay, Alfamart); (5) checklist harga ditambah "Pembayaran SPP online".
+- Terverifikasi screenshot: seksi pembayaran tampil & anchor nav bekerja, kartu fitur baru render, mobile 390 tanpa overflow.
 - P2: Tablet React Native (kiosk native); laporan grafik SPP; kuitansi PDF cetak; impor data tagihan lama; Midtrans/Duitku

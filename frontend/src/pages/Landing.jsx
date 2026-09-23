@@ -5,6 +5,7 @@ import api, { errMsg } from "@/api";
 import {
   ScanFace, MapPin, WifiOff, Tablet, Receipt, Send, Languages, Volume2,
   UserPlus, Camera, FileCheck, MonitorSmartphone, ArrowRight, Check,
+  Wallet, QrCode, BellRing, FileText,
 } from "lucide-react";
 
 const FEATURES = [
@@ -13,6 +14,8 @@ const FEATURES = [
   { icon: WifiOff, badge: "Anti Gangguan", title: "Offline-First Sync", desc: "Internet sekolah down? Absensi tetap jalan dan tersinkron otomatis saat online kembali." },
   { icon: Tablet, badge: "Hemat Biaya", title: "Kiosk Web di HP/Tablet", desc: "Ubah tablet atau HP bekas menjadi mesin absensi canggih — tanpa beli hardware mahal.", wide: true },
   { icon: Receipt, badge: "Per-Siswa", title: "Billing Otomatis", desc: "Tagihan dihitung transparan dari jumlah siswa aktif setiap bulan." },
+  { icon: Wallet, badge: "SPP Online", title: "Pembayaran Uang Sekolah", desc: "Tagihan SPP & cicilan dengan portal orang tua, kuitansi PDF otomatis, dan pengingat WhatsApp.", wide: true },
+  { icon: QrCode, badge: "Multi Payment Gateway", title: "QRIS, VA & E-Wallet", desc: "Terima pembayaran dari semua channel: QRIS, Virtual Account bank, e-wallet, sampai gerai retail — satu integrasi." },
   { icon: Send, badge: "Otomasi", title: "Invoice PDF via Email & WA", desc: "Invoice dan rekap kehadiran terkirim otomatis ke email & WhatsApp." },
   { icon: Languages, badge: "Bilingual", title: "Dwibahasa ID / EN", desc: "Seluruh portal dan kiosk mendukung Bahasa Indonesia & Inggris." },
   { icon: Volume2, badge: "Audio", title: "Umpan Balik Suara", desc: "Sapaan suara real-time memberi konfirmasi langsung saat absen berhasil." },
@@ -67,6 +70,7 @@ export default function Landing() {
           <nav className="hidden md:flex items-center gap-6 text-sm font-semibold text-slate-600">
             <a data-testid="nav-link-fitur" href="#fitur" className="hover:text-teal-700 transition-colors">Fitur</a>
             <a data-testid="nav-link-cara-kerja" href="#cara-kerja" className="hover:text-teal-700 transition-colors">Cara Kerja</a>
+            <a data-testid="nav-link-pembayaran" href="#pembayaran" className="hover:text-teal-700 transition-colors">Pembayaran</a>
             <a data-testid="nav-link-harga" href="#harga" className="hover:text-teal-700 transition-colors">Harga</a>
             <a data-testid="nav-link-kontak" href="#kontak" className="hover:text-teal-700 transition-colors">Kontak</a>
           </nav>
@@ -94,7 +98,7 @@ export default function Landing() {
           </h1>
           <p className="mt-5 text-base text-slate-600 leading-relaxed max-w-lg">
             Presensi siswa & guru berbasis pengenalan wajah ArcFace, liveness anti-spoofing, dan GPS geofence.
-            Laporan serta tagihan per-siswa terproses otomatis — tanpa alat khusus, cukup HP atau tablet.
+            Lengkap dengan pembayaran uang sekolah online (QRIS, VA, e-wallet) — tanpa alat khusus, cukup HP atau tablet.
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
             <a data-testid="hero-cta-pilot" href="#kontak"
@@ -181,6 +185,62 @@ export default function Landing() {
         </div>
       </section>
 
+      {/* Pembayaran uang sekolah */}
+      <section id="pembayaran" className="bg-white border-y border-slate-100">
+        <div className="max-w-6xl mx-auto px-4 py-20 grid lg:grid-cols-2 gap-12 items-center">
+          <div>
+            <span className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-teal-700 bg-teal-50 border border-teal-100 rounded-full px-3 py-1.5">
+              Pembayaran Uang Sekolah
+            </span>
+            <h2 className="mt-5 text-3xl sm:text-4xl font-bold tracking-tight">SPP Dibayar dari HP, <span className="text-teal-700">Sekolah Terima Otomatis.</span></h2>
+            <p className="mt-4 text-slate-600 text-sm sm:text-base leading-relaxed max-w-lg">
+              Buat tagihan SPP massal per kelas dalam sekali klik. Orang tua membayar lewat portal khusus
+              memakai channel favoritnya — status lunas, cicilan, dan kuitansi PDF tercatat otomatis.
+            </p>
+            <ul className="mt-6 space-y-2.5 text-sm text-slate-700">
+              {[
+                "Multi payment gateway: QRIS, Virtual Account bank, e-wallet & gerai retail",
+                "Cicilan parsial + kuitansi PDF berkop sekolah yang bisa diunduh ortu",
+                "Pengingat tagihan otomatis via WhatsApp & email",
+                "Rekap tunggakan per kelas siap export Excel & PDF",
+              ].map((x) => (
+                <li key={x} className="flex items-start gap-2.5"><Check className="w-4 h-4 mt-0.5 text-teal-600 shrink-0" /> {x}</li>
+              ))}
+            </ul>
+          </div>
+          <div className="relative mx-auto w-full max-w-sm">
+            <div className="absolute -inset-6 bg-gradient-to-br from-teal-100/70 to-emerald-50 rounded-[3rem] -z-10" />
+            <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-2xl">
+              <div className="flex items-center gap-2.5 pb-4 border-b border-slate-100">
+                <img src="/logo.png" alt="" className="w-8 h-8 object-contain" />
+                <div>
+                  <p className="text-xs font-bold text-slate-800">Kuitansi Pembayaran</p>
+                  <p className="text-[10px] text-slate-400 font-mono">No: QRIS-8F2A41C9</p>
+                </div>
+                <span className="ml-auto text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700">LUNAS</span>
+              </div>
+              <div className="py-4 space-y-2 text-xs">
+                <div className="flex justify-between"><span className="text-slate-500">SPP September</span><span className="font-bold text-slate-800">{rupiah(150000)}</span></div>
+                <div className="flex justify-between"><span className="text-slate-500">Metode</span><span className="font-semibold text-slate-700">QRIS</span></div>
+                <div className="flex justify-between"><span className="text-slate-500">Tanggal</span><span className="font-semibold text-slate-700">23/09/2026</span></div>
+              </div>
+              <div className="bg-slate-900 rounded-2xl p-4 flex items-center gap-3">
+                <QrCode className="w-10 h-10 text-teal-400" />
+                <div>
+                  <p className="text-white text-xs font-bold">Scan untuk bayar</p>
+                  <p className="text-slate-400 text-[10px]">Semua QRIS mobile banking & e-wallet</p>
+                </div>
+              </div>
+              <div className="mt-4 flex flex-wrap gap-1.5">
+                {["QRIS", "BCA", "BNI", "BRI", "Mandiri", "OVO", "DANA", "GoPay", "ShopeePay", "Alfamart"].map((c) => (
+                  <span key={c} className="text-[10px] font-bold text-slate-600 bg-slate-100 border border-slate-200 rounded-full px-2.5 py-1">{c}</span>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Harga + kalkulator */}
       <section id="harga" className="bg-teal-800 text-white">
         <div className="max-w-6xl mx-auto px-4 py-20 grid lg:grid-cols-2 gap-12 items-center">
@@ -191,7 +251,7 @@ export default function Landing() {
               Program pilot tersedia untuk sekolah pertama di setiap kota.
             </p>
             <ul className="mt-6 space-y-2.5 text-sm">
-              {["Semua fitur lengkap (wajah, geofence, offline, laporan)", "Unlimited perangkat kiosk", "Invoice & notifikasi otomatis", "Dukungan penuh selama pilot"].map((x) => (
+              {["Semua fitur lengkap (wajah, geofence, offline, laporan)", "Pembayaran SPP online: QRIS, VA & e-wallet", "Unlimited perangkat kiosk", "Invoice & notifikasi otomatis", "Dukungan penuh selama pilot"].map((x) => (
                 <li key={x} className="flex items-start gap-2.5"><Check className="w-4 h-4 mt-0.5 text-emerald-300 shrink-0" /> {x}</li>
               ))}
             </ul>
