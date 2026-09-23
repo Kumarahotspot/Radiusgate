@@ -9,7 +9,7 @@ from datetime import datetime, timezone
 from zoneinfo import ZoneInfo
 import pandas as pd
 from fastapi import APIRouter, HTTPException, Depends, UploadFile, File
-from fastapi.responses import StreamingResponse, FileResponse
+from fastapi.responses import StreamingResponse, FileResponse, Response
 from pydantic import BaseModel, EmailStr
 from typing import List
 from db import db
@@ -17,6 +17,7 @@ from auth import require_roles, hash_password
 from faceutil import embed, cos_sim, NoFaceError, MATCH_SIM_THRESHOLD
 from starlette.concurrency import run_in_threadpool
 from pdfgen import build_report_pdf, build_kiosk_poster_pdf, build_recap_pdf
+from storage import put_object, get_object
 from notif import normalize_phone, send_whatsapp
 
 router = APIRouter(tags=["admin"])
@@ -337,6 +338,7 @@ class SettingsIn(BaseModel):
     department_list: list[str] | None = None
     overtime_rate: int | None = None
     saver_notes: list[dict] | None = None
+    saver_photos: list[str] | None = None
 
 
 @router.get("/admin/settings")
@@ -354,6 +356,33 @@ async def put_settings(body: SettingsIn, user: dict = Depends(admin_dep)):
         raise HTTPException(status_code=400, detail="Tidak ada perubahan")
     await db.settings.update_one({"school_id": user["school_id"]}, {"$set": upd}, upsert=True)
     return {"ok": True}
+
+
+# ---------- Foto slide screensaver kiosk (object storage) ----------
+@router.post("/admin/saver-photos")
+async def upload_saver_photo(file: UploadFile = File(...), user: dict = Depends(admin_dep)):
+    if file.content_type not in ("image/jpeg", "image/png", "image/webp"):
+        raise HTTPException(status_code=400, detail="Format harus JPG/PNG/WEBP")
+    data = await file.read()
+    if len(data) > 2 * 1024 * 1024:
+        raise HTTPException(status_code=400, detail="Ukuran maksimal 2MB")
+    ext = file.filename.rsplit(".", 1)[-1].lower() if "." in file.filename else "jpg"
+    path = f"radiusgate/saver/{user['school_id']}/{uuid.uuid4()}.{ext}"
+    res = await run_in_threadpool(put_object, path, data, file.content_type)
+    await db.settings.update_one({"school_id": user["school_id"]}, {"$push": {"saver_photos": res["path"]}}, upsert=True)
+    return {"path": res["path"]}
+
+
+@router.delete("/admin/saver-photos")
+async def delete_saver_photo(path: str, user: dict = Depends(admin_dep)):
+    await db.settings.update_one({"school_id": user["school_id"]}, {"$pull": {"saver_photos": path}})
+    return {"ok": True}
+
+
+@router.get("/admin/saver-photos/file/{path:path}")
+async def saver_photo_file(path: str):
+    data, ct = await run_in_threadpool(get_object, path)
+    return Response(content=data, media_type=ct)
 
 
 @router.get("/admin/kiosk-poster")

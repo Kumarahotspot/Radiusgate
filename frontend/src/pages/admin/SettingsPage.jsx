@@ -151,6 +151,29 @@ export default function SettingsPage() {
     } catch (err) { toast.error(errMsg(err)); }
   };
 
+  const uploadSaverPhoto = async (e) => {
+    const f = e.target.files?.[0];
+    e.target.value = "";
+    if (!f) return;
+    if (f.size > 2 * 1024 * 1024) { toast.error("Maks 2MB"); return; }
+    const fd = new FormData();
+    fd.append("file", f);
+    try {
+      const r = await api.post("/admin/saver-photos", fd, { headers: { "Content-Type": "multipart/form-data" } });
+      setSettings((s) => ({ ...s, saver_photos: [...(s.saver_photos || []), r.data.path] }));
+      toast.success(t("save"));
+    } catch (err) { toast.error(errMsg(err)); }
+  };
+
+  const delSaverPhoto = async (path) => {
+    if (!window.confirm(t("confirm_delete"))) return;
+    try {
+      await api.delete("/admin/saver-photos", { params: { path } });
+      setSettings((s) => ({ ...s, saver_photos: (s.saver_photos || []).filter((x) => x !== path) }));
+      toast.success(t("deleted_ok"));
+    } catch (err) { toast.error(errMsg(err)); }
+  };
+
   return (
     <div data-testid="settings-page" className="space-y-6">
       {school && (
@@ -177,6 +200,28 @@ export default function SettingsPage() {
           <p className="font-bold text-slate-800 text-sm">{t("saver_board")}</p>
           <p className="text-xs text-slate-400 mt-0.5">{t("saver_board_hint")}</p>
         </div>
+        <div>
+          <p className="text-xs font-semibold text-slate-500">{t("saver_photos")}</p>
+          <p className="text-[11px] text-slate-400">{t("saver_photos_hint")}</p>
+          <div className="mt-2 flex flex-wrap gap-2">
+            {(settings.saver_photos || []).map((p) => (
+              <div key={p} className="relative">
+                <img src={`${process.env.REACT_APP_BACKEND_URL}/api/admin/saver-photos/file/${p}`} alt="" data-testid={`saver-photo-${p}`}
+                  className="w-24 h-16 object-cover rounded-lg border border-slate-200" />
+                <button type="button" data-testid={`saver-photo-del-${p}`} onClick={() => delSaverPhoto(p)}
+                  className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-red-500 text-white flex items-center justify-center hover:bg-red-600 transition-colors">
+                  <X className="w-3 h-3" />
+                </button>
+              </div>
+            ))}
+            <label data-testid="saver-photo-upload"
+              className="w-24 h-16 rounded-lg border-2 border-dashed border-slate-300 hover:border-teal-500 flex flex-col items-center justify-center cursor-pointer text-slate-400 hover:text-teal-600 transition-colors">
+              <Plus className="w-4 h-4" />
+              <span className="text-[9px] font-bold mt-0.5">{t("upload_photo")}</span>
+              <input type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={uploadSaverPhoto} />
+            </label>
+          </div>
+        </div>
         {(settings.saver_notes || []).map((n, i) => (
           <div key={i} data-testid={`saver-note-${i}`} className="flex flex-wrap items-start gap-2 bg-slate-50 border border-slate-100 rounded-xl p-3">
             <input value={n.title} placeholder={t("note_title")} data-testid={`saver-note-title-${i}`}
@@ -185,6 +230,12 @@ export default function SettingsPage() {
             <input value={n.body} placeholder={t("note_body")} data-testid={`saver-note-body-${i}`}
               onChange={(e) => { const arr = [...settings.saver_notes]; arr[i] = { ...arr[i], body: e.target.value }; setSettings({ ...settings, saver_notes: arr }); }}
               className="flex-[2] min-w-[200px] rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-teal-600" />
+            <input type="date" value={n.valid_from || ""} title={t("from")} data-testid={`saver-note-from-${i}`}
+              onChange={(e) => { const arr = [...settings.saver_notes]; arr[i] = { ...arr[i], valid_from: e.target.value }; setSettings({ ...settings, saver_notes: arr }); }}
+              className="rounded-xl border border-slate-200 px-2 py-2 text-xs outline-none focus:border-teal-600" />
+            <input type="date" value={n.valid_until || ""} title={t("to")} data-testid={`saver-note-until-${i}`}
+              onChange={(e) => { const arr = [...settings.saver_notes]; arr[i] = { ...arr[i], valid_until: e.target.value }; setSettings({ ...settings, saver_notes: arr }); }}
+              className="rounded-xl border border-slate-200 px-2 py-2 text-xs outline-none focus:border-teal-600" />
             <button type="button" data-testid={`saver-note-del-${i}`}
               onClick={() => setSettings({ ...settings, saver_notes: settings.saver_notes.filter((_, j) => j !== i) })}
               className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"><Trash2 className="w-4 h-4" /></button>

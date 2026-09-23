@@ -120,9 +120,17 @@ export default function Kiosk() {
   const [saverSlide, setSaverSlide] = useState(0);
   const lastActRef = useRef(Date.now());
 
+  const todayStr = new Date().toISOString().slice(0, 10);
+  const customPhotos = (info?.settings?.saver_photos || []).map(
+    (p) => `${process.env.REACT_APP_BACKEND_URL}/api/admin/saver-photos/file/${p}`
+  );
   const saverSlides = [
-    ...SAVER_SLIDES.map((src) => ({ img: src })),
-    ...((info?.settings?.saver_notes || []).filter((n) => n.title || n.body)).map((n) => ({ note: n })),
+    ...(customPhotos.length ? customPhotos : SAVER_SLIDES).map((src) => ({ img: src })),
+    ...((info?.settings?.saver_notes || [])
+      .filter((n) => (n.title || n.body)
+        && (!n.valid_from || n.valid_from <= todayStr)
+        && (!n.valid_until || n.valid_until >= todayStr)))
+      .map((n) => ({ note: n })),
   ];
 
   useEffect(() => {
