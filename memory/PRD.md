@@ -797,3 +797,8 @@ Aplikasi absensi berbasis tablet kiosk + face recognition & liveness, geofence G
 - Fix Teachers.jsx `CheckGroup`: (1) urutan checkbox kini **terpilih dulu** di atas; (2) daftar nilai terpilih tampil sebagai **chip dengan tombol ×** di atas kotak sehingga selalu terlihat & bisa dihapus langsung. Berlaku untuk mapel & kelas, form tambah & edit.
 - Insiden saat verifikasi: sempat runtime error "t is not a function" (CheckGroup tanpa useTranslation memakai t()) — diperbaiki (title dihapus).
 - Terverifikasi e2e via UI: chip "Agama" + "Penerapan Rangkaian Elektronika & Sistem Digital" tampil → hapus via × → Simpan → tabel menampilkan Lukman = "Agama" saja (data user sekalian terkoreksi sesuai keinginan).
+
+## 2026-09-24 — Kotak pencarian di CheckGroup (mapel/kelas)
+- Teachers.jsx CheckGroup: input pencarian (`<testid>-search`) muncul otomatis bila opsi > 6; menyaring checkbox secara live (case-insensitive); chip terpilih & empty state menyesuaikan hasil filter. CheckGroup kini pakai useTranslation sendiri. i18n baru: search_options (ID/EN).
+- Terverifikasi: ketik "boga" → 22 opsi tersaring jadi 1 ("Boga Dasa"), chip "Agama" tetap ada, berlaku juga di Kelas yang Diampu.
+- Info kredensial ke user: admin demo admin@nusantara.sch.id / Admin123!; jalur lupa password = link "Lupa Password?" di login, atau reset dari Portal Owner → Ubah Sekolah.

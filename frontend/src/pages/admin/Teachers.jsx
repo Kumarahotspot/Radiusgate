@@ -220,12 +220,15 @@ export default function Teachers() {
 }
 
 function CheckGroup({ label, options, value, onChange, testid, emptyHint }) {
+  const { t } = useTranslation();
+  const [q, setQ] = useState("");
   const sel = new Set((value || "").split(",").map((s) => s.trim()).filter(Boolean));
   const toggle = (opt) => {
     if (sel.has(opt)) sel.delete(opt); else sel.add(opt);
     onChange([...sel].join(", "));
   };
   const all = [...[...sel].sort(), ...options.filter((o) => !sel.has(o)).sort()];
+  const shown = q.trim() ? all.filter((o) => o.toLowerCase().includes(q.trim().toLowerCase())) : all;
   return (
     <div>
       <label className="text-xs font-semibold text-slate-500">{label}</label>
@@ -240,14 +243,18 @@ function CheckGroup({ label, options, value, onChange, testid, emptyHint }) {
           ))}
         </div>
       )}
+      {all.length > 6 && (
+        <input data-testid={`${testid}-search`} value={q} onChange={(e) => setQ(e.target.value)} placeholder={t("search_options")}
+          className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-xs outline-none focus:border-teal-600" />
+      )}
       <div data-testid={testid} className="mt-1 max-h-32 overflow-y-auto rounded-xl border border-slate-200 p-3 grid grid-cols-2 sm:grid-cols-4 gap-2 bg-white">
-        {all.map((o) => (
+        {shown.map((o) => (
           <label key={o} className="flex items-center gap-2 text-sm text-slate-700 cursor-pointer">
             <input type="checkbox" data-testid={`${testid}-${o}`} checked={sel.has(o)} onChange={() => toggle(o)} className="accent-teal-700 w-4 h-4" />
             {o}
           </label>
         ))}
-        {all.length === 0 && <p className="col-span-full text-xs text-slate-400">{emptyHint || "—"}</p>}
+        {shown.length === 0 && <p className="col-span-full text-xs text-slate-400">{emptyHint || "—"}</p>}
       </div>
     </div>
   );
