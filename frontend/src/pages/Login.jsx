@@ -49,7 +49,7 @@ export default function Login() {
         <div className="absolute -top-24 -right-24 w-96 h-96 rounded-full bg-teal-700/50" />
         <div className="absolute -bottom-32 -left-16 w-80 h-80 rounded-full bg-teal-900/60" />
         <div className="relative flex items-center gap-3">
-          <img src="/logo.png" alt="RadiusGate" className="w-16 h-16 object-contain" />
+          <img src="/logo-white.png" alt="RadiusGate" className="w-16 h-16 object-contain" />
           <p className="text-white font-extrabold text-lg">{t("app_name")}</p>
         </div>
         <div className="relative">
@@ -64,7 +64,7 @@ export default function Login() {
           <div className="absolute -bottom-24 -left-10 w-48 h-48 rounded-full bg-teal-900/40" />
           <div className="relative flex items-center justify-between">
             <div className="flex items-center gap-2.5">
-              <img src="/logo.png" alt="RadiusGate" className="w-12 h-12 object-contain" />
+              <img src="/logo-white.png" alt="RadiusGate" className="w-12 h-12 object-contain" />
               <p className="text-white font-extrabold text-lg">{t("app_name")}</p>
             </div>
             <LangSwitch dark />

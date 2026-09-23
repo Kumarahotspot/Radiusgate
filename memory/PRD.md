@@ -613,4 +613,9 @@ Aplikasi absensi berbasis tablet kiosk + face recognition & liveness, geofence G
 - Proses: deteksi celah kolom kosong (proyeksi vertikal numpy) untuk memisahkan ikon dari wordmark (celah di x=631–694) → crop ikon → pad ke kanvas persegi 613×613 → transparansi saturasi+kecerahan (mn>205 & spread<28 → alpha 0, GaussianBlur 1.2) → ditempatkan di /app/frontend/public/logo.png + /app/backend/assets/logo.png.
 - Catatan: crop ikon+wordmark versi horizontal juga tersedia di /tmp/rg_new.webp bila kelak dibutuhkan untuk kop dokumen landscape.
 - Terverifikasi: view PNG (mark utuh, 59,7% transparan), screenshot login desktop+mobile (mengapung di panel gelap tanpa kotak), header admin, landing page (header + mock kiosk), kuitansi PDF 200 dengan logo baru.
+
+## 2026-09-23 — Varian logo putih monokrom untuk background gelap
+- Keluhan user (screenshot lingkaran merah di panel login): ikon gelap kurang jelas di panel teal gelap.
+- Solusi: `logo-white.png` (mark diisi putih penuh memakai channel alpha dari ikon berwarna) di /app/frontend/public/. Dipakai HANYA di penempatan gelap: Login (panel kiri + sisi form), Kiosk pair, RegisterTrial, ResetPassword, Pay, Landing (mock kiosk bg-slate-900 + footer bg-slate-900). Penempatan terang (header Layout, header Landing, teks footer kecil) tetap logo berwarna. Kop PDF tetap berwarna (kertas putih).
+- Terverifikasi screenshot: logo putih kontras jelas di panel gelap (desktop+mobile), header admin tetap berwarna, mock kiosk & footer landing memakai versi putih, mobile 390 tanpa overflow.
 - P2: Tablet React Native (kiosk native); laporan grafik SPP; kuitansi PDF cetak; impor data tagihan lama; Midtrans/Duitku

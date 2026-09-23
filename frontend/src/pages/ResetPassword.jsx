@@ -32,7 +32,7 @@ export default function ResetPassword() {
     <div className="min-h-screen bg-gradient-to-b from-teal-800 via-[#0f3d3a] to-slate-950 flex items-center justify-center p-6">
       <div className="w-full max-w-sm">
         <div className="flex items-center gap-2.5 mb-8 justify-center">
-          <img src="/logo.png" alt="RadiusGate" className="w-12 h-12 object-contain" />
+          <img src="/logo-white.png" alt="RadiusGate" className="w-12 h-12 object-contain" />
           <p className="text-white font-extrabold text-lg">{t("app_name")}</p>
         </div>
         {done ? (
