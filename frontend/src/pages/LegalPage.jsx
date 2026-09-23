@@ -17,7 +17,7 @@ const CONTENT = {
       ["Hak Sekolah & Orang Tua",
         "Sekolah dan orang tua/wali berhak meminta akses, koreksi, atau penghapusan data pribadi siswa dengan menghubungi admin sekolah atau kami melalui kontak di bawah. Permintaan penghapusan data wajah dapat dilakukan kapan saja melalui portal admin."],
       ["Kontak",
-        "Pertanyaan terkait privasi dapat disampaikan ke PT. Pusaka Kreasi Mandiri melalui email susyanto@gmail.com."],
+        "Pertanyaan terkait privasi dapat disampaikan ke PT. Pusaka Kreasi Mandiri — Telaga Golf Sawangan, Cluster Belanda Blok E10 No. 60-61, Sawangan, Depok, Jawa Barat 16551 — melalui email admin@radiusgate.id atau WhatsApp 08888 200 999."],
     ],
   },
   syarat: {
@@ -35,7 +35,7 @@ const CONTENT = {
       ["Batasan Tanggung Jawab",
         "Kami berupaya menjaga ketersediaan dan keakuratan layanan, namun tidak bertanggung jawab atas kerugian tidak langsung yang timbul dari penggunaan atau ketidaktersediaan layanan, termasuk kegagalan perangkat keras kiosk atau jaringan internet sekolah."],
       ["Perubahan & Kontak",
-        "Syarat ini dapat diperbarui dan versi terbaru akan dipublikasikan di halaman ini. Pertanyaan dapat disampaikan ke susyanto@gmail.com."],
+        "Syarat ini dapat diperbarui dan versi terbaru akan dipublikasikan di halaman ini. Pertanyaan dapat disampaikan ke PT. Pusaka Kreasi Mandiri melalui email admin@radiusgate.id atau WhatsApp 08888 200 999."],
     ],
   },
 };

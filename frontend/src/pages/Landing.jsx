@@ -545,8 +545,9 @@ export default function Landing() {
             </p>
             <div className="mt-8 space-y-3 text-sm text-slate-600">
               <p className="flex items-center gap-2.5"><img src="/logo.png" alt="" className="w-5 h-5 object-contain" /> <strong>RadiusGate</strong>&nbsp;— PT. Pusaka Kreasi Mandiri</p>
-              <p>Email: <a className="text-teal-700 font-semibold hover:underline" href="mailto:susyanto@gmail.com">susyanto@gmail.com</a></p>
-              <p>Jakarta, Indonesia</p>
+              <p>Email: <a className="text-teal-700 font-semibold hover:underline" href="mailto:admin@radiusgate.id">admin@radiusgate.id</a></p>
+              <p>WhatsApp: <a data-testid="contact-wa" className="text-teal-700 font-semibold hover:underline" href="https://wa.me/628888200999" target="_blank" rel="noreferrer">08888 200 999</a></p>
+              <p className="leading-relaxed">PT. Pusaka Kreasi Mandiri<br />Telaga Golf Sawangan, Cluster Belanda Blok E10 No. 60-61,<br />Sawangan, Depok, Jawa Barat 16551</p>
             </div>
           </div>
           {sent ? (

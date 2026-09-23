@@ -749,3 +749,8 @@ Aplikasi absensi berbasis tablet kiosk + face recognition & liveness, geofence G
 ## 2026-09-23 — Link legal di halaman Login
 - Login.jsx: link Kebijakan Privasi & Syarat & Ketentuan (buka tab baru) ditambahkan di 2 titik — footer hero desktop (di bawah baris nama perusahaan) dan kolom form (di bawah tombol Buka Mode Kiosk, tampil juga di mobile).
 - Terverifikasi screenshot: link tampil desktop & mobile 390, klik membuka /privasi di tab baru dengan benar, tanpa overflow.
+
+## 2026-09-23 — Kontak resmi perusahaan di semua titik publik
+- Kontak resmi PT. Pusaka Kreasi Mandiri dipasang: alamat "Telaga Golf Sawangan, Cluster Belanda Blok E10 No. 60-61, Sawangan, Depok, Jawa Barat 16551", email admin@radiusgate.id, WA 08888 200 999 (link wa.me/628888200999).
+- Diperbarui di: section Kontak landing (Landing.jsx — email + WA + alamat lengkap menggantikan susyanto@gmail.com & "Jakarta, Indonesia") dan LegalPage.jsx (kontak di Kebijakan Privasi & Syarat). Email login owner susyanto@gmail.com TIDAK diubah (kredensial).
+- Terverifikasi screenshot: kontak baru tampil lengkap, email lama hilang dari semua halaman publik, wa.me link benar, tanpa overflow mobile 390.
