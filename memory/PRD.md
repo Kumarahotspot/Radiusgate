@@ -681,3 +681,8 @@ Aplikasi absensi berbasis tablet kiosk + face recognition & liveness, geofence G
 - Layout.jsx: entry parent dihapus dari `menus`; baru `parentItems` (Aktivitas Anak → /ortu, Tagihan → /ortu?tab=spp memakai key spp_bills_tab, Profil → /ortu?tab=profile). Bottom nav kini memakai button + useLocation untuk state aktif query-param (bukan NavLink).
 - ParentHome.jsx: tab kini "main" | "spp" | "profile". Bagian Tagihan SPP (kartu tagihan + riwayat pembayaran) pindah ke tab "spp"; tab utama berisi form izin/sakit + tabel aktivitas; modal pembayaran dirender standalone di luar blok tab agar bisa dibuka dari tab SPP.
 - Terverifikasi screenshot e2e: 3 item bottom nav, tab Tagihan menampilkan spp-section, tab Profil menampilkan form profil, tab utama menampilkan form izin + tabel aktivitas, tanpa overflow mobile 390.
+
+## 2026-09-23 — Ringkasan tagihan di tab Tagihan ortu
+- ParentHome.jsx: kartu ringkasan `spp-summary` di atas daftar tagihan — **Total Belum Lunas** (jumlah `remaining` semua tagihan unpaid/partial) + **Jatuh Tempo Terdekat** (due_date paling awal dari tagihan belum lunas); jika semua lunas tampil teks "Semua tagihan sudah lunas".
+- i18n baru: spp_total_unpaid, spp_nearest_due, spp_all_paid (ID/EN).
+- Terverifikasi screenshot: total Rp 1.125.000 (975rb SPP Sept + 150rb Ujian) & due 2026-09-30 sesuai data, tanpa overflow mobile 390.

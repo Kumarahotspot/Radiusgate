@@ -99,6 +99,9 @@ export default function ParentHome() {
   };
   const sumBadge = { ok: "bg-emerald-100 text-emerald-700", late: "bg-amber-100 text-amber-700", sakit: "bg-red-100 text-red-600", izin: "bg-sky-100 text-sky-700" };
   const sumLabel = { ok: t("present"), late: t("late_short"), sakit: t("att_sakit"), izin: t("att_izin") };
+  const unpaidBills = spp.bills.filter((b) => b.status !== "paid");
+  const totalUnpaid = unpaidBills.reduce((s, b) => s + (b.remaining ?? 0), 0);
+  const nearestDue = unpaidBills.map((b) => b.due_date).filter(Boolean).sort()[0];
 
   return (
     <div data-testid="parent-home" className="space-y-6">
@@ -114,6 +117,17 @@ export default function ParentHome() {
       )}
 
       {tab === "spp" && (<>
+      <div data-testid="spp-summary" className="bg-teal-800 text-white rounded-2xl p-5 flex flex-wrap items-center gap-x-10 gap-y-3">
+        <div>
+          <p className="text-[11px] uppercase tracking-wide text-teal-200">{t("spp_total_unpaid")}</p>
+          <p data-testid="spp-summary-total" className="font-bold text-lg">{rp(totalUnpaid)}</p>
+        </div>
+        <div>
+          <p className="text-[11px] uppercase tracking-wide text-teal-200">{t("spp_nearest_due")}</p>
+          <p data-testid="spp-summary-due" className="font-bold text-lg">{nearestDue || "—"}</p>
+        </div>
+        {unpaidBills.length === 0 && <p data-testid="spp-summary-paid" className="text-sm text-teal-100 font-semibold">{t("spp_all_paid")}</p>}
+      </div>
       <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden" data-testid="spp-section">
         <p className="px-4 pt-4 font-bold text-slate-800">{t("spp_my_bills")}</p>
         <p className="px-4 text-[11px] text-slate-400">{t("spp_demo_note")}</p>
