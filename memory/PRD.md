@@ -822,4 +822,10 @@ Keputusan user via ask_human: auto-Alpa; prefill mapel dari kiosk; absen pulang 
 - TeacherSubjectAtt.jsx: tombol "Mulai Panggil" (`sa-call-start`) membuka modal besar — kartu siswa satu per satu (avatar inisial, nama besar, NIS, progress bar N/total), tombol besar Hadir/Sakit/Izin/Alpha (status saat ini dari prefill ikut tersorot); klik status = set mark lokal + auto-lanjut siswa berikutnya; siswa terakhir → tutup + toast "Selesai memanggil semua siswa — jangan lupa Simpan". Tombol ← Sebelumnya / Lewati → / X tutup. Hanya state lokal; data tersimpan hanya via Simpan/Selesai & Kunci (tanpa perubahan backend).
 - i18n baru: call_start, call_done, call_prev, call_skip (ID/EN).
 - Terverifikasi UI: modal tampil (1/8 Adi Nugroho) → klik Hadir auto-lanjut (2/8 Afghan) → Lewati (3/8) → Sebelumnya (2/8) → tutup; tanpa overflow mobile 390.
+
+## 2026-09-24 — Indikator kunci sesi diperjelas + Buka Kunci
+- Permintaan user: status kunci harus jelas — ikon gembok terbuka bila belum terkunci (default), gembok tertutup bila terkunci.
+- Backend: SubjectAttIn `lock` kini tri-state (None=tak diubah, True=kunci/$set locked, False=buka/$unset locked).
+- Frontend TeacherSubjectAtt.jsx: tombol `sa-lock` menampilkan ikon LockOpen + "Selesai & Kunci" saat terbuka; saat terkunci berubah jadi ikon Lock + "Buka Kunci" (gaya abu-abu) dengan konfirmasi `unlock_confirm`. Lencana Terkunci tetap. i18n baru: unlock_session, unlock_confirm (ID/EN).
+- Terverifikasi UI: default terbuka → kunci (Buka Kunci + lencana) → buka kembali; tanpa overflow mobile. Data tes sesi dibersihkan, rekaman asli utuh.
 Terverifikasi: prefill alpha✓; HSIA izin→hadir menimpa status harian✓; guard 01:30→422 not_dismissal_time:15:30, setelah 00:30→lolos gate✓; cron manual marked_alpa=429 lalu dibersihkan (auth via dotenv — jangan ekstrak secret pakai grep/cut, nilai mengandung karakter khusus)✓; UI settings 7 input tanpa overflow✓; UI guru prefill tampil (5 hadir/1 izin/2 alpha dari 8 siswa)✓.

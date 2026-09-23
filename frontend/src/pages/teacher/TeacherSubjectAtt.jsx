@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import api, { errMsg } from "../../api";
-import { Save, CheckCheck, BookOpen, Lock, Megaphone, X } from "lucide-react";
+import { Save, CheckCheck, BookOpen, Lock, LockOpen, Megaphone, X } from "lucide-react";
 
 const STATUSES = ["hadir", "sakit", "izin", "alpha"];
 const ON = { hadir: "bg-emerald-600 text-white border-emerald-600", sakit: "bg-red-500 text-white border-red-500", izin: "bg-sky-500 text-white border-sky-500", alpha: "bg-slate-500 text-white border-slate-500" };
@@ -42,15 +42,16 @@ export default function TeacherSubjectAtt() {
     }).catch((err) => { setStudents([]); toast.error(errMsg(err)); });
   }, [date, subject, cls]);
 
-  const save = async (lock = false) => {
-    if (locked && !lock && !window.confirm(t("session_locked_confirm"))) return;
+  const save = async (lock = null) => {
+    if (locked && lock === null && !window.confirm(t("session_locked_confirm"))) return;
     setBusy(true);
     try {
       const records = students.map((s) => ({ student_id: s.id, status: marks[s.id] || "hadir" }));
       await api.post("/teacher/subject-att", { date, subject, class_name: cls, records, lock });
       toast.success(t("att_saved"));
       setSaved(true);
-      if (lock) setLocked(true);
+      if (lock === true) setLocked(true);
+      if (lock === false) setLocked(false);
     } catch (err) { toast.error(errMsg(err)); } finally { setBusy(false); }
   };
 
@@ -90,14 +91,21 @@ export default function TeacherSubjectAtt() {
           className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-teal-800 bg-teal-50 border border-teal-200 hover:bg-teal-100 disabled:opacity-50 transition-colors">
           <Megaphone className="w-4 h-4" /> {t("call_start")}
         </button>
-        <button data-testid="sa-save" onClick={() => save(false)} disabled={busy || !students.length}
+        <button data-testid="sa-save" onClick={() => save(null)} disabled={busy || !students.length}
           className="flex items-center gap-1.5 px-5 py-2 rounded-xl text-xs font-bold text-white bg-teal-700 hover:bg-teal-800 disabled:opacity-50 transition-colors ml-auto">
           <Save className="w-4 h-4" /> {busy ? t("loading") : t("save")}
         </button>
-        <button data-testid="sa-lock" onClick={() => save(true)} disabled={busy || !students.length}
-          className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-teal-800 bg-teal-50 border border-teal-200 hover:bg-teal-100 disabled:opacity-50 transition-colors">
-          <Lock className="w-4 h-4" /> {t("lock_done")}
-        </button>
+        {locked ? (
+          <button data-testid="sa-lock" onClick={() => { if (window.confirm(t("unlock_confirm"))) save(false); }} disabled={busy || !students.length}
+            className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-slate-700 bg-slate-200 border border-slate-300 hover:bg-slate-300 disabled:opacity-50 transition-colors">
+            <Lock className="w-4 h-4" /> {t("unlock_session")}
+          </button>
+        ) : (
+          <button data-testid="sa-lock" onClick={() => save(true)} disabled={busy || !students.length}
+            className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-teal-800 bg-teal-50 border border-teal-200 hover:bg-teal-100 disabled:opacity-50 transition-colors">
+            <LockOpen className="w-4 h-4" /> {t("lock_done")}
+          </button>
+        )}
       </div>
 
       {saved && <p data-testid="sa-saved-note" className="text-xs text-amber-600 bg-amber-50 border border-amber-100 rounded-xl px-3 py-2">{t("att_edit_note")}</p>}

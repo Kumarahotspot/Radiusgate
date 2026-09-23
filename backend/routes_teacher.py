@@ -221,7 +221,7 @@ class SubjectAttIn(BaseModel):
     subject: str
     class_name: str
     records: list  # [{student_id, status: hadir|sakit|izin|alpha}]
-    lock: bool = False
+    lock: bool | None = None  # None=tidak diubah, True=kunci, False=buka kunci
 
 
 @router.post("/teacher/subject-att")
@@ -243,13 +243,15 @@ async def subject_att_save(body: SubjectAttIn, user: dict = Depends(teacher_dep)
             continue
         key = {"school_id": user["school_id"], "teacher_id": t["id"], "date": body.date,
                "subject": body.subject, "class_name": body.class_name, "student_id": st["id"]}
-        await db.subject_attendance.update_one(
-            key,
-            {"$set": {**key, "student_name": st["name"], "nis": st.get("nis", ""),
-                      "teacher_name": t["name"], "status": status, "updated_at": now,
-                      **({"locked": True} if body.lock else {})},
-             "$setOnInsert": {"id": str(uuid.uuid4()), "created_at": now}},
-            upsert=True)
+        setters = {**key, "student_name": st["name"], "nis": st.get("nis", ""),
+                   "teacher_name": t["name"], "status": status, "updated_at": now}
+        update = {"$set": setters,
+                  "$setOnInsert": {"id": str(uuid.uuid4()), "created_at": now}}
+        if body.lock is True:
+            setters["locked"] = True
+        elif body.lock is False:
+            update["$unset"] = {"locked": ""}
+        await db.subject_attendance.update_one(key, update, upsert=True)
         saved += 1
         # HSIA final: status harian siswa mengikuti penandaan guru mapel terakhir
         daily_status = {"hadir": "present", "sakit": "sakit", "izin": "izin", "alpha": "alpa"}[status]
