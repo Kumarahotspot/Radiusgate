@@ -102,6 +102,8 @@ export default function ParentHome() {
   const unpaidBills = spp.bills.filter((b) => b.status !== "paid");
   const totalUnpaid = unpaidBills.reduce((s, b) => s + (b.remaining ?? 0), 0);
   const nearestDue = unpaidBills.map((b) => b.due_date).filter(Boolean).sort()[0];
+  const leaveHistory = att.filter((a) => a.att_status === "sakit" || a.att_status === "izin")
+    .sort((a, b) => b.date.localeCompare(a.date)).slice(0, 30);
 
   return (
     <div data-testid="parent-home" className="space-y-6">
@@ -209,6 +211,33 @@ export default function ParentHome() {
             <Send className="w-3.5 h-3.5" /> {t("leave_title")}
           </button>
         </form>
+      </div>
+
+      <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden" data-testid="leave-history">
+        <p className="px-4 pt-4 font-bold text-slate-800">{t("leave_history")}</p>
+        <div className="overflow-x-auto mt-2">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="text-left text-xs uppercase tracking-wide text-slate-500 border-b bg-slate-50">
+                <th className="px-4 py-3">{t("date")}</th>
+                <th className="px-4 py-3">{t("status")}</th>
+                <th className="px-4 py-3">{t("note")}</th>
+                <th className="px-4 py-3">{t("recorded_by")}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {leaveHistory.map((a) => (
+                <tr key={a.id || `${a.date}-${a.att_status}`} data-testid={`leave-row-${a.date}`} className="border-b last:border-0">
+                  <td className="px-4 py-3 font-mono text-xs">{a.date}</td>
+                  <td className="px-4 py-3"><span className={`px-2 py-0.5 rounded-full text-[11px] font-bold ${sumBadge[a.att_status]}`}>{sumLabel[a.att_status]}</span></td>
+                  <td className="px-4 py-3 text-xs text-slate-500">{a.note || "—"}</td>
+                  <td className="px-4 py-3 text-xs text-slate-500">{a.recorded_by_name || "—"}</td>
+                </tr>
+              ))}
+              {leaveHistory.length === 0 && <tr><td colSpan={4} className="px-4 py-8 text-center text-slate-400">{t("no_data")}</td></tr>}
+            </tbody>
+          </table>
+        </div>
       </div>
       </>)}
 

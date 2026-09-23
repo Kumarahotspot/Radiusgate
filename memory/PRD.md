@@ -691,3 +691,8 @@ Aplikasi absensi berbasis tablet kiosk + face recognition & liveness, geofence G
 - Permintaan user (screenshot anotasi): form "Ajukan Izin / Sakit" dihapus dari tab utama dan dipindah ke bottom nav setelah Tagihan.
 - ParentHome.jsx: tab baru "leave" berisi form izin/sakit; tab utama kini hanya tabel Aktivitas Anak. Layout.jsx: parentItems kini 4 (Aktivitas Anak, Tagihan, Izin/Sakit, Profil). i18n baru: nav_leave (ID "Izin/Sakit" / EN "Leave / Sick").
 - Terverifikasi screenshot: 4 item nav, form tidak lagi di tab utama, tab Izin/Sakit menampilkan form, tanpa overflow mobile 390.
+
+## 2026-09-23 — Riwayat pengajuan Izin/Sakit di portal ortu
+- ParentHome.jsx: kartu "Riwayat Izin/Sakit" (`leave-history`) di bawah form pada tab Izin/Sakit — tabel Tanggal | Status (badge) | Catatan | Dicatat oleh, dihitung client-side dari data `/parent/attendance` (filter att_status sakit/izin, urut terbaru, maks 30). Tanpa perubahan backend.
+- i18n baru: leave_history, recorded_by (ID/EN).
+- Terverifikasi screenshot: 2 baris riwayat tampil benar (Izin 2026-09-25 "Hajatan" oleh Orang Tua; Izin 2026-09-19 oleh Budi Santoso), tanpa overflow mobile 390.
