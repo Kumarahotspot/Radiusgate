@@ -639,4 +639,11 @@ Aplikasi absensi berbasis tablet kiosk + face recognition & liveness, geofence G
 - Persetujuan user atas saran: slideshow jadi screensaver kiosk. (User sempat khawatir hak cipta gambar AI — dijelaskan aman: karya orisinal hasil generate, boleh komersial.)
 - Kiosk.jsx: state saver/saverSlide + lastActRef; pointerdown/keydown mereset timer & menutup screensaver; interval 5 dtk mengaktifkan saver bila phase idle & bukan offlinePick & idle >45 dtk; slide berganti tiap 4,5 dtk. Overlay fullscreen (z-40, di bawah offline picker z-50): 3 slide /slides/*.jpg crossfade 1 dtk + gradien gelap, header logo-white+nama sekolah+jam, hint berdenyut "Sentuh layar untuk absen", dot indikator. i18n baru: kiosk_tap_to_attend (ID/EN).
 - Testid: kiosk-screensaver, kiosk-saver-clock, kiosk-saver-hint.
+
+## 2026-09-23 — Screensaver kiosk jadi papan info sekolah (slide teks bisa diatur admin)
+- Persetujuan user atas saran: screensaver ditingkatkan jadi papan informasi — admin bisa menambah slide pengumuman teks sendiri.
+- Tanpa perubahan backend: `saver_notes` ikut tersimpan di dokumen settings via PUT /admin/settings dan ikut terkirim di payload GET /kiosk/info.
+- SettingsPage.jsx: kartu baru "Papan Info Kiosk (Screensaver)" (testid saver-board-form) — daftar slide (judul + isi opsional), tambah/hapus/simpan (saver-note-add/del-N/save).
+- Kiosk.jsx: saverSlides = 3 foto + slide teks dari info.settings.saver_notes; slide teks dirender sebagai kartu gradasi teal gelap dengan badge "Pengumuman", judul besar, isi; dot indikator & rotasi mengikuti jumlah total slide. i18n baru: saver_announcement, saver_board, saver_board_hint, add_note, note_title, note_body (ID/EN).
+- Terverifikasi E2E: admin menambah slide "Upacara Bendera" → tersimpan (masih ada setelah reload) → kiosk menampilkan slide pengumuman dalam rotasi screensaver.
 - P2: Tablet React Native (kiosk native); laporan grafik SPP; kuitansi PDF cetak; impor data tagihan lama; Midtrans/Duitku

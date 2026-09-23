@@ -336,6 +336,7 @@ class SettingsIn(BaseModel):
     school_type: str | None = None
     department_list: list[str] | None = None
     overtime_rate: int | None = None
+    saver_notes: list[dict] | None = None
 
 
 @router.get("/admin/settings")

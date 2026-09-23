@@ -120,6 +120,11 @@ export default function Kiosk() {
   const [saverSlide, setSaverSlide] = useState(0);
   const lastActRef = useRef(Date.now());
 
+  const saverSlides = [
+    ...SAVER_SLIDES.map((src) => ({ img: src })),
+    ...((info?.settings?.saver_notes || []).filter((n) => n.title || n.body)).map((n) => ({ note: n })),
+  ];
+
   useEffect(() => {
     const bump = () => { lastActRef.current = Date.now(); setSaver(false); };
     window.addEventListener("pointerdown", bump);
@@ -139,9 +144,9 @@ export default function Kiosk() {
 
   useEffect(() => {
     if (!saver) return;
-    const iv = setInterval(() => setSaverSlide((s) => (s + 1) % SAVER_SLIDES.length), 4500);
+    const iv = setInterval(() => setSaverSlide((s) => (s + 1) % saverSlides.length), 4500);
     return () => clearInterval(iv);
-  }, [saver]);
+  }, [saver, saverSlides.length]);
 
   const pair = async (e) => {
     e.preventDefault();
@@ -481,9 +486,15 @@ export default function Kiosk() {
       {saver && (
         <div className="fixed inset-0 z-40 bg-[#0B1320] flex flex-col" data-testid="kiosk-screensaver">
           <div className="relative flex-1 overflow-hidden">
-            {SAVER_SLIDES.map((src, i) => (
-              <img key={src} src={src} alt=""
+            {saverSlides.map((s, i) => s.img ? (
+              <img key={s.img} src={s.img} alt=""
                 className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ${i === saverSlide ? "opacity-100" : "opacity-0"}`} />
+            ) : (
+              <div key={`note-${i}`} className={`absolute inset-0 flex flex-col items-center justify-center px-10 text-center bg-gradient-to-br from-teal-900 to-[#0B1320] transition-opacity duration-1000 ${i === saverSlide ? "opacity-100" : "opacity-0"}`}>
+                <span className="text-[11px] font-bold uppercase tracking-widest text-teal-300 bg-teal-400/10 border border-teal-400/20 rounded-full px-3 py-1">{t("saver_announcement")}</span>
+                <p className="mt-5 text-white font-extrabold text-2xl sm:text-3xl leading-snug max-w-lg">{s.note.title}</p>
+                {s.note.body && <p className="mt-3 text-teal-100/80 text-sm sm:text-base leading-relaxed max-w-md">{s.note.body}</p>}
+              </div>
             ))}
             <div className="absolute inset-0 bg-gradient-to-t from-[#0B1320] via-transparent to-[#0B1320]/60" />
           </div>
@@ -502,7 +513,7 @@ export default function Kiosk() {
           <div className="absolute bottom-0 left-0 right-0 px-6 pb-8 text-center">
             <p className="text-white font-extrabold text-xl animate-pulse" data-testid="kiosk-saver-hint">{t("kiosk_tap_to_attend")}</p>
             <div className="mt-4 flex justify-center gap-1.5">
-              {SAVER_SLIDES.map((_, i) => (
+              {saverSlides.map((_, i) => (
                 <span key={i} className={`w-2 h-2 rounded-full transition-colors ${i === saverSlide ? "bg-teal-400" : "bg-white/25"}`} />
               ))}
             </div>

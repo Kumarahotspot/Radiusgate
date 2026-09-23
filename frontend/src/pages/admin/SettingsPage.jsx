@@ -172,6 +172,35 @@ export default function SettingsPage() {
         </div>
       )}
 
+      <form onSubmit={saveSettings} data-testid="saver-board-form" className="bg-white rounded-2xl border border-slate-200 p-5 space-y-3">
+        <div>
+          <p className="font-bold text-slate-800 text-sm">{t("saver_board")}</p>
+          <p className="text-xs text-slate-400 mt-0.5">{t("saver_board_hint")}</p>
+        </div>
+        {(settings.saver_notes || []).map((n, i) => (
+          <div key={i} data-testid={`saver-note-${i}`} className="flex flex-wrap items-start gap-2 bg-slate-50 border border-slate-100 rounded-xl p-3">
+            <input value={n.title} placeholder={t("note_title")} data-testid={`saver-note-title-${i}`}
+              onChange={(e) => { const arr = [...settings.saver_notes]; arr[i] = { ...arr[i], title: e.target.value }; setSettings({ ...settings, saver_notes: arr }); }}
+              className="flex-1 min-w-[160px] rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-teal-600" />
+            <input value={n.body} placeholder={t("note_body")} data-testid={`saver-note-body-${i}`}
+              onChange={(e) => { const arr = [...settings.saver_notes]; arr[i] = { ...arr[i], body: e.target.value }; setSettings({ ...settings, saver_notes: arr }); }}
+              className="flex-[2] min-w-[200px] rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-teal-600" />
+            <button type="button" data-testid={`saver-note-del-${i}`}
+              onClick={() => setSettings({ ...settings, saver_notes: settings.saver_notes.filter((_, j) => j !== i) })}
+              className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"><Trash2 className="w-4 h-4" /></button>
+          </div>
+        ))}
+        <div className="flex gap-2">
+          <button type="button" data-testid="saver-note-add"
+            onClick={() => setSettings({ ...settings, saver_notes: [...(settings.saver_notes || []), { title: "", body: "" }] })}
+            className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-teal-700 bg-teal-50 hover:bg-teal-100 transition-colors">
+            <Plus className="w-4 h-4" /> {t("add_note")}
+          </button>
+          <button data-testid="saver-board-save"
+            className="px-4 py-2 rounded-xl text-xs font-bold text-white bg-teal-700 hover:bg-teal-800 transition-colors">{t("save")}</button>
+        </div>
+      </form>
+
       <form onSubmit={saveSettings} data-testid="work-hours-form" className="bg-white rounded-2xl border border-slate-200 p-5">
         <p className="font-bold text-slate-800 mb-4">{t("work_hours")}</p>
         <div className="grid grid-cols-2 sm:grid-cols-5 gap-4 max-w-3xl">
