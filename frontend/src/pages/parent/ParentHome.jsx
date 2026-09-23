@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import api, { errMsg } from "../../api";
-import { CalendarClock, KeyRound, Send } from "lucide-react";
+import { CalendarClock, KeyRound, Send, FileText } from "lucide-react";
 
 export default function ParentHome() {
   const { t } = useTranslation();
@@ -24,6 +24,18 @@ export default function ParentHome() {
   useEffect(() => { load(); }, []);
 
   const rp = (n) => `Rp ${Number(n || 0).toLocaleString("id-ID")}`;
+
+  const dlReceipt = async (p) => {
+    try {
+      const r = await api.get(`/parent/spp/payments/${p.id}/receipt.pdf`, { responseType: "blob" });
+      const u = URL.createObjectURL(r.data);
+      const a = document.createElement("a");
+      a.href = u;
+      a.download = `kuitansi-${p.reference || p.id.slice(0, 8)}.pdf`;
+      a.click();
+      URL.revokeObjectURL(u);
+    } catch (err) { toast.error(errMsg(err)); }
+  };
 
   const submitPay = async (e) => {
     e.preventDefault();
@@ -117,9 +129,16 @@ export default function ParentHome() {
           <div className="border-t px-4 py-3">
             <p className="text-xs font-bold text-slate-500 uppercase tracking-wide mb-2">{t("spp_history")}</p>
             {spp.payments.slice(0, 5).map((p) => (
-              <div key={p.id} className="flex justify-between text-xs py-1.5 border-b last:border-0 border-slate-100">
+              <div key={p.id} className="flex justify-between items-center gap-2 text-xs py-1.5 border-b last:border-0 border-slate-100">
                 <span className="text-slate-600">{p.bill_title} · <span className="font-mono text-slate-400">{p.reference}</span></span>
-                <span className="font-bold text-teal-700">{rp(p.amount)}</span>
+                <span className="flex items-center gap-2 shrink-0">
+                  <span className="font-bold text-teal-700">{rp(p.amount)}</span>
+                  <button data-testid={`parent-receipt-${p.id}`} onClick={() => dlReceipt(p)}
+                    className="flex items-center gap-1 text-[11px] font-bold text-teal-700 hover:bg-teal-50 px-2 py-1 rounded-lg transition-colors"
+                    title={t("download_receipt")}>
+                    <FileText className="w-3.5 h-3.5" /> {t("download_receipt")}
+                  </button>
+                </span>
               </div>
             ))}
           </div>

@@ -571,4 +571,10 @@ Aplikasi absensi berbasis tablet kiosk + face recognition & liveness, geofence G
 - Persetujuan user atas saran: setelah pembayaran manual berhasil, modal menawarkan unduh kuitansi tanpa pindah ke tab Transaksi.
 - Spp.jsx: state `paidReceipt` menampung respons POST /admin/spp/payments; setelah sukses, modal "Bayar Manual" berganti panel sukses (ikon, judul, nominal, no. referensi) dengan tombol "Kuitansi PDF" (testid pay-download-receipt → dlPdf receipt.pdf) dan "Tutup". Panel ter-reset saat modal dibuka untuk pembayaran baru. i18n baru: pay_success, close (ID/EN).
 - Terverifikasi E2E via browser: bayar Rp 25.000 Tunai ke tagihan "SPP Agustus" Siswa Demo 10 → panel sukses tampil (Ref MAN-A23AE29B) → unduhan kuitansi-MAN-A23AE29B.pdf terpicu → tabel grup ter-update (Cicilan, sisa Rp 75.000, Tgl Bayar 2026-09-23) → modal tertutup normal.
+
+## 2026-09-23 — Kuitansi PDF untuk Orang Tua di Portal Ortu
+- Persetujuan user atas saran: ortu bisa mengunduh bukti bayar sendiri.
+- Backend routes_parent.py: GET /parent/spp/payments/{pid}/receipt.pdf — validasi kepemilikan (payment.student_id harus anak dari ortu yang login; 404 bila bukan), memakai build_spp_receipt_pdf yang sama.
+- Frontend ParentHome.jsx: helper dlReceipt + tombol "Kuitansi PDF" (testid parent-receipt-<payment_id>) di setiap baris Riwayat Pembayaran.
+- Terverifikasi: curl login ortu (ortu+6282112393993@edugateid.local / NIS anak 696969) → kuitansi milik anaknya 200 PDF valid; id ngawur 404; kuitansi milik siswa lain 404 (validasi kepemilikan benar). Screenshot: 5 tombol kuitansi tampil, unduhan kuitansi-DEMO-*.pdf terpicu, mobile 390 tanpa overflow.
 - P2: Tablet React Native (kiosk native); laporan grafik SPP; kuitansi PDF cetak; impor data tagihan lama; Midtrans/Duitku

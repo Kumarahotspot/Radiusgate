@@ -2,10 +2,12 @@ import asyncio
 import uuid
 
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi.responses import FileResponse
 from pydantic import BaseModel
 
 from auth import require_roles
 from db import db
+from pdfgen import build_spp_receipt_pdf
 from routes_kiosk import _record
 from routes_spp import _receipt_notify
 
@@ -101,3 +103,24 @@ async def pay_bill(body: SppPayIn, user: dict = Depends(parent_dep)):
     await db.bills.update_one({"id": bill["id"]}, {"$inc": {"paid_amount": body.amount}})
     asyncio.create_task(_receipt_notify(user["school_id"], bill, body.amount, ref))
     return {"ok": True, "reference": ref, "mode": "demo"}
+
+    return {"ok": True, "reference": ref, "mode": "demo"}
+
+
+@router.get("/parent/spp/payments/{pid}/receipt.pdf")
+async def child_payment_receipt(pid: str, user: dict = Depends(parent_dep)):
+    st = await my_child(user)
+    pay = await db.spp_payments.find_one(
+        {"id": pid, "school_id": user["school_id"], "student_id": st["id"]}, {"_id": 0})
+    if not pay:
+        raise HTTPException(status_code=404, detail="Pembayaran tidak ditemukan")
+    bill = await db.bills.find_one({"id": pay["bill_id"]}, {"_id": 0})
+    school = await db.schools.find_one({"id": user["school_id"]}, {"_id": 0, "name": 1})
+    if bill:
+        bill["status"] = "paid" if bill.get("paid_amount", 0) >= bill["amount"] else (
+            "partial" if bill.get("paid_amount", 0) > 0 else "unpaid")
+        bill["remaining"] = max(0, bill["amount"] - bill.get("paid_amount", 0))
+    path = build_spp_receipt_pdf(f"/tmp/kuitansi_parent_{pid}.pdf", (school or {}).get("name", ""),
+                                 bill or {}, pay)
+    return FileResponse(path, media_type="application/pdf",
+                        filename=f"kuitansi-{pay.get('reference', pid)}.pdf")
