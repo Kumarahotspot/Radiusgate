@@ -23,6 +23,7 @@ export default function Spp() {
   const [billForm, setBillForm] = useState({ student_id: "", title: "", category: "SPP", amount: "", due_date: "" });
   const [bulkForm, setBulkForm] = useState({ title: "", category: "SPP", amount: "", due_date: "", class_name: "" });
   const [payForm, setPayForm] = useState({ bill: null, amount: "", method: "Tunai", note: "" });
+  const [paidReceipt, setPaidReceipt] = useState(null);
   const [newCat, setNewCat] = useState("");
 
   const load = () => {
@@ -69,9 +70,9 @@ export default function Spp() {
     e.preventDefault();
     setBusy(true);
     try {
-      await api.post("/admin/spp/payments", { bill_id: payForm.bill.id, amount: Number(payForm.amount), method: payForm.method, note: payForm.note });
+      const r = await api.post("/admin/spp/payments", { bill_id: payForm.bill.id, amount: Number(payForm.amount), method: payForm.method, note: payForm.note });
       toast.success(t("spp_pay_done"));
-      setModal(null);
+      setPaidReceipt(r.data);
       reloadAll();
     } catch (err) { toast.error(errMsg(err)); } finally { setBusy(false); }
   };
@@ -274,7 +275,7 @@ export default function Spp() {
                               <button data-testid={`pdf-bill-${b.id}`} onClick={() => dlPdf(`/admin/spp/bills/${b.id}/invoice.pdf`, `tagihan-${b.id.slice(0, 8)}.pdf`)}
                                 className="p-1.5 text-slate-500 hover:bg-slate-100 rounded-lg transition-colors" title={t("download_invoice")}><FileText className="w-4 h-4" /></button>
                               {b.status !== "paid" && (
-                                <button data-testid={`pay-bill-${b.id}`} onClick={() => { setPayForm({ bill: b, amount: String(b.remaining), method: "Tunai", note: "" }); setModal("pay"); }}
+                                <button data-testid={`pay-bill-${b.id}`} onClick={() => { setPaidReceipt(null); setPayForm({ bill: b, amount: String(b.remaining), method: "Tunai", note: "" }); setModal("pay"); }}
                                   className="flex items-center gap-1 text-xs font-bold text-emerald-600 hover:bg-emerald-50 px-2 py-1.5 rounded-lg transition-colors">
                                   <Banknote className="w-4 h-4" /> {t("pay_manual")}
                                 </button>
@@ -405,7 +406,28 @@ export default function Spp() {
       )}
 
       {modal === "pay" && payForm.bill && (
-        <Modal title={`${t("pay_manual")} — ${payForm.bill.student_name}`} onClose={() => setModal(null)} testid="pay-modal">
+        <Modal title={`${t("pay_manual")} — ${payForm.bill.student_name}`} onClose={() => { setModal(null); setPaidReceipt(null); }} testid="pay-modal">
+          {paidReceipt ? (
+            <div className="grid gap-4 text-center" data-testid="pay-success">
+              <div className="w-14 h-14 mx-auto rounded-full bg-emerald-100 flex items-center justify-center">
+                <Receipt className="w-7 h-7 text-emerald-600" />
+              </div>
+              <div>
+                <p className="font-bold text-slate-800">{t("pay_success")}</p>
+                <p className="text-sm text-slate-600 mt-1">{payForm.bill.title} · <strong>{rp(paidReceipt.amount)}</strong></p>
+                <p className="text-xs font-mono text-slate-400 mt-0.5">Ref: {paidReceipt.reference}</p>
+              </div>
+              <div className="flex justify-center gap-2">
+                <button data-testid="pay-download-receipt"
+                  onClick={() => dlPdf(`/admin/spp/payments/${paidReceipt.id}/receipt.pdf`, `kuitansi-${paidReceipt.reference}.pdf`)}
+                  className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-bold text-white bg-teal-700 hover:bg-teal-800 transition-colors">
+                  <FileText className="w-4 h-4" /> {t("download_receipt")}
+                </button>
+                <button data-testid="pay-success-close" onClick={() => { setModal(null); setPaidReceipt(null); }}
+                  className="px-4 py-2.5 rounded-xl text-xs font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors">{t("close")}</button>
+              </div>
+            </div>
+          ) : (
           <form onSubmit={submitPay} className="grid gap-4" data-testid="pay-form">
             <p className="text-sm text-slate-600">{payForm.bill.title} · {t("remaining")}: <strong>{rp(payForm.bill.remaining)}</strong></p>
             <In label={t("amount")} testid="pay-amount" type="number" v={payForm.amount} set={(v) => setPayForm({ ...payForm, amount: v })} req />
@@ -417,8 +439,9 @@ export default function Spp() {
               </select>
             </div>
             <In label={t("note")} testid="pay-note" v={payForm.note} set={(v) => setPayForm({ ...payForm, note: v })} />
-            <ModalButtons busy={busy} onClose={() => setModal(null)} t={t} testid="pay-submit" />
+            <ModalButtons busy={busy} onClose={() => { setModal(null); setPaidReceipt(null); }} t={t} testid="pay-submit" />
           </form>
+          )}
         </Modal>
       )}
 

@@ -566,4 +566,9 @@ Aplikasi absensi berbasis tablet kiosk + face recognition & liveness, geofence G
 - routes_spp.py endpoints: GET /admin/spp/payments/{pid}/receipt.pdf, GET /admin/spp/bills/{bid}/invoice.pdf, GET /admin/spp/students/{sid}/bills.pdf (opsional ?month=YYYY-MM mengikuti filter periode aktif). 404 untuk id ngawur. Nama file: kuitansi-<ref>.pdf, tagihan-<id8>.pdf, rekap-tagihan-<nis>.pdf.
 - Frontend Spp.jsx: helper dlPdf; tombol PDF rekap di baris grup siswa (stopPropagation agar tidak ikut expand), tombol invoice PDF per tagihan di baris detail, kolom "Aksi" + tombol "Kuitansi PDF" per baris di tab Transaksi. i18n: download_receipt/download_invoice/download_student_bills (ID/EN).
 - Terverifikasi: curl 3 endpoint → PDF valid (~275KB) + 404 benar; isi PDF diekstrak pypdf (terbilang benar "Seratus Lima Puluh Ribu Rupiah"); screenshot: 3 unduhan terpicu dengan nama file benar, mobile 390 tanpa overflow.
+
+## 2026-09-23 — Tombol "Kuitansi PDF" langsung di modal pembayaran
+- Persetujuan user atas saran: setelah pembayaran manual berhasil, modal menawarkan unduh kuitansi tanpa pindah ke tab Transaksi.
+- Spp.jsx: state `paidReceipt` menampung respons POST /admin/spp/payments; setelah sukses, modal "Bayar Manual" berganti panel sukses (ikon, judul, nominal, no. referensi) dengan tombol "Kuitansi PDF" (testid pay-download-receipt → dlPdf receipt.pdf) dan "Tutup". Panel ter-reset saat modal dibuka untuk pembayaran baru. i18n baru: pay_success, close (ID/EN).
+- Terverifikasi E2E via browser: bayar Rp 25.000 Tunai ke tagihan "SPP Agustus" Siswa Demo 10 → panel sukses tampil (Ref MAN-A23AE29B) → unduhan kuitansi-MAN-A23AE29B.pdf terpicu → tabel grup ter-update (Cicilan, sisa Rp 75.000, Tgl Bayar 2026-09-23) → modal tertutup normal.
 - P2: Tablet React Native (kiosk native); laporan grafik SPP; kuitansi PDF cetak; impor data tagihan lama; Midtrans/Duitku
