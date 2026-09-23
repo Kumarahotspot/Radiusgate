@@ -57,6 +57,11 @@ export default function Login() {
           <p className="text-teal-100/80 mt-4 text-base max-w-md">Face recognition · Liveness · GPS Geofence · Offline sync · Billing otomatis</p>
         </div>
         <p className="relative text-teal-200/60 text-xs">{t("app_name")} oleh {t("company_name")} · SaaS Multi-Tenant · v1 Pilot</p>
+        <p className="relative mt-1.5 text-[11px] text-teal-200/50">
+          <Link data-testid="login-link-privasi" to="/privasi" target="_blank" className="hover:text-teal-100 hover:underline underline-offset-2 transition-colors">{t("privacy_policy")}</Link>
+          <span className="mx-1.5">·</span>
+          <Link data-testid="login-link-syarat" to="/syarat" target="_blank" className="hover:text-teal-100 hover:underline underline-offset-2 transition-colors">{t("terms_conditions")}</Link>
+        </p>
       </div>
       <div className="flex-1 flex flex-col max-lg:bg-gradient-to-b max-lg:from-teal-800 max-lg:via-[#0f3d3a] max-lg:to-slate-950">
         <div className="lg:hidden relative overflow-hidden px-6 pt-6 pb-4">
@@ -144,6 +149,11 @@ export default function Login() {
           >
             <MonitorSmartphone className="w-4 h-4" /> {t("open_kiosk")}
           </Link>
+          <p className="mt-4 text-center text-[11px] text-slate-500">
+            <Link data-testid="login-link-privasi-m" to="/privasi" target="_blank" className="hover:text-teal-300 hover:underline underline-offset-2 transition-colors">{t("privacy_policy")}</Link>
+            <span className="mx-1.5">·</span>
+            <Link data-testid="login-link-syarat-m" to="/syarat" target="_blank" className="hover:text-teal-300 hover:underline underline-offset-2 transition-colors">{t("terms_conditions")}</Link>
+          </p>
         </div>
         </div>
       </div>

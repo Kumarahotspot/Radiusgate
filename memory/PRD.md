@@ -745,3 +745,7 @@ Aplikasi absensi berbasis tablet kiosk + face recognition & liveness, geofence G
 - RegisterTrial.jsx: checkbox wajib (`register-agree`) "Saya menyetujui Kebijakan Privasi dan Syarat & Ketentuan" dengan link ke /privasi & /syarat (tab baru); submit tanpa centang ditolak dengan pesan `agree_required` (tanpa memanggil API).
 - i18n baru: agree_prefix, agree_and, privacy_policy, terms_conditions, agree_required (ID/EN).
 - Terverifikasi e2e: submit tanpa centang → error tampil; centang → pendaftaran trial berhasil (halaman sukses); tenant uji "SMA Uji Checkbox" + user + lead dibersihkan dari DB. Tanpa overflow mobile 390.
+
+## 2026-09-23 — Link legal di halaman Login
+- Login.jsx: link Kebijakan Privasi & Syarat & Ketentuan (buka tab baru) ditambahkan di 2 titik — footer hero desktop (di bawah baris nama perusahaan) dan kolom form (di bawah tombol Buka Mode Kiosk, tampil juga di mobile).
+- Terverifikasi screenshot: link tampil desktop & mobile 390, klik membuka /privasi di tab baru dengan benar, tanpa overflow.
