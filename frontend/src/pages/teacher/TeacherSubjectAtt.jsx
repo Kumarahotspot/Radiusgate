@@ -83,6 +83,7 @@ export default function TeacherSubjectAtt() {
             {meta.classes.map((c) => <option key={c} value={c}>{c}</option>)}
           </select>
         </div>
+        <div className="flex flex-wrap gap-2 w-full sm:w-auto sm:ml-auto">
         <button data-testid="sa-all-present" onClick={() => { const m = {}; students.forEach((s) => { m[s.id] = "hadir"; }); setMarks(m); }}
           className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 transition-colors">
           <CheckCheck className="w-4 h-4" /> {t("all_present")}
@@ -92,7 +93,7 @@ export default function TeacherSubjectAtt() {
           <Megaphone className="w-4 h-4" /> {t("call_start")}
         </button>
         <button data-testid="sa-save" onClick={() => save(null)} disabled={busy || !students.length}
-          className="flex items-center gap-1.5 px-5 py-2 rounded-xl text-xs font-bold text-white bg-teal-700 hover:bg-teal-800 disabled:opacity-50 transition-colors ml-auto">
+          className="flex items-center gap-1.5 px-5 py-2 rounded-xl text-xs font-bold text-white bg-teal-700 hover:bg-teal-800 disabled:opacity-50 transition-colors">
           <Save className="w-4 h-4" /> {busy ? t("loading") : t("save")}
         </button>
         {locked ? (
@@ -106,6 +107,7 @@ export default function TeacherSubjectAtt() {
             <LockOpen className="w-4 h-4" /> {t("lock_done")}
           </button>
         )}
+        </div>
       </div>
 
       {saved && <p data-testid="sa-saved-note" className="text-xs text-amber-600 bg-amber-50 border border-amber-100 rounded-xl px-3 py-2">{t("att_edit_note")}</p>}
@@ -117,7 +119,7 @@ export default function TeacherSubjectAtt() {
         ))}
       </div>
 
-      <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+      <div className="hidden md:block bg-white rounded-2xl border border-slate-200 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
@@ -150,6 +152,29 @@ export default function TeacherSubjectAtt() {
             </tbody>
           </table>
         </div>
+      </div>
+
+      <div className="md:hidden space-y-2.5">
+        {students.map((s, i) => (
+          <div key={s.id} data-testid={`sa-card-${s.id}`} className="bg-white rounded-2xl border border-slate-200 p-4">
+            <div className="flex items-center gap-3 mb-3">
+              <span className="text-xs font-bold text-slate-400 w-5 shrink-0">{i + 1}.</span>
+              <div className="min-w-0">
+                <p className="font-bold text-slate-800 text-sm truncate">{s.name}</p>
+                <p className="text-[11px] font-mono text-slate-400">NIS {s.nis}</p>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              {STATUSES.map((st) => (
+                <button key={st} data-testid={`sa-m-${st}-${s.id}`} onClick={() => setMarks({ ...marks, [s.id]: st })}
+                  className={`py-2.5 rounded-xl text-xs font-bold border-2 transition-all ${(marks[s.id] || "hadir") === st ? ON[st] : OFF}`}>
+                  {t(`att_${st}`)}
+                </button>
+              ))}
+            </div>
+          </div>
+        ))}
+        {students.length === 0 && <p className="text-center text-slate-400 text-sm py-8">{t("no_data")}</p>}
       </div>
 
       {callIdx !== null && students[callIdx] && (
