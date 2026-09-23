@@ -1,4 +1,4 @@
-import { NavLink, Outlet, useNavigate } from "react-router-dom";
+import { NavLink, Outlet, useNavigate, useLocation } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useAuth, homeFor } from "../context/AuthContext";
@@ -37,10 +37,13 @@ const menus = {
   employee: [
     { to: "/karyawan", icon: ScanFace, key: "my_attendance", end: true },
   ],
-  parent: [
-    { to: "/ortu", icon: GraduationCap, key: "child_activity", end: true },
-  ],
 };
+
+const parentItems = [
+  { tab: "", icon: GraduationCap, key: "child_activity" },
+  { tab: "spp", icon: Wallet, key: "spp_bills_tab" },
+  { tab: "profile", icon: User, key: "profile" },
+];
 
 const portalKey = { owner: "owner_portal", school_admin: "admin_portal", teacher: "teacher_portal", employee: "employee_portal", parent: "parent_portal" };
 
@@ -48,6 +51,8 @@ export default function Layout() {
   const { t } = useTranslation();
   const { user, logout } = useAuth();
   const nav = useNavigate();
+  const location = useLocation();
+  const ptab = new URLSearchParams(location.search).get("tab") || "";
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef(null);
   useEffect(() => {
@@ -138,21 +143,21 @@ export default function Layout() {
       {user.role === "parent" && (
         <nav data-testid="bottom-nav" className="fixed bottom-0 inset-x-0 z-30 bg-white/95 backdrop-blur border-t border-slate-200">
           <div className="max-w-7xl mx-auto px-4 py-2.5 flex justify-center gap-1">
-            {items.map((m) => (
-              <NavLink
-                key={m.to}
-                to={m.to}
-                end={m.end}
-                data-testid={`nav-${m.key}`}
-                className={({ isActive }) =>
-                  `flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition-colors ${
-                    isActive ? "bg-teal-700 text-white" : "text-slate-600 hover:bg-slate-100"
-                  }`
-                }
-              >
-                <m.icon className="w-3.5 h-3.5" /> {t(m.key)}
-              </NavLink>
-            ))}
+            {parentItems.map((m) => {
+              const active = ptab === m.tab;
+              return (
+                <button
+                  key={m.key}
+                  data-testid={`nav-${m.key}`}
+                  onClick={() => nav(m.tab ? `/ortu?tab=${m.tab}` : "/ortu")}
+                  className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition-colors ${
+                    active ? "bg-teal-700 text-white" : "text-slate-600 hover:bg-slate-100"
+                  }`}
+                >
+                  <m.icon className="w-3.5 h-3.5" /> {t(m.key)}
+                </button>
+              );
+            })}
           </div>
         </nav>
       )}

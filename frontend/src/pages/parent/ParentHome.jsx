@@ -14,7 +14,8 @@ export default function ParentHome() {
   const [payAmount, setPayAmount] = useState("");
   const [paidReceipt, setPaidReceipt] = useState(null);
   const [searchParams, setSearchParams] = useSearchParams();
-  const tab = searchParams.get("tab") === "profile" ? "profile" : "main";
+  const tabParam = searchParams.get("tab");
+  const tab = tabParam === "profile" || tabParam === "spp" ? tabParam : "main";
   const setTab = (v) => setSearchParams(v === "main" ? {} : { tab: v });
   const [waPhone, setWaPhone] = useState("");
 
@@ -112,7 +113,7 @@ export default function ParentHome() {
         </div>
       )}
 
-      {tab === "main" && (<>
+      {tab === "spp" && (<>
       <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden" data-testid="spp-section">
         <p className="px-4 pt-4 font-bold text-slate-800">{t("spp_my_bills")}</p>
         <p className="px-4 text-[11px] text-slate-400">{t("spp_demo_note")}</p>
@@ -163,7 +164,9 @@ export default function ParentHome() {
           </div>
         )}
       </div>
+      </>)}
 
+      {tab === "main" && (<>
       <div>
         <form onSubmit={submitLeave} data-testid="parent-leave-form" className="bg-white rounded-2xl border border-slate-200 p-5">
           <p className="font-bold text-slate-800 mb-4 flex items-center gap-2"><CalendarClock className="w-4 h-4 text-teal-700" /> {t("leave_title")}</p>
@@ -193,6 +196,7 @@ export default function ParentHome() {
           </button>
         </form>
       </div>
+      </>)}
 
       {payFor && (
         <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4" data-testid="spp-pay-modal">
@@ -234,6 +238,7 @@ export default function ParentHome() {
         </div>
       )}
 
+      {tab === "main" && (<>
       <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
         <p className="px-4 pt-4 font-bold text-slate-800">{t("child_activity")}</p>
         <div className="overflow-x-auto mt-2">
