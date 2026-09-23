@@ -25,6 +25,8 @@ const id = {
   teachers: "Guru",
   students: "Siswa",
   all_people: "Semua",
+  all_months: "Semua Bulan",
+  all_years: "Semua Tahun",
   employees: "Karyawan",
   overtime: "Lembur",
   employee_portal: "Portal Karyawan",
@@ -487,6 +489,8 @@ const en = {
   teachers: "Teachers",
   students: "Students",
   all_people: "All",
+  all_months: "All Months",
+  all_years: "All Years",
   employees: "Employees",
   overtime: "Overtime",
   employee_portal: "Employee Portal",
@@ -925,8 +929,8 @@ i18n.use(initReactI18next).init({
 export default i18n;
 
 
-const MONTHS_ID = ["", "Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
-const MONTHS_EN = ["", "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+export const MONTHS_ID = ["", "Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+export const MONTHS_EN = ["", "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
 export function periodLabel(period, lang = "id") {
   const m = /^(\d{4})-(\d{2})$/.exec(period || "");

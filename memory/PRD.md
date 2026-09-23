@@ -540,4 +540,11 @@ Aplikasi absensi berbasis tablet kiosk + face recognition & liveness, geofence G
 - Frontend Leaves.jsx ditulis ulang: tombol "+ Tambah Izin/Cuti" (toggle form: pilih guru, tipe izin/sakit/cuti, dari–sampai, alasan), tombol Edit (modal) & Hapus di SETIAP baris (bukan hanya pending), approve/reject tetap untuk pending. i18n baru: add_leave, edit_leave (ID/EN).
 - **Fix akar masalah data sampah (isu berulang dari fork sebelumnya)**: TestLeaves di backend_test.py membuat leave "TEST leave" tanpa cleanup — kini ada test_zz_cleanup yang menghapus via DELETE endpoint baru. 50 record sampah di DB preview dibersihkan (sisa 1 record asli: Susiyanto sakit).
 - Terverifikasi: curl e2e (create→approved, patch, 400/404, delete, list konsisten), screenshot UI (form toggle, opsi guru, modal edit, tombol per baris, mobile 390 tanpa overflow).
+
+## 2026-09-23 — Filter Periode SPP diganti dropdown Bulan & Tahun
+- Keluhan user (screenshot): filter "Periode" di halaman SPP & Tagihan memakai `input type="month"` yang tampil kosong — diminta isi Bulan dan Tahun.
+- Spp.jsx: komponen baru `MonthYearPicker` (dropdown Bulan berbahasa ID/EN + dropdown Tahun, rentang tahun-3 s/d tahun+1; opsi "Semua Bulan"/"Semua Tahun" = tanpa filter) menggantikan input type="month" di tab Tagihan (flt-month) DAN tab Transaksi (pay-flt-month). i18n.js: MONTHS_ID/MONTHS_EN kini diekspor; key baru all_months/all_years.
+- Bug yang ditemukan saat verifikasi: memilih tahun lalu bulan me-reset picker (nilai parsial hilang karena onChange("") menimpa) → diperbaiki dengan state lokal `sel` di komponen.
+- Backend tidak berubah (filter month=YYYY-MM via regex due_date/paid_at terverifikasi benar: Agu 2026 → 0 baris, Sep 2026 → 4 baris).
+- Terverifikasi screenshot: pilih tahun tetap tersimpan, bulan+tahun memfilter benar, kosongkan bulan menonaktifkan filter, tab Transaksi default September 2026, mobile 390 tanpa overflow.
 - P2: Tablet React Native (kiosk native); laporan grafik SPP; kuitansi PDF cetak; impor data tagihan lama; Midtrans/Duitku

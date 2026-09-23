@@ -2,12 +2,36 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import api, { errMsg } from "../../api";
+import { MONTHS_ID, MONTHS_EN } from "../../i18n";
 import { Plus, Layers, Tags, Banknote, Trash2, FileDown, Wallet, AlertTriangle, TrendingUp, Receipt, X } from "lucide-react";
 
 const rp = (n) => `Rp ${Number(n || 0).toLocaleString("id-ID")}`;
 
+function MonthYearPicker({ testid, value, onChange, t, lang }) {
+  const names = String(lang).startsWith("en") ? MONTHS_EN : MONTHS_ID;
+  const [sel, setSel] = useState(value ? value.split("-") : ["", ""]);
+  const [y, m] = sel;
+  const now = new Date().getFullYear();
+  const years = [];
+  for (let yy = now - 3; yy <= now + 1; yy++) years.push(String(yy));
+  const set = (yy, mm) => { setSel([yy, mm]); onChange(yy && mm ? `${yy}-${mm}` : ""); };
+  const cls = "mt-1 block rounded-xl border border-slate-200 px-3 py-2 text-sm bg-white outline-none focus:border-teal-600";
+  return (
+    <div className="flex gap-2">
+      <select data-testid={`${testid}-month`} value={m} onChange={(e) => set(y, e.target.value)} className={cls}>
+        <option value="">{t("all_months")}</option>
+        {names.slice(1).map((n, i) => <option key={n} value={String(i + 1).padStart(2, "0")}>{n}</option>)}
+      </select>
+      <select data-testid={`${testid}-year`} value={y} onChange={(e) => set(e.target.value, m)} className={cls}>
+        <option value="">{t("all_years")}</option>
+        {years.map((yy) => <option key={yy} value={yy}>{yy}</option>)}
+      </select>
+    </div>
+  );
+}
+
 export default function Spp() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [tab, setTab] = useState("bills");
   const [stats, setStats] = useState(null);
   const [bills, setBills] = useState([]);
@@ -157,8 +181,7 @@ export default function Spp() {
           <div className="bg-white rounded-2xl border border-slate-200 p-4 flex flex-wrap items-end gap-3">
             <div>
               <label className="text-xs font-semibold text-slate-500">{t("period_filter")}</label>
-              <input data-testid="flt-month" type="month" value={flt.month} onChange={(e) => setFlt({ ...flt, month: e.target.value })}
-                className="mt-1 block rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-teal-600" />
+              <MonthYearPicker testid="flt-month" value={flt.month} onChange={(v) => setFlt({ ...flt, month: v })} t={t} lang={i18n.language} />
             </div>
             <div>
               <label className="text-xs font-semibold text-slate-500">{t("class")}</label>
@@ -236,8 +259,7 @@ export default function Spp() {
           <div className="bg-white rounded-2xl border border-slate-200 p-4 flex flex-wrap items-end gap-3">
             <div>
               <label className="text-xs font-semibold text-slate-500">{t("period_filter")}</label>
-              <input data-testid="pay-flt-month" type="month" value={payMonth} onChange={(e) => setPayMonth(e.target.value)}
-                className="mt-1 block rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-teal-600" />
+              <MonthYearPicker testid="pay-flt-month" value={payMonth} onChange={setPayMonth} t={t} lang={i18n.language} />
             </div>
             <button data-testid="pay-export" onClick={exportXlsx}
               className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-teal-700 bg-teal-50 hover:bg-teal-100">
