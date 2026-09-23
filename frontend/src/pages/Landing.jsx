@@ -12,7 +12,7 @@ const FEATURES = [
   { icon: ScanFace, badge: "Keamanan AI", title: "Face Recognition ArcFace + Liveness", desc: "AI mengenali wajah siswa & guru dalam hitungan detik, dan menolak kecurangan memakai foto/video HP.", wide: true },
   { icon: MapPin, badge: "Akurasi Lokasi", title: "GPS Geofence", desc: "Absensi hanya sah di dalam radius area sekolah yang ditentukan admin." },
   { icon: WifiOff, badge: "Anti Gangguan", title: "Offline-First Sync", desc: "Internet sekolah down? Absensi tetap jalan dan tersinkron otomatis saat online kembali." },
-  { icon: Tablet, badge: "Hemat Biaya", title: "Kiosk Web di HP/Tablet", desc: "Ubah tablet atau HP bekas menjadi mesin absensi canggih — tanpa beli hardware mahal.", wide: true },
+  { icon: Tablet, badge: "Hemat Biaya", title: "Kiosk Web di HP/Tablet", desc: "Ubah tablet atau HP bekas menjadi mesin absensi canggih — tanpa beli hardware mahal." },
   { icon: Receipt, badge: "Per-Siswa", title: "Billing Otomatis", desc: "Tagihan dihitung transparan dari jumlah siswa aktif setiap bulan." },
   { icon: Wallet, badge: "SPP Online", title: "Pembayaran Uang Sekolah", desc: "Tagihan SPP & cicilan dengan portal orang tua, kuitansi PDF otomatis, dan pengingat WhatsApp.", wide: true },
   { icon: QrCode, badge: "Multi Payment Gateway", title: "QRIS, VA & E-Wallet", desc: "Terima pembayaran dari semua channel: QRIS, Virtual Account bank, e-wallet, sampai gerai retail — satu integrasi." },
@@ -122,7 +122,7 @@ export default function Landing() {
 
         {/* Kiosk mockup */}
         <div className="relative mx-auto w-full max-w-sm">
-          <div className="absolute -inset-6 bg-gradient-to-br from-teal-100/70 to-emerald-50 rounded-[3rem] -z-10" />
+          <div className="absolute -inset-4 sm:-inset-6 bg-gradient-to-br from-teal-100/70 to-emerald-50 rounded-[3rem] -z-10" />
           <div className="bg-slate-900 rounded-[2rem] p-6 shadow-2xl">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
@@ -209,7 +209,7 @@ export default function Landing() {
             </ul>
           </div>
           <div className="relative mx-auto w-full max-w-sm">
-            <div className="absolute -inset-6 bg-gradient-to-br from-teal-100/70 to-emerald-50 rounded-[3rem] -z-10" />
+            <div className="absolute -inset-4 sm:-inset-6 bg-gradient-to-br from-teal-100/70 to-emerald-50 rounded-[3rem] -z-10" />
             <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-2xl">
               <div className="flex items-center gap-2.5 pb-4 border-b border-slate-100">
                 <img src="/logo.png" alt="" className="w-8 h-8 object-contain" />

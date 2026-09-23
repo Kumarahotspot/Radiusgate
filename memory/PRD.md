@@ -623,4 +623,9 @@ Aplikasi absensi berbasis tablet kiosk + face recognition & liveness, geofence G
 - Permintaan user: landing page sebelumnya hanya membahas absensi → tambahkan pembayaran uang sekolah dengan multi payment gateway.
 - Landing.jsx (hardcode ID, bukan i18n): (1) subtitle hero menyebut pembayaran SPP online (QRIS/VA/e-wallet); (2) 2 kartu fitur baru — "Pembayaran Uang Sekolah" (SPP Online, wide) & "QRIS, VA & E-Wallet" (badge Multi Payment Gateway); (3) nav baru "Pembayaran" (#pembayaran); (4) seksi baru #pembayaran: copy fitur (tagihan massal, cicilan, kuitansi PDF, pengingat WA/email, rekap tunggakan) + mock kuitansi LUNAS dengan panel "Scan untuk bayar" + badge channel (QRIS, BCA, BNI, BRI, Mandiri, OVO, DANA, GoPay, ShopeePay, Alfamart); (5) checklist harga ditambah "Pembayaran SPP online".
 - Terverifikasi screenshot: seksi pembayaran tampil & anchor nav bekerja, kartu fitur baru render, mobile 390 tanpa overflow.
+
+## 2026-09-23 — Fix lubang kosong di grid Fitur landing
+- Keluhan user (screenshot): grid fitur punya sel kosong (3 kartu wide=col-span-2 → 13 sel terpakai dari 16 di lg 4-kolom).
+- Fix: kartu "Kiosk Web di HP/Tablet" tidak lagi wide → total 12 sel = 3 baris penuh (lg: Face2+GPS+Offline / Kiosk+Billing+SPP2 / QRIS+Invoice+Dwibahasa+Umpan; md 2-kolom juga pas tanpa lubang).
+- Fix lanjutan (ditemukan saat verifikasi): blob dekoratif `absolute -inset-6` di mockup hero & mockup seksi pembayaran menyebabkan overflow horizontal 8px di mobile 390px → diubah ke `-inset-4 sm:-inset-6`. Terverifikasi screenshot: grid 3 baris penuh tanpa lubang, mobile scrollWidth 390 = clientWidth 390.
 - P2: Tablet React Native (kiosk native); laporan grafik SPP; kuitansi PDF cetak; impor data tagihan lama; Midtrans/Duitku
