@@ -780,3 +780,8 @@ Aplikasi absensi berbasis tablet kiosk + face recognition & liveness, geofence G
 - **Admin reset**: TeacherPatch + field `password` (opsional); PATCH /admin/teachers/{id} memisahkan password dari $set dokumen guru, validasi min 6 (422 password_too_short), update `password_hash` akun login guru, 404 bila guru tak ada. Teachers.jsx: field "Password Baru (opsional)" (`edit-teacher-password`) di modal Ubah Guru; hanya dikirim jika diisi.
 - **Guru ganti sendiri**: TeacherHome.jsx punya kartu "Ganti Password" (`teacher-pw-form`) memakai endpoint POST /auth/change-password yang sudah ada. i18n baru: new_password_opt (ID/EN).
 - Terverifikasi: curl e2e (reset → login lama 401/baru 200, pendek 422, dikembalikan ke Guru123!) + screenshot UI (field modal admin tampil, form portal guru tampil, ganti sendiri maju-mundur 2x sukses dengan toast), tanpa overflow mobile 390.
+
+## 2026-09-23 — Bug: login ortu gagal karena password awal tidak sinkron dengan NIS
+- Laporan user: ortu siswa Danil (628888222888) tidak bisa login ("Email atau password salah"). Akun ortu ADA & tertaut benar, tetapi hash password tidak cocok dengan NIS saat ini (12345678) maupun fallback 6 digit HP — kemungkinan NIS diubah setelah akun ortu otomatis dibuat (password awal = NIS saat itu), sehingga kredensial terdokumentasi tidak berlaku.
+- Perbaikan langsung: password akun ortu Danil di-reset ke NIS saat ini (12345678) via DB; login terverifikasi 200.
+- Akar masalah struktural (belum di-fix): perubahan NIS siswa tidak menyinkronkan password akun ortu. Rekomendasi: tombol "Reset Password Ortu" di halaman Siswa (reset ke NIS kapan saja, tanpa tergantung Wablas).
