@@ -802,3 +802,13 @@ Aplikasi absensi berbasis tablet kiosk + face recognition & liveness, geofence G
 - Teachers.jsx CheckGroup: input pencarian (`<testid>-search`) muncul otomatis bila opsi > 6; menyaring checkbox secara live (case-insensitive); chip terpilih & empty state menyesuaikan hasil filter. CheckGroup kini pakai useTranslation sendiri. i18n baru: search_options (ID/EN).
 - Terverifikasi: ketik "boga" → 22 opsi tersaring jadi 1 ("Boga Dasa"), chip "Agama" tetap ada, berlaku juga di Kelas yang Diampu.
 - Info kredensial ke user: admin demo admin@nusantara.sch.id / Admin123!; jalur lupa password = link "Lupa Password?" di login, atau reset dari Portal Owner → Ubah Sekolah.
+
+## 2026-09-24 — Alur absensi baru: Masuk wajib → per Mapel (final) → Pulang terkunci
+Keputusan user via ask_human: auto-Alpa; prefill mapel dari kiosk; absen pulang hanya setelah jam pelajaran terakhir (berbeda per hari); HSIA final = penandaan guru mapel.
+1. **Jam pulang siswa per hari**: settings `student_dismissal` = {"0".."6": "HH:MM"} (0=Sen). SettingsIn + UI 7 input waktu di Pengaturan → Jam Kerja (`dismissal-<dow>`). i18n: student_dismissal(+hint), dow_mon..dow_sun.
+2. **Guard absen pulang** (routes_kiosk `_record`): out + student + bukan manual → bila sekarang < jam pulang hari itu → 422 `not_dismissal_time:HH:MM` (i18n kiosk_not_dismissal_time; CODE_KEYS di api.js).
+3. **Auto-Alpa** (routes_cron + crons.yml entri ke-5): `POST /cron/auto-alpa`, jadwal "0 10 * * 1-6" UTC (17:00 WIB Sen-Sab). Per sekolah per zona waktu: siswa aktif tanpa in-record hari ini → record manual att_status "alpa" (aman dari duplikat: kiosk sudah menolak in-scan lewat jam pulang). Skip Minggu.
+4. **Prefill absen mapel** (routes_teacher `subject_att_get`): field `prefill` per siswa dari rekaman harian (present→hadir, sakit/izin tetap, alpa/tanpa record→alpha); TeacherSubjectAtt.jsx memakai prefill bila belum ada simpanan.
+5. **HSIA final** (`subject_att_save`): setiap simpan menimpa `att_status` rekaman harian siswa (hadir→present, alpha→alpa, dst); bila belum ada in-record, dibuat manual ber-note "Absen mapel <mapel>". Last writer wins sesuai keputusan user.
+6. Portal ortu: badge & rekap kini mengenal "alpa" (chip ke-5, sumStatus/sumBadge/sumLabel).
+Terverifikasi: prefill alpha✓; HSIA izin→hadir menimpa status harian✓; guard 01:30→422 not_dismissal_time:15:30, setelah 00:30→lolos gate✓; cron manual marked_alpa=429 lalu dibersihkan (auth via dotenv — jangan ekstrak secret pakai grep/cut, nilai mengandung karakter khusus)✓; UI settings 7 input tanpa overflow✓; UI guru prefill tampil (5 hadir/1 izin/2 alpha dari 8 siswa)✓.

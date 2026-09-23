@@ -33,7 +33,7 @@ export default function TeacherSubjectAtt() {
     api.get("/teacher/subject-att", { params: { date, subject, class_name: cls } }).then((r) => {
       setStudents(r.data.students);
       const m = {};
-      r.data.students.forEach((s) => { m[s.id] = r.data.records[s.id] || "hadir"; });
+      r.data.students.forEach((s) => { m[s.id] = r.data.records[s.id] || (r.data.prefill || {})[s.id] || "hadir"; });
       setMarks(m);
       setSaved(r.data.saved);
     }).catch((err) => { setStudents([]); toast.error(errMsg(err)); });

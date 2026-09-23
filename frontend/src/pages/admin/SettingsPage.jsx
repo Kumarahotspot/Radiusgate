@@ -299,6 +299,20 @@ export default function SettingsPage() {
             </select>
           </div>
         </div>
+        <div className="mt-4 max-w-3xl">
+          <label className="text-xs font-semibold text-slate-500">{t("student_dismissal")}</label>
+          <p className="text-[11px] text-slate-400 mb-2">{t("student_dismissal_hint")}</p>
+          <div className="grid grid-cols-2 sm:grid-cols-7 gap-2">
+            {["mon", "tue", "wed", "thu", "fri", "sat", "sun"].map((d, i) => (
+              <div key={d}>
+                <label className="text-[11px] font-bold text-slate-400">{t(`dow_${d}`)}</label>
+                <input data-testid={`dismissal-${d}`} type="time" value={(settings.student_dismissal || {})[String(i)] || ""}
+                  onChange={(e) => setSettings({ ...settings, student_dismissal: { ...(settings.student_dismissal || {}), [String(i)]: e.target.value } })}
+                  className="mt-0.5 w-full rounded-xl border border-slate-200 px-2 py-2 text-sm outline-none focus:border-teal-600" />
+              </div>
+            ))}
+          </div>
+        </div>
         <label className="mt-4 flex items-center gap-2 text-sm text-slate-700 max-w-3xl">
           <input data-testid="require-checkin-toggle" type="checkbox" checked={settings.require_checkin !== false}
             onChange={(e) => setSettings({ ...settings, require_checkin: e.target.checked })}

@@ -11,6 +11,7 @@ from fastapi import APIRouter, HTTPException, Request
 from db import db
 from emailer import invoice_email_html, send_email
 from notif import send_email_unified, send_whatsapp
+from routes_kiosk import _record
 from routes_owner import generate_for_period
 
 router = APIRouter(tags=["cron"])
@@ -270,4 +271,56 @@ async def cron_spp_reminders(request: Request):
     if dup:
         return {"ok": True, "duplicate": True}
     asyncio.create_task(_run_spp_reminders(run_id))
+    return {"ok": True}
+
+
+async def _run_auto_alpa(run_id: str):
+    """Tandai Alpa siswa tanpa absen masuk hari ini (per zona waktu sekolah). Dijalankan
+    sore hari — kiosk sudah menolak absen masuk lewat jam pulang, jadi aman dari duplikat."""
+    try:
+        marked = 0
+        for school in await db.schools.find({}, {"_id": 0, "id": 1}).to_list(1000):
+            sid = school["id"]
+            st = await db.settings.find_one({"school_id": sid}, {"_id": 0, "timezone": 1}) or {}
+            try:
+                tz = ZoneInfo(st.get("timezone", "Asia/Jakarta"))
+            except Exception:
+                tz = ZoneInfo("Asia/Jakarta")
+            now_local = datetime.now(timezone.utc).astimezone(tz)
+            if now_local.weekday() == 6:  # Minggu
+                continue
+            today = now_local.date().isoformat()
+            students = await db.students.find(
+                {"school_id": sid, "status": {"$ne": "lulus"}},
+                {"_id": 0, "id": 1, "name": 1, "class": 1}).to_list(5000)
+            if not students:
+                continue
+            have = {r["student_id"] for r in await db.attendance.find(
+                {"school_id": sid, "person_type": "student", "date": today, "type": "in"},
+                {"_id": 0, "student_id": 1}).to_list(10000)}
+            for s in students:
+                if s["id"] in have:
+                    continue
+                try:
+                    await _record({"id": sid}, s["id"], s["name"], "in", f"{today}T00:00:00",
+                                  0, 0, "", uuid.uuid4().hex, offline=False, manual=True,
+                                  extra={"person_type": "student", "class": s.get("class", ""),
+                                         "att_status": "alpa", "note": "Otomatis: tidak absen masuk",
+                                         "recorded_by_name": "Sistem"})
+                    marked += 1
+                except HTTPException:
+                    pass
+        await _finish_run(run_id, {"marked_alpa": marked})
+    except Exception as e:
+        await _finish_run(run_id, error=str(e))
+
+
+@router.post("/cron/auto-alpa")
+async def cron_auto_alpa(request: Request):
+    # Cron endpoints must ack 2xx immediately; enqueue/background the actual work.
+    _authorize(request)
+    run_id, dup = await _accept_run(request, "auto-alpa")
+    if dup:
+        return {"ok": True, "duplicate": True}
+    asyncio.create_task(_run_auto_alpa(run_id))
     return {"ok": True}

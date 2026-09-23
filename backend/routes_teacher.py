@@ -206,8 +206,14 @@ async def subject_att_get(date: str, subject: str, class_name: str, user: dict =
     recs = await db.subject_attendance.find(
         {"school_id": user["school_id"], "teacher_id": t["id"], "date": date,
          "subject": subject, "class_name": class_name}, {"_id": 0}).to_list(500)
+    daily = await db.attendance.find(
+        {"school_id": user["school_id"], "person_type": "student", "date": date, "type": "in"},
+        {"_id": 0, "student_id": 1, "att_status": 1}).to_list(10000)
+    dmap = {r["student_id"]: r.get("att_status", "present") for r in daily}
+    to_subject = {"present": "hadir", "sakit": "sakit", "izin": "izin", "alpa": "alpha"}
+    prefill = {s["id"]: to_subject.get(dmap.get(s["id"], "alpa"), "hadir") for s in students}
     return {"students": students, "records": {r["student_id"]: r["status"] for r in recs},
-            "saved": bool(recs)}
+            "prefill": prefill, "saved": bool(recs)}
 
 
 class SubjectAttIn(BaseModel):
@@ -243,4 +249,19 @@ async def subject_att_save(body: SubjectAttIn, user: dict = Depends(teacher_dep)
              "$setOnInsert": {"id": str(uuid.uuid4()), "created_at": now}},
             upsert=True)
         saved += 1
+        # HSIA final: status harian siswa mengikuti penandaan guru mapel terakhir
+        daily_status = {"hadir": "present", "sakit": "sakit", "izin": "izin", "alpha": "alpa"}[status]
+        existing = await db.attendance.find_one(
+            {"school_id": user["school_id"], "student_id": st["id"], "date": body.date, "type": "in"})
+        if existing:
+            await db.attendance.update_one({"id": existing["id"]}, {"$set": {"att_status": daily_status}})
+        else:
+            try:
+                await _record({"id": user["school_id"]}, st["id"], st["name"], "in", f"{body.date}T07:00:00",
+                              0, 0, "", uuid.uuid4().hex, offline=False, manual=True,
+                              extra={"person_type": "student", "class": body.class_name, "att_status": daily_status,
+                                     "note": f"Absen mapel {body.subject}",
+                                     "recorded_by": t["id"], "recorded_by_name": t["name"]})
+            except HTTPException:
+                pass
     return {"ok": True, "saved": saved}

@@ -20,6 +20,7 @@ const CODE_KEYS = {
   password_too_short: "password_too_short",
   wrong_current_password: "wrong_current_password",
   overpayment: "overpayment",
+  not_dismissal_time: "kiosk_not_dismissal_time",
 };
 
 export const errMsg = (e, fallback = "Terjadi kesalahan") => {

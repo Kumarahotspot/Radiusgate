@@ -103,12 +103,12 @@ export default function ParentHome() {
   const days = Object.entries(byDate).sort((a, b) => b[0].localeCompare(a[0])).slice(0, 60);
   const sumStatus = (d) => {
     const st = d.in?.att_status;
-    if (st === "sakit" || st === "izin") return st;
+    if (st === "sakit" || st === "izin" || st === "alpa") return st;
     if (!d.in) return null;
     return d.in.status === "late" ? "late" : "ok";
   };
-  const sumBadge = { ok: "bg-emerald-100 text-emerald-700", late: "bg-amber-100 text-amber-700", sakit: "bg-red-100 text-red-600", izin: "bg-sky-100 text-sky-700" };
-  const sumLabel = { ok: t("present"), late: t("late_short"), sakit: t("att_sakit"), izin: t("att_izin") };
+  const sumBadge = { ok: "bg-emerald-100 text-emerald-700", late: "bg-amber-100 text-amber-700", sakit: "bg-red-100 text-red-600", izin: "bg-sky-100 text-sky-700", alpa: "bg-slate-200 text-slate-600" };
+  const sumLabel = { ok: t("present"), late: t("late_short"), sakit: t("att_sakit"), izin: t("att_izin"), alpa: t("att_alpha") };
   const unpaidBills = spp.bills.filter((b) => b.status !== "paid");
   const totalUnpaid = unpaidBills.reduce((s, b) => s + (b.remaining ?? 0), 0);
   const nearestDue = unpaidBills.map((b) => b.due_date).filter(Boolean).sort()[0];
@@ -120,7 +120,7 @@ export default function ParentHome() {
     const [y, m] = recapMonth.split("-").map(Number);
     setRecapMonth(new Date(Date.UTC(y, m - 1 + delta, 1)).toISOString().slice(0, 7));
   };
-  const recap = { ok: 0, late: 0, sakit: 0, izin: 0 };
+  const recap = { ok: 0, late: 0, sakit: 0, izin: 0, alpa: 0 };
   days.forEach(([date, d]) => {
     if (!date.startsWith(recapMonth)) return;
     const s = sumStatus(d);
@@ -324,8 +324,8 @@ export default function ParentHome() {
               className="w-7 h-7 rounded-lg text-slate-500 hover:bg-slate-200 hover:text-teal-700 font-bold transition-colors disabled:opacity-30 disabled:hover:bg-transparent">›</button>
           </div>
         </div>
-        <div data-testid="att-recap" className="grid grid-cols-4 gap-2">
-          {[["ok", "present", "text-emerald-600"], ["late", "late_short", "text-amber-600"], ["sakit", "att_sakit", "text-red-600"], ["izin", "att_izin", "text-sky-600"]].map(([k, label, color]) => (
+        <div data-testid="att-recap" className="grid grid-cols-5 gap-2">
+          {[["ok", "present", "text-emerald-600"], ["late", "late_short", "text-amber-600"], ["sakit", "att_sakit", "text-red-600"], ["izin", "att_izin", "text-sky-600"], ["alpa", "att_alpha", "text-slate-500"]].map(([k, label, color]) => (
             <div key={k} data-testid={`recap-${k}`} className="bg-white rounded-2xl border border-slate-200 p-3 text-center">
               <p className={`text-xl font-extrabold ${color}`}>{recap[k]}</p>
               <p className="text-[11px] font-semibold text-slate-500">{t(label)}</p>

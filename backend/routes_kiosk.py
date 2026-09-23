@@ -143,6 +143,18 @@ async def _record(school, teacher_id, teacher_name, att_type, ts_device, lat, ln
                 pass
         if not in_rec:
             raise HTTPException(status_code=422, detail="no_checkin")
+    if att_type == "out" and ptype == "student" and not manual and settings:
+        dism = (settings.get("student_dismissal") or {}).get(
+            str(datetime.strptime(date, "%Y-%m-%d").weekday()), "")
+        if dism:
+            try:
+                dh, dm = map(int, dism.split(":"))
+                if minutes < dh * 60 + dm:
+                    raise HTTPException(status_code=422, detail=f"not_dismissal_time:{dism}")
+            except HTTPException:
+                raise
+            except Exception:
+                pass
     if manual:
         status = "ok"
     else:

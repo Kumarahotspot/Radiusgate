@@ -27,3 +27,10 @@ crons:
     method: POST
     # Cron endpoints must ack 2xx immediately; enqueue/background the actual work.
     enabled: true
+  - name: auto-alpa
+    description: "Tandai Alpa otomatis untuk siswa tanpa absen masuk, Sen-Sab 17:00 WIB (per zona waktu sekolah)"
+    cron: "0 10 * * 1-6"
+    endpoint: "{{BASE_URL}}/api/cron/auto-alpa"
+    method: POST
+    # Cron endpoints must ack 2xx immediately; enqueue/background the actual work.
+    enabled: true

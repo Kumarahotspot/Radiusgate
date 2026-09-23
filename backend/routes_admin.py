@@ -349,6 +349,7 @@ class SettingsIn(BaseModel):
     saver_photos: list[str] | None = None
     saver_enabled: bool | None = None
     saver_photos_enabled: bool | None = None
+    student_dismissal: dict | None = None
 
 
 @router.get("/admin/settings")
