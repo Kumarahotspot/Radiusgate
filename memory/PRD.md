@@ -719,3 +719,7 @@ Aplikasi absensi berbasis tablet kiosk + face recognition & liveness, geofence G
 ## 2026-09-23 — Animasi stagger kartu mock absensi landing
 - Landing.jsx: baris siswa & chip ringkasan di kartu mock absensi kini muncul berurutan (fade + translateY, delay 120ms/baris, chip mulai 600ms) saat section masuk viewport — via IntersectionObserver (threshold 0.3, sekali jalan) + keyframes CSS `attRowIn` di tag `<style>`; menghormati prefers-reduced-motion.
 - Terverifikasi: opacity 0 sebelum scroll → semua 9 elemen opacity 1 setelah scroll dengan delay bertingkat (0/120/240ms), tanpa overflow mobile 390.
+
+## 2026-09-23 — Animasi stagger di seluruh section landing
+- Landing.jsx: hook `useInView()` (IntersectionObserver, threshold 0.25, sekali jalan) diekstrak ke module level dan dipakai 3 section — kartu mock absensi (120ms/baris), grid Fitur bento (90ms/kartu, 10 kartu), langkah Cara Kerja (140ms/kartu). Semua memakai keyframes `attRowIn` yang sama; prefers-reduced-motion tetap dihormati.
+- Terverifikasi: fitur & cara-kerja opacity 0 sebelum scroll → semua kartu opacity 1 setelah scroll (delays 0/90/180ms & 0/140/280ms terukur), tanpa overflow mobile 390.

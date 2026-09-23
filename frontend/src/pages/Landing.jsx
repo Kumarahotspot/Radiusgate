@@ -33,6 +33,21 @@ const SLIDES = [
   { src: "/slides/dashboard.jpg", title: "Admin memantau laporan real-time", sub: "Rekap harian, keterlambatan & SPP satu dasbor" },
 ];
 
+function useInView() {
+  const ref = useRef(null);
+  const [inView, setInView] = useState(false);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const io = new IntersectionObserver(([e]) => {
+      if (e.isIntersecting) { setInView(true); io.disconnect(); }
+    }, { threshold: 0.25 });
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+  return [ref, inView];
+}
+
 const rupiah = (n) => "Rp " + n.toLocaleString("id-ID");
 
 export default function Landing() {
@@ -47,17 +62,9 @@ export default function Landing() {
     return () => clearInterval(t);
   }, []);
 
-  const attRef = useRef(null);
-  const [attIn, setAttIn] = useState(false);
-  useEffect(() => {
-    const el = attRef.current;
-    if (!el) return;
-    const io = new IntersectionObserver(([e]) => {
-      if (e.isIntersecting) { setAttIn(true); io.disconnect(); }
-    }, { threshold: 0.3 });
-    io.observe(el);
-    return () => io.disconnect();
-  }, []);
+  const [attRef, attIn] = useInView();
+  const [featRef, featIn] = useInView();
+  const [stepRef, stepIn] = useInView();
 
   const submit = async (e) => {
     e.preventDefault();
@@ -190,10 +197,10 @@ export default function Landing() {
         <div className="max-w-6xl mx-auto px-4 py-20">
           <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-center">Fitur Lengkap untuk Sekolah Indonesia</h2>
           <p className="text-slate-500 text-sm sm:text-base text-center mt-3 max-w-2xl mx-auto">Satu platform untuk presensi wajah, geofence GPS, laporan, sampai penagihan otomatis.</p>
-          <div className="mt-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {FEATURES.map((f) => (
-              <div key={f.title} data-testid={`feature-${f.title.slice(0, 12).replace(/\W+/g, "-").toLowerCase()}`}
-                className={`${f.wide ? "lg:col-span-2" : ""} group bg-slate-50 hover:bg-teal-50/60 border border-slate-100 hover:border-teal-200 rounded-2xl p-6 transition-colors`}>
+          <div ref={featRef} className="mt-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {FEATURES.map((f, i) => (
+              <div key={f.title} data-testid={`feature-${f.title.slice(0, 12).replace(/\W+/g, "-").toLowerCase()}`} style={{ animationDelay: `${i * 90}ms` }}
+                className={`att-anim ${featIn ? "att-in" : ""} ${f.wide ? "lg:col-span-2" : ""} group bg-slate-50 hover:bg-teal-50/60 border border-slate-100 hover:border-teal-200 rounded-2xl p-6 transition-colors`}>
                 <div className="flex items-center justify-between">
                   <span className="w-10 h-10 rounded-xl bg-teal-700/10 text-teal-700 flex items-center justify-center group-hover:bg-teal-700 group-hover:text-white transition-colors">
                     <f.icon className="w-5 h-5" />
@@ -211,9 +218,9 @@ export default function Landing() {
       {/* Cara kerja */}
       <section id="cara-kerja" className="max-w-6xl mx-auto px-4 py-20">
         <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-center">3 Langkah Menerapkan RadiusGate</h2>
-        <div className="mt-12 grid md:grid-cols-3 gap-6">
-          {STEPS.map((s) => (
-            <div key={s.n} className="relative bg-white border border-slate-200 rounded-2xl p-6">
+        <div ref={stepRef} className="mt-12 grid md:grid-cols-3 gap-6">
+          {STEPS.map((s, i) => (
+            <div key={s.n} style={{ animationDelay: `${i * 140}ms` }} className={`att-anim ${stepIn ? "att-in" : ""} relative bg-white border border-slate-200 rounded-2xl p-6`}>
               <span className="text-4xl font-extrabold text-teal-100 absolute top-4 right-5">{s.n}</span>
               <span className="w-11 h-11 rounded-2xl bg-teal-700 text-white flex items-center justify-center"><s.icon className="w-5 h-5" /></span>
               <h3 className="mt-4 text-lg font-bold text-slate-800">{s.title}</h3>
