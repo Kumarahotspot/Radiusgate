@@ -312,3 +312,7 @@
 
 ## 2026-09-25 — ZIP final dibangun ulang dari nol (jaminan tidak ada yang tertinggal)
 - Permintaan user: "zip file terbaru jangan sampe ada yg ketunggak sy mau upload". Build dibersihkan total (rm build + zip lama) lalu di-build ulang penuh. Terverifikasi dalam ZIP: PWA (manifest-kiosk.json, sw-kiosk.js, icon-192/512), .htaccess, BACA-SAYA.txt, dan bundle berisi semua fitur terbaru: mode Registrasi Kartu (reg-tap-panel), absen RFID (attend-card), tombol Kartu QR PDF (qr-pdf-btn), landing grid baru ("Sekolah Menentukan Metodenya Sendiri"). Endpoint download 200. Ukuran 3.2MB.
+
+## 2026-09-25 — Presentasi produk RadiusGate (PPTX) untuk penawaran ke sekolah
+- Permintaan user: "buatkan presentasi produk ini, buat saya tawarkan ke sekolah2". File `presentasi-radiusgate.pptx` (7 slide, 16:9, tema teal/dark brand): cover, masalah absensi manual, solusi kiosk web + 4 peran, 4 metode absensi (wajah/RFID/QR/NIS) dengan penegasan sekolah bebas memilih, semua modul (SPP, portal ortu, WA, lembur/penggajian, dll), cara kerja 3 langkah, dan penawaran program pilot + CTA demo gratis.
+- Endpoint download publik: GET /api/public/download/presentasi. Skrip generator disimpan di /app/memory/make_presentasi.py.

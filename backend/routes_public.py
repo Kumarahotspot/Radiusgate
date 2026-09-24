@@ -66,3 +66,10 @@ async def create_lead(body: LeadIn):
 async def download_landing_page():
     return FileResponse("/app/frontend/landing-radiusgate.zip", media_type="application/zip",
                         filename="landing-radiusgate.zip")
+
+
+@router.get("/public/download/presentasi")
+async def download_presentasi():
+    return FileResponse("/app/frontend/presentasi-radiusgate.pptx",
+                        media_type="application/vnd.openxmlformats-officedocument.presentationml.presentation",
+                        filename="presentasi-radiusgate.pptx")
