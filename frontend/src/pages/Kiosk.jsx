@@ -41,6 +41,17 @@ export default function Kiosk() {
     document.addEventListener("fullscreenchange", onFs);
     return () => document.removeEventListener("fullscreenchange", onFs);
   }, []);
+  useEffect(() => {
+    if (!info) return;
+    const tryFs = () => {
+      if (document.fullscreenElement) return;
+      document.documentElement.requestFullscreen?.()
+        .then(() => document.removeEventListener("pointerdown", tryFs))
+        .catch(() => {});
+    };
+    document.addEventListener("pointerdown", tryFs);
+    return () => document.removeEventListener("pointerdown", tryFs);
+  }, [info]);
   const videoRef = useRef(null);
   const streamRef = useRef(null);
   const busyRef = useRef(false);

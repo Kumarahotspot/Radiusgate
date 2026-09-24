@@ -162,3 +162,6 @@
 ## 2026-09-24 — Mode Kios full page + tombol fullscreen
 - Permintaan user: tampilan Mode Kios dibuat full page. Kiosk.jsx: kamera, tombol absen, dan panel NIS melebar responsif (`max-w-md` → `md:max-w-xl lg:max-w-2xl`), teks fase & tombol membesar di layar md+; tombol **fullscreen** baru di header (`kiosk-fullscreen-btn`, Maximize2/Minimize2) memakai Fullscreen API agar UI browser tersembunyi saat kiosk dipajang di tablet. i18n baru: kiosk_fullscreen / kiosk_exit_fullscreen (ID/EN).
 - Terverifikasi screenshot: desktop 1920 — kamera & tombol melebar (672px), tombol fullscreen tampil & klik tanpa error; mobile 390 — layout tetap pas, tanpa overflow. ZIP di-build ulang.
+
+## 2026-09-24 — Kiosk auto-fullscreen saat dibuka
+- Persetujuan user atas saran: halaman /kiosk (setelah pairing) otomatis masuk mode layar penuh pada interaksi pertama (pointerdown listener; browser mewajibkan gestur user). Retry setiap tap sampai berhasil; berhenti setelah fullscreen aktif. Tombol ⛶ manual tetap ada.
