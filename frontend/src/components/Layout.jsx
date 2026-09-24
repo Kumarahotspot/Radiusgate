@@ -75,6 +75,12 @@ export default function Layout() {
       <header ref={navRef} className="sticky top-0 z-30 bg-white border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-4 h-14 flex items-center justify-between gap-3">
           <div className="flex items-center gap-2 min-w-0">
+            {user.role !== "parent" && items.length > 0 && (
+              <button data-testid="nav-hamburger" aria-label={t("nav_menu")} onClick={() => setNavOpen(!navOpen)}
+                className="md:hidden flex items-center justify-center p-2 -ml-2 rounded-lg text-slate-600 hover:bg-slate-100 transition-colors shrink-0">
+                {navOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+              </button>
+            )}
             <img src="/logo.png" alt="RadiusGate" className="w-11 h-11 object-contain shrink-0" />
             <div className="min-w-0">
               <p className="font-bold text-slate-800 text-sm leading-tight truncate">{t("app_name")}</p>
@@ -82,12 +88,6 @@ export default function Layout() {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            {user.role !== "parent" && items.length > 0 && (
-              <button data-testid="nav-hamburger" aria-label={t("nav_menu")} onClick={() => setNavOpen(!navOpen)}
-                className="md:hidden flex items-center justify-center p-2 rounded-lg text-slate-600 hover:bg-slate-100 transition-colors">
-                {navOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-              </button>
-            )}
             <LangSwitch />
             <button
               data-testid="kiosk-link-btn"

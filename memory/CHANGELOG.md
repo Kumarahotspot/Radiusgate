@@ -67,3 +67,4 @@
 - Layout.jsx: nav atas kini `hidden md:flex` (hanya desktop); di mobile muncul tombol ☰/✕ (`nav-hamburger`) di kanan atas membuka dropdown vertikal (`mobile-nav`, item `mnav-<key>`) berisi semua menu role tsb; tertutup otomatis saat klik item / klik di luar (ref di header). Berlaku untuk role owner, school_admin, teacher, employee (parent tetap bottom nav). i18n baru: nav_menu (ID/EN).
 - Terverifikasi screenshot: mobile 390 — hamburger tampil, nav desktop display:none, dropdown 4 item, klik Absen Mapel → navigasi + dropdown tertutup, scrollWidth 390 = clientWidth 390; desktop 1920 — hamburger tersembunyi, nav lengkap tampil.
 - ZIP Hostinger di-build ulang berisi perubahan ini.
+- Lanjutan (permintaan user, contoh RadiusLink): tombol ☰ dipindah ke **paling kiri sebelum logo** (bukan di kanan). Terverifikasi: posisi ham_x=8 < logo_x=52 di mobile 390, dropdown tetap berfungsi, desktop tanpa hamburger, ZIP di-build ulang.
