@@ -215,3 +215,8 @@
 ## 2026-09-24 — Kartu sukses lebih singkat (2 dtk) saat mode Auto antrean aktif
 - Persetujuan user atas saran: saat mode Auto ON, kartu SUKSES (absen wajah, absen NIS manual online/offline, antrean offline guru) tampil 2000ms (dari 3000–3500ms) untuk throughput antrean lebih tinggi. Kartu GAGAL tetap durasi penuh agar sempat dibaca. Mode Auto OFF → durasi normal.
 - Terverifikasi e2e (mobile 390, noise stream, API mock): durasi kartu sukses terukur 1.8 dtk saat Auto ON dan 3.4 dtk saat OFF. ZIP di-build ulang.
+
+## 2026-09-25 — Fix: absen PULANG via NIS manual selalu gagal (already_recorded)
+- Laporan user: "abses pulang selalu gagal susiyanto 2609001". Akar masalah: panel NIS manual tidak mengirim tipe absen — frontend tidak menyertakan `type` dan backend `attend-student` + sync siswa hardcode `"in"`. Akibatnya pilih "Absen Pulang" pun tetap mencatat "masuk" → duplikat → 409 already_recorded ("Sudah absen").
+- Fix: frontend mengirim `type: attType` di payload manual; backend `AttendStudentIn.type` (in|out, default in) dipakai di cabang siswa & karyawan, serta sync offline siswa menghormati `type`. Pesan error manual kini juga memetakan `no_checkin` dan `not_dismissal_time` (i18n sudah ada).
+- Terverifikasi: curl type=out untuk SUSIYANTO 2609001 → sukses (record uji dibersihkan); e2e mobile 390 — toggle Pulang + keypad NIS → kartu hasil benar (bukan "Sudah absen"). ZIP di-build ulang.

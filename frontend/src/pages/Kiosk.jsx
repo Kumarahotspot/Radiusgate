@@ -319,7 +319,7 @@ export default function Kiosk() {
         setTimeout(() => { setPhase("idle"); setResult(null); }, 3000);
         return;
       }
-      const payload = { nis: nisInput.trim(), status: "present", lat: coords.lat, lng: coords.lng, ts_device: localIso(), client_uuid: crypto.randomUUID() };
+      const payload = { nis: nisInput.trim(), status: "present", type: attType, lat: coords.lat, lng: coords.lng, ts_device: localIso(), client_uuid: crypto.randomUUID() };
       if (!navigator.onLine) {
         const q = [...loadQueue(), { ...payload, person_type: "student" }];
         saveQueue(q);
@@ -349,6 +349,8 @@ export default function Kiosk() {
         else if (d === "already_recorded") msg = t("kiosk_already");
         else if (d.startsWith("too_early")) { const p = d.split(":"); msg = t("kiosk_too_early", { time: `${p[1]}:${p[2]}` }); }
         else if (d.startsWith("past_work_end")) msg = t("kiosk_past_work_end", { time: d.split(":")[1] });
+        else if (d === "no_checkin") msg = t("kiosk_no_checkin");
+        else if (d.startsWith("not_dismissal_time")) msg = t("kiosk_not_dismissal_time", { name: d.split(":")[1] });
         setResult({ ok: false, message: msg });
         speak(`${t("kiosk_failed")}. ${msg}`);
       }

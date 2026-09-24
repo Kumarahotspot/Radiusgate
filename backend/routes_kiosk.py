@@ -295,6 +295,7 @@ async def attend(body: AttendIn, request: Request):
 class AttendStudentIn(BaseModel):
     nis: str
     status: str = "present"  # present | sakit | izin
+    type: str = "in"  # in | out
     lat: float
     lng: float
     ts_device: str
@@ -305,10 +306,11 @@ class AttendStudentIn(BaseModel):
 async def attend_student(body: AttendStudentIn, request: Request):
     school = await school_by_token(request)
     nis = body.nis.strip()
+    att_type = body.type if body.type in ("in", "out") else "in"
     student = await db.students.find_one({"school_id": school["id"], "nis": nis, "status": {"$ne": "lulus"}})
     if student:
         att_status = body.status if body.status in ("present", "sakit", "izin") else "present"
-        doc = await _record(school, student["id"], student["name"], "in", body.ts_device,
+        doc = await _record(school, student["id"], student["name"], att_type, body.ts_device,
                             body.lat, body.lng, "", body.client_uuid, offline=False,
                             extra={"person_type": "student", "class": student.get("class", ""), "att_status": att_status})
         asyncio.create_task(_notify_parent(school, student, doc))
@@ -317,7 +319,7 @@ async def attend_student(body: AttendStudentIn, request: Request):
     emp = await db.employees.find_one({"school_id": school["id"], "nip": nis, "active": True})
     if not emp:
         raise HTTPException(status_code=422, detail="student_not_found")
-    doc = await _record(school, emp["id"], emp["name"], "in", body.ts_device,
+    doc = await _record(school, emp["id"], emp["name"], att_type, body.ts_device,
                         body.lat, body.lng, "", body.client_uuid, offline=False,
                         extra={"person_type": "employee", "department": emp.get("department", "")})
     return {"ok": True, "student_name": emp["name"], "name": emp["name"], "status": doc["status"],
@@ -346,7 +348,7 @@ async def sync(body: SyncIn, request: Request):
                         continue
                     results.append({"client_uuid": r.get("client_uuid"), "ok": False, "reason": "student_not_found"})
                     continue
-                doc = await _record(school, st["id"], st["name"], "in", r["ts_device"], r["lat"], r["lng"],
+                doc = await _record(school, st["id"], st["name"], r.get("type", "in") if r.get("type") in ("in", "out") else "in", r["ts_device"], r["lat"], r["lng"],
                                     "", r["client_uuid"], offline=True,
                                     extra={"person_type": "student", "class": st.get("class", ""),
                                            "att_status": r.get("status", "present")})
