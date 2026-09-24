@@ -126,6 +126,28 @@ export default function Kiosk() {
     } catch {}
   }, [muted]);
 
+  const clickSound = useCallback(() => {
+    if (muted) return;
+    try {
+      const Ctx = window.AudioContext || window.webkitAudioContext;
+      if (!Ctx) return;
+      if (!audioCtxRef.current) audioCtxRef.current = new Ctx();
+      const ctx = audioCtxRef.current;
+      if (ctx.state === "suspended") ctx.resume();
+      const o = ctx.createOscillator();
+      const g = ctx.createGain();
+      o.type = "triangle";
+      o.frequency.value = 1400;
+      const t0 = ctx.currentTime;
+      g.gain.setValueAtTime(0.12, t0);
+      g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.07);
+      o.connect(g);
+      g.connect(ctx.destination);
+      o.start(t0);
+      o.stop(t0 + 0.08);
+    } catch {}
+  }, [muted]);
+
   const loadInfo = useCallback(async (tk) => {
     try {
       const { data } = await axios.get(`${API}/kiosk/info`, { headers: { "X-Kiosk-Token": tk } });
@@ -527,6 +549,7 @@ export default function Kiosk() {
   const phaseText = { liveness: t("kiosk_liveness"), gps: t("kiosk_gps_getting"), sending: t("kiosk_processing") }[phase];
 
   const pressKey = (k) => {
+    clickSound();
     if (k === "back") setNisInput((v) => v.slice(0, -1));
     else if (k === "clear") setNisInput("");
     else setNisInput((v) => (v.length >= 12 ? v : v + k));
@@ -543,14 +566,14 @@ export default function Kiosk() {
         <div className="grid grid-cols-3 gap-2.5" data-testid="kiosk-keypad">
           {["1","2","3","4","5","6","7","8","9"].map((d) => (
             <button key={d} type="button" data-testid={`kiosk-keypad-${d}`} onClick={() => pressKey(d)}
-              className="py-4 md:py-5 rounded-2xl bg-white/10 hover:bg-white/15 text-white font-extrabold text-2xl transition-all active:scale-95">{d}</button>
+              className="py-4 md:py-5 rounded-2xl bg-white/10 hover:bg-white/15 active:bg-teal-500/70 text-white font-extrabold text-2xl transition-all active:scale-95">{d}</button>
           ))}
           <button type="button" data-testid="kiosk-keypad-clear" onClick={() => pressKey("clear")}
-            className="py-4 md:py-5 rounded-2xl bg-white/5 text-amber-400 font-extrabold text-xl transition-all active:scale-95">C</button>
+            className="py-4 md:py-5 rounded-2xl bg-white/5 active:bg-amber-500/40 text-amber-400 font-extrabold text-xl transition-all active:scale-95">C</button>
           <button type="button" data-testid="kiosk-keypad-0" onClick={() => pressKey("0")}
-            className="py-4 md:py-5 rounded-2xl bg-white/10 hover:bg-white/15 text-white font-extrabold text-2xl transition-all active:scale-95">0</button>
+            className="py-4 md:py-5 rounded-2xl bg-white/10 hover:bg-white/15 active:bg-teal-500/70 text-white font-extrabold text-2xl transition-all active:scale-95">0</button>
           <button type="button" data-testid="kiosk-keypad-back" onClick={() => pressKey("back")}
-            className="py-4 md:py-5 rounded-2xl bg-white/5 text-red-400 font-extrabold text-xl transition-all active:scale-95">⌫</button>
+            className="py-4 md:py-5 rounded-2xl bg-white/5 active:bg-red-500/40 text-red-400 font-extrabold text-xl transition-all active:scale-95">⌫</button>
         </div>
       )}
       <button data-testid="kiosk-student-submit" onClick={startStudentAttend} disabled={phase !== "idle" || !nisInput.trim()}

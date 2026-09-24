@@ -238,3 +238,7 @@
 ## 2026-09-25 — Foto profil di kartu hasil absen manual
 - Persetujuan user atas saran: endpoint `attend-student` kini mengembalikan `photo` (base64 yang sudah tersimpan) untuk siswa, guru, dan karyawan; frontend menampilkannya sebagai foto bulat besar di kartu sukses absen manual (fallback avatar inisial jika tidak ada foto).
 - Terverifikasi e2e (mobile 390): absen manual NIS 10006 → kartu sukses menampilkan foto profil siswa. Record uji dibersihkan. ZIP di-build ulang.
+
+## 2026-09-25 — Bunyi klik + efek menyala pada keypad manual kiosk
+- Permintaan user: "tambahkan suara klik2 sewaktu input manual di keyboard atau touchnya menyala". Setiap tekan tombol keypad kini memainkan bunyi klik singkat (Web Audio triangle 1400Hz, 70ms, reuse audioCtxRef, hormati tombol mute) DAN tombol menyala saat disentuh (active:bg teal untuk angka, amber untuk C, red untuk ⌫; active:scale tetap).
+- Terverifikasi e2e (spy AudioContext): 4 tekan tombol → 4 oscillator tercipta; class glow terpasang. ZIP di-build ulang.
