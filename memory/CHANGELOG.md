@@ -250,3 +250,7 @@
 ## 2026-09-25 — Absen manual GAGAL juga kembali ke layar utama
 - Permintaan user: "utk absen manual yg gagal harus kembali ke menu awal". Sebelumnya hanya sukses yang keluar dari mode manual (gagal tetap terbuka untuk coba lagi). Kini sukses maupun gagal sama-sama menutup mode manual dan kembali ke tampilan kamera setelah kartu hasil hilang.
 - Terverifikasi e2e (mobile 390, NIS ngawur): kartu gagal tampil → otomatis kembali ke kamera, keypad tertutup. ZIP di-build ulang.
+
+## 2026-09-25 — Kolom NIS/NIP dikosongkan setelah absen manual gagal
+- Laporan user: setelah gagal dan kembali ke menu awal, kolom masih terisi NIS/NIP lama. Kini kolom selalu dikosongkan saat kartu hasil tertutup — di semua jalur: sukses, gagal server, dan gagal GPS. Mode manual juga tertutup di jalur gagal GPS.
+- Terverifikasi e2e (mobile 390, NIS ngawur): kartu gagal → kembali ke kamera, kolom NIS kosong. ZIP di-build ulang.

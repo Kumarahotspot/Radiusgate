@@ -357,7 +357,7 @@ export default function Kiosk() {
         setResult({ ok: false, message: t("kiosk_gps_error") });
         speak(`${t("kiosk_failed")}. ${t("kiosk_gps_error")}`);
         setPhase("result");
-        setTimeout(() => { setPhase("idle"); setResult(null); }, 3000);
+        setTimeout(() => { setPhase("idle"); setResult(null); setNisInput(""); setNisFocused(false); }, 3000);
         return;
       }
       const payload = { nis: nisInput.trim(), status: "present", type: attType, lat: coords.lat, lng: coords.lng, ts_device: localIso(), client_uuid: crypto.randomUUID() };
@@ -396,7 +396,7 @@ export default function Kiosk() {
         speak(`${t("kiosk_failed")}. ${msg}`);
       }
       setPhase("result");
-      setTimeout(() => { setPhase("idle"); setResult(null); setNisFocused(false); }, manualOk && autoQRef.current ? 2000 : 3000);
+      setTimeout(() => { setPhase("idle"); setResult(null); setNisInput(""); setNisFocused(false); }, manualOk && autoQRef.current ? 2000 : 3000);
     } finally {
       busyRef.current = false;
     }
