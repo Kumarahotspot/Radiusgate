@@ -460,33 +460,33 @@ export default function Kiosk() {
 
   return (
     <div className="min-h-screen bg-[#0B1320] flex flex-col select-none" data-testid="kiosk-screen">
-      <header className="relative px-5 py-4 flex flex-col items-center gap-2 sm:block">
-        <div className="text-center sm:px-40">
-          <p className="text-white font-extrabold truncate" data-testid="kiosk-school-name">{info.school?.name}</p>
-          <p className="text-slate-400 text-xs" data-testid="kiosk-clock">
-            {now.toLocaleDateString(i18n.language === "en" ? "en-US" : "id-ID", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}
-            {" · "}
-            {now.toLocaleTimeString(i18n.language === "en" ? "en-US" : "id-ID", { hour: "2-digit", minute: "2-digit", second: "2-digit" })}
-          </p>
-        </div>
-        <div className="flex items-center gap-2 sm:absolute sm:right-3 sm:top-1/2 sm:-translate-y-1/2">
-          {!online && <span data-testid="kiosk-offline-badge" className="flex items-center gap-1 text-xs font-bold text-amber-400 bg-amber-400/10 px-2.5 py-1 rounded-full"><WifiOff className="w-3.5 h-3.5" /> Offline</span>}
-          {queue.length > 0 && <span data-testid="kiosk-queue-badge" className="text-xs font-bold text-sky-400 bg-sky-400/10 px-2.5 py-1 rounded-full">{t("kiosk_queue")}: {queue.length}</span>}
-          <LangSwitch dark />
-          <button data-testid="kiosk-fullscreen-btn" onClick={toggleFs} title={t(isFs ? "kiosk_exit_fullscreen" : "kiosk_fullscreen")}
-            className="p-2 rounded-xl bg-white/5 text-slate-300 hover:bg-white/10 transition-colors">
-            {isFs ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
-          </button>
-          <button data-testid="kiosk-mute-btn" onClick={toggleMute} className="p-2 rounded-xl bg-white/5 text-slate-300 hover:bg-white/10 transition-colors">
-            {muted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
-          </button>
-          <button data-testid="kiosk-unpair-btn" onClick={unpair} className="p-2 rounded-xl bg-white/5 text-slate-300 hover:bg-white/10 transition-colors"><Unplug className="w-4 h-4" /></button>
-        </div>
+      <header className="px-5 pt-4 pb-1 text-center">
+        <p className="text-white font-extrabold truncate" data-testid="kiosk-school-name">{info.school?.name}</p>
+        <p className="text-slate-400 text-xs" data-testid="kiosk-clock">
+          {now.toLocaleDateString(i18n.language === "en" ? "en-US" : "id-ID", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}
+          {" · "}
+          {now.toLocaleTimeString(i18n.language === "en" ? "en-US" : "id-ID", { hour: "2-digit", minute: "2-digit", second: "2-digit" })}
+        </p>
       </header>
 
       <div className="flex-1 flex flex-col items-center justify-center px-4 pb-8 gap-5">
         <div className="relative w-full max-w-md md:max-w-xl lg:max-w-2xl aspect-[4/3] rounded-3xl overflow-hidden bg-slate-900 border border-white/10">
           <video ref={videoRef} autoPlay playsInline muted className="w-full h-full object-cover" data-testid="kiosk-video" />
+          <div className="absolute top-2 left-2 z-10 flex flex-col items-start gap-1.5">
+            {!online && <span data-testid="kiosk-offline-badge" className="flex items-center gap-1 text-xs font-bold text-amber-300 bg-black/50 backdrop-blur-sm px-2.5 py-1 rounded-full"><WifiOff className="w-3.5 h-3.5" /> Offline</span>}
+            {queue.length > 0 && <span data-testid="kiosk-queue-badge" className="text-xs font-bold text-sky-300 bg-black/50 backdrop-blur-sm px-2.5 py-1 rounded-full">{t("kiosk_queue")}: {queue.length}</span>}
+          </div>
+          <div className="absolute top-2 right-2 z-10 flex items-center gap-1.5">
+            <LangSwitch dark />
+            <button data-testid="kiosk-fullscreen-btn" onClick={toggleFs} title={t(isFs ? "kiosk_exit_fullscreen" : "kiosk_fullscreen")}
+              className="p-2 rounded-xl bg-black/40 backdrop-blur-sm text-slate-200 hover:bg-black/60 transition-colors">
+              {isFs ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+            </button>
+            <button data-testid="kiosk-mute-btn" onClick={toggleMute} className="p-2 rounded-xl bg-black/40 backdrop-blur-sm text-slate-200 hover:bg-black/60 transition-colors">
+              {muted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
+            </button>
+            <button data-testid="kiosk-unpair-btn" onClick={unpair} className="p-2 rounded-xl bg-black/40 backdrop-blur-sm text-slate-200 hover:bg-black/60 transition-colors"><Unplug className="w-4 h-4" /></button>
+          </div>
           <div className={`absolute inset-6 rounded-2xl border-2 border-dashed pointer-events-none transition-colors ${phase === "liveness" ? "border-amber-400 animate-pulse" : "border-teal-500/40"}`} />
           {phaseText && (
             <div className="absolute inset-0 bg-black/60 flex items-center justify-center">

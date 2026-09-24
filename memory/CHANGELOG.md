@@ -178,3 +178,7 @@
 - Permintaan user: nama sekolah dan date-time dipindah ke tengah. Header kiosk kini `relative`: blok nama+tanggal+jam terpusat (`text-center`, padding aman dari tombol kanan), tombol-tombol (bahasa/fullscreen/mute/unpair + badge offline/antrean) absolute di kanan. Jam kini LIVE berdetak tiap detik (state `now` + interval 1s, format id-ID/en-US). Testid baru: kiosk-clock.
 - Terverifikasi screenshot: desktop 1920 — nama terpusat (selisih <30px dari tengah), jam berdetak (nilai berubah per detik); mobile 390 — terpusat & tanpa overflow. ZIP di-build ulang.
 - Fix mobile: teks tanggal/jam bertabrakan dengan tombol kanan di 390px → header kini flex-col di mobile (nama+jam terpusat penuh di baris 1, tombol di baris 2), layout absolute-kanan hanya untuk sm ke atas.
+
+## 2026-09-24 — Nama sekolah persis di atas kamera + tombol jadi overlay kamera
+- Permintaan user: nama sekolah ditaruh "atas persis camera". Header kiosk kini hanya berisi nama sekolah + tanggal/jam live yang terpusat dan rapat tepat di atas kotak kamera. Tombol bahasa/fullscreen/mute/unpair dipindah menjadi **overlay melayang di pojok kanan-atas kamera** (bg-black/40 backdrop-blur), badge offline/antrean di pojok kiri-atas kamera. Lebih hemat ruang vertikal dan rapi saat fullscreen.
+- Terverifikasi screenshot: mobile 390 & desktop 1920 — jarak jam→kamera rapat, tombol berada di dalam area kamera, nama terpusat, tanpa overflow. ZIP di-build ulang.
