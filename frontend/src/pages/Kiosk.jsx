@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import axios from "axios";
 import LangSwitch from "../components/LangSwitch";
 import { captureFrame, startCamera } from "../components/CameraCapture";
-import { ScanFace, Volume2, VolumeX, WifiOff, LogIn, LogOut, Unplug, Maximize2, Minimize2 } from "lucide-react";
+import { ScanFace, Volume2, VolumeX, WifiOff, LogIn, LogOut, Unplug, Maximize2, Minimize2, Users } from "lucide-react";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 const Q_KEY = "kiosk_queue";
@@ -28,6 +28,16 @@ export default function Kiosk() {
   const [attType, setAttType] = useState("in");
   const [nisInput, setNisInput] = useState("");
   const [nisFocused, setNisFocused] = useState(false);
+  const [autoQ, setAutoQ] = useState(localStorage.getItem("kiosk_autoq") !== "0");
+  const autoQRef = useRef(localStorage.getItem("kiosk_autoq") !== "0");
+  const idleSinceRef = useRef(Date.now());
+  const lastErrRef = useRef("");
+  const toggleAutoQ = () => {
+    const v = !autoQ;
+    setAutoQ(v);
+    autoQRef.current = v;
+    localStorage.setItem("kiosk_autoq", v ? "1" : "0");
+  };
   const [muted, setMuted] = useState(localStorage.getItem("kiosk_mute") === "1");
   const [queue, setQueue] = useState(loadQueue());
   const [online, setOnline] = useState(navigator.onLine);
@@ -251,7 +261,7 @@ export default function Kiosk() {
     );
   });
 
-  const motionCheck = (f1, f2) => {
+  const motionCheck = (f1, f2, thr = 0.015) => {
     const c1 = document.createElement("canvas");
     const c2 = document.createElement("canvas");
     const W = 64, H = 48;
@@ -271,7 +281,7 @@ export default function Kiosk() {
         for (let i = 0; i < d1.length; i += 4) {
           if (Math.abs(d1[i] - d2[i]) > 18 || Math.abs(d1[i + 1] - d2[i + 1]) > 18) diff++;
         }
-        resolve(diff / (W * H) > 0.015);
+        resolve(diff / (W * H) > thr);
       };
       img1.onload = done; img2.onload = done;
       img1.onerror = () => resolve(true); img2.onerror = () => resolve(true);
@@ -392,6 +402,7 @@ export default function Kiosk() {
         setResult({ ok: true, name: data.teacher_name, photo: f2, message: data.status === "late" ? `${t("kiosk_success")} · +${data.late_minutes}m` : t("kiosk_success"), late: data.status === "late" });
         chime(attType === "in");
         speak(`${successWord}. ${data.teacher_name}. ${greet}`);
+        lastErrRef.current = "";
       } catch (err) {
         if (!err.response) {
           // network dropped mid-flight
@@ -429,7 +440,9 @@ export default function Kiosk() {
         }
         else if (!coords) { msg = t("kiosk_gps_error"); voiceMsg = msg; }
         setResult({ ok: false, message: msg });
-        speak(`${t("kiosk_failed")}. ${voiceMsg}`);
+        const errKey = d.startsWith("already_recorded") ? d : "";
+        if (!(autoQRef.current && errKey && errKey === lastErrRef.current)) speak(`${t("kiosk_failed")}. ${voiceMsg}`);
+        lastErrRef.current = errKey;
       }
       setPhase("result");
       setTimeout(() => { setPhase("idle"); setResult(null); }, 3500);
@@ -437,6 +450,28 @@ export default function Kiosk() {
       busyRef.current = false;
     }
   };
+
+  // ---------- mode antrean: picu absen otomatis saat ada gerakan di depan kamera ----------
+  useEffect(() => { if (phase === "idle") idleSinceRef.current = Date.now(); }, [phase]);
+
+  useEffect(() => {
+    if (!autoQ || !token || !info || saver || nisFocused) return;
+    let cancelled = false;
+    const iv = setInterval(async () => {
+      if (cancelled || busyRef.current || phase !== "idle" || offlinePick) return;
+      if (Date.now() - idleSinceRef.current < 2500) return;
+      const v = videoRef.current;
+      if (!v || v.readyState < 2) return;
+      try {
+        const a = captureFrame(v);
+        await new Promise((r) => setTimeout(r, 700));
+        if (cancelled || busyRef.current) return;
+        const b = captureFrame(v);
+        if (await motionCheck(a, b, 0.04)) startAttend();
+      } catch { /* abaikan */ }
+    }, 1800);
+    return () => { cancelled = true; clearInterval(iv); };
+  }, [autoQ, token, info, saver, nisFocused, phase, offlinePick, attType]);
 
   // ---------- pairing screen ----------
   if (!token || !info) {
@@ -521,6 +556,7 @@ export default function Kiosk() {
         <div className={`relative w-full max-w-md md:max-w-xl lg:max-w-2xl aspect-[4/3] rounded-3xl overflow-hidden bg-slate-900 border border-white/10 ${nisFocused ? "hidden" : ""}`}>
           <video ref={videoRef} autoPlay playsInline muted className="w-full h-full object-cover" data-testid="kiosk-video" />
           <div className="absolute top-2 left-2 z-10 flex flex-col items-start gap-1.5">
+            {autoQ && <span data-testid="kiosk-autoq-badge" className="flex items-center gap-1 text-xs font-bold text-teal-300 bg-black/50 backdrop-blur-sm px-2.5 py-1 rounded-full"><Users className="w-3.5 h-3.5" /> Auto</span>}
             {!online && <span data-testid="kiosk-offline-badge" className="flex items-center gap-1 text-xs font-bold text-amber-300 bg-black/50 backdrop-blur-sm px-2.5 py-1 rounded-full"><WifiOff className="w-3.5 h-3.5" /> Offline</span>}
             {queue.length > 0 && <span data-testid="kiosk-queue-badge" className="text-xs font-bold text-sky-300 bg-black/50 backdrop-blur-sm px-2.5 py-1 rounded-full">{t("kiosk_queue")}: {queue.length}</span>}
           </div>
@@ -532,6 +568,10 @@ export default function Kiosk() {
             </button>
             <button data-testid="kiosk-mute-btn" onClick={toggleMute} className="p-2 rounded-xl bg-black/40 backdrop-blur-sm text-slate-200 hover:bg-black/60 transition-colors">
               {muted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
+            </button>
+            <button data-testid="kiosk-autoq-btn" onClick={toggleAutoQ} title={t("kiosk_autoq")}
+              className={`p-2 rounded-xl backdrop-blur-sm transition-colors ${autoQ ? "bg-teal-600/80 text-white" : "bg-black/40 text-slate-200 hover:bg-black/60"}`}>
+              <Users className="w-4 h-4" />
             </button>
             <button data-testid="kiosk-unpair-btn" onClick={unpair} className="p-2 rounded-xl bg-black/40 backdrop-blur-sm text-slate-200 hover:bg-black/60 transition-colors"><Unplug className="w-4 h-4" /></button>
           </div>

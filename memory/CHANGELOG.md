@@ -205,3 +205,9 @@
 ## 2026-09-24 — Absen manual sukses otomatis kembali ke layar utama kiosk
 - Permintaan user: setelah absen manual berhasil, kiosk otomatis keluar dari mode manual dan kembali ke tampilan kamera utama (setelah kartu sukses hilang, ±3 dtk). Jika GAGAL (NIS salah/dll), mode manual tetap terbuka agar bisa langsung coba lagi. Berlaku untuk jalur online maupun antrean offline (flag `manualOk`).
 - Terverifikasi e2e (mobile 390, API di-mock sukses): kartu sukses tampil, lalu otomatis kembali — kamera terlihat, keypad tertutup. ZIP di-build ulang.
+
+## 2026-09-24 — Mode Antrean Otomatis (auto queue) di Kiosk
+- Persetujuan user atas saran: kiosk kini siap untuk orang berikutnya TANPA sentuhan. Saat mode Auto aktif (default ON, toggle ikon Users di overlay kamera, persist di localStorage "kiosk_autoq"), watcher tiap 1.8 dtk membandingkan 2 frame kamera (motionCheck thr 0.04); ada gerakan → otomatis menjalankan absen wajah (liveness→GPS→kirim). Cooldown 2.5 dtk setelah kartu hasil tertutup agar orang bisa minggir. Watcher berhenti saat: screensaver, mode manual NIS, picker offline, atau fase sibuk.
+- Anti-spam: ruangan kosong = tidak ada gerakan = tidak ada request ke backend. Error "already_recorded" untuk nama yang SAMA berturut-turut tidak diucapkan lagi (silent) agar tidak bising saat orang berlama-lama di depan kamera. Badge "Auto" selalu terlihat di pojok kiri-atas kamera.
+- Testid baru: kiosk-autoq-btn, kiosk-autoq-badge.
+- Terverifikasi e2e (mobile 390, stream noise rAF sebagai gerakan, API di-mock): trigger otomatis tanpa sentuhan → kartu sukses → loop trigger ke-2 otomatis (antrean berjalan) → toggle OFF menghentikan watcher (badge hilang, localStorage "0", tidak ada trigger lagi). ZIP di-build ulang.
