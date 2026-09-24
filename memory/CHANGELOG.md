@@ -280,3 +280,6 @@
 ## 2026-09-25 — RFID: verifikasi e2e selesai
 - Tes e2e kiosk (mobile 390): simulasi tap kartu (keyboard.type UID cepat + Enter) pada mode Pulang → kartu hijau "Presensi berhasil · Galang Remaja" + foto profil tampil, tanpa menyentuh layar. Data uji (record absen + card_uid) dibersihkan.
 - STATUS RFID: SELESAI & TERUJI (backend + admin form siswa/guru/karyawan + listener kiosk). Belum: antrean offline untuk kartu (butuh koneksi saat tap).
+
+## 2026-09-25 — Verifikasi kolom Kartu RFID di admin
+- User: "di admin blom ada kolom baru". Verifikasi screenshot preview: kolom "Kartu RFID (UID)" TERBUKTI ada di form Tambah Siswa, Tambah Guru, dan Tambah Karyawan (bukan kolom tabel — ada di dalam form/modal tambah & edit). Kemungkinan user melihat domain Hostinger yang masih build lama → wajib upload ulang ZIP terbaru.
