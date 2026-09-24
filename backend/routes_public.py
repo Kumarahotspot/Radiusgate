@@ -85,3 +85,9 @@ async def download_panduan():
 async def download_panduan_vps():
     return FileResponse("/app/PANDUAN-VPS.md", media_type="text/markdown",
                         filename="PANDUAN-VPS.md")
+
+
+@router.get("/public/download/install-script")
+async def download_install_script():
+    return FileResponse("/app/install-vps.sh", media_type="text/x-sh",
+                        filename="install-vps.sh")
