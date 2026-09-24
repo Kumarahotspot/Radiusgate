@@ -309,3 +309,6 @@
 ## 2026-09-25 — Rapi: grid fitur landing page tanpa lubang
 - Laporan user (screenshot): ada lubang kosong di grid fitur karena 5 kartu wide (col-span-2) + 8 normal = 18 kolom tidak habis dibagi 4. Fix: hanya 3 kartu wide (Face, RFID, QR) di awal + 10 kartu normal = 16 kolom = 4 baris penuh sempurna di desktop (juga genap di md 2-kolom). Urutan disusun agar tiap baris terisi penuh.
 - Terverifikasi e2e: setiap baris grid terisi ~100%, tidak ada overflow mobile. ZIP di-build ulang.
+
+## 2026-09-25 — ZIP final dibangun ulang dari nol (jaminan tidak ada yang tertinggal)
+- Permintaan user: "zip file terbaru jangan sampe ada yg ketunggak sy mau upload". Build dibersihkan total (rm build + zip lama) lalu di-build ulang penuh. Terverifikasi dalam ZIP: PWA (manifest-kiosk.json, sw-kiosk.js, icon-192/512), .htaccess, BACA-SAYA.txt, dan bundle berisi semua fitur terbaru: mode Registrasi Kartu (reg-tap-panel), absen RFID (attend-card), tombol Kartu QR PDF (qr-pdf-btn), landing grid baru ("Sekolah Menentukan Metodenya Sendiri"). Endpoint download 200. Ukuran 3.2MB.
