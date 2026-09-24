@@ -2,8 +2,29 @@ import { useEffect, useState, Fragment, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import api from "../../api";
+import api, { errMsg } from "../../api";
 import { Users, Clock, CalendarClock, GraduationCap, UserCheck, Trash2, BookOpen, Search, ChevronLeft, ChevronRight, ChevronDown, X } from "lucide-react";
+
+const HSIA = [
+  ["present", "present", "bg-emerald-600", "text-emerald-700 border-emerald-200 hover:bg-emerald-50"],
+  ["sakit", "sakit", "bg-red-500", "text-red-600 border-red-200 hover:bg-red-50"],
+  ["izin", "izin", "bg-sky-500", "text-sky-600 border-sky-200 hover:bg-sky-50"],
+  ["alpa", "att_alpha", "bg-slate-500", "text-slate-600 border-slate-300 hover:bg-slate-100"],
+];
+
+function HsiaButtons({ t, current, markBusy, busyKey, onPick, testidPrefix }) {
+  return (
+    <div className="flex flex-wrap gap-1">
+      {HSIA.map(([val, key, onCls, offCls]) => (
+        <button key={val} data-testid={`${testidPrefix}-${val}`} disabled={!!markBusy}
+          onClick={(e) => { e.stopPropagation(); onPick(val); }}
+          className={`px-2.5 py-1 rounded-lg text-[10px] font-bold border transition-colors disabled:opacity-40 ${current === val ? `${onCls} text-white border-transparent` : `bg-white ${offCls}`}`}>
+          {markBusy === busyKey + val ? "…" : t(key)}
+        </button>
+      ))}
+    </div>
+  );
+}
 
 export default function AdminDashboard() {
   const { t } = useTranslation();
@@ -40,7 +61,7 @@ export default function AdminDashboard() {
   };
   const loadAtt = () => api.get("/admin/today", { params: { date: attDate } }).then((r) => setToday(r.data));
   useEffect(() => { load(); }, []);
-  useEffect(() => { setPage(1); loadAtt(); }, [attDate]); // eslint-disable-line
+  useEffect(() => { setPage(1); loadAtt(); if (showAbsent) loadAbsent(); }, [attDate]); // eslint-disable-line
   useEffect(() => { if (flt && tableRef.current) tableRef.current.scrollIntoView({ behavior: "smooth", block: "start" }); }, [flt]);
 
   const delAttendance = async (id) => {
@@ -48,6 +69,29 @@ export default function AdminDashboard() {
     await api.delete(`/admin/attendance/${id}`);
     toast.success(t("delete"));
     load();
+  };
+
+  const [showAbsent, setShowAbsent] = useState(false);
+  const [absent, setAbsent] = useState(null);
+  const [markBusy, setMarkBusy] = useState("");
+  const loadAbsent = () => api.get("/admin/today/absent", { params: { date: attDate } }).then((r) => setAbsent(r.data));
+  const toggleAbsent = () => {
+    const nv = !showAbsent;
+    setShowAbsent(nv);
+    if (nv) loadAbsent();
+  };
+  const markStudent = async (target, status) => {
+    setMarkBusy((target.key || target.id) + status);
+    try {
+      if (target.inId) {
+        await api.patch(`/admin/attendance/${target.inId}/status`, { att_status: status });
+      } else {
+        await api.post("/admin/attendance/mark", { student_id: target.id, date: attDate, att_status: status });
+      }
+      toast.success(t("status_updated"));
+      loadAtt();
+      if (showAbsent) loadAbsent();
+    } catch (err) { toast.error(errMsg(err)); } finally { setMarkBusy(""); }
   };
 
   const toggleFlt = (v) => setFlt((cur) => (cur === v ? "" : v));
@@ -177,6 +221,13 @@ export default function AdminDashboard() {
                               </div>
                             ))}
                           </div>
+                          {g.person_type === "student" && inR && (
+                            <div className="mt-3 flex flex-wrap items-center gap-2" data-testid={`hsia-row-${g.key}`}>
+                              <span className="text-[10px] font-bold uppercase tracking-wide text-slate-400">{t("correct_status")}:</span>
+                              <HsiaButtons t={t} current={inR.att_status || "present"} markBusy={markBusy} busyKey={g.key}
+                                onPick={(v) => markStudent({ key: g.key, inId: inR.id }, v)} testidPrefix={`hsia-${g.key}`} />
+                            </div>
+                          )}
                         </td>
                       </tr>
                     )}
@@ -199,6 +250,26 @@ export default function AdminDashboard() {
               <button data-testid="today-next-page" disabled={safePage >= totalPages} onClick={() => setPage(safePage + 1)}
                 className="p-1.5 rounded-lg hover:bg-slate-200 disabled:opacity-30 transition-colors"><ChevronRight className="w-4 h-4" /></button>
             </div>
+          </div>
+        )}
+      </div>
+
+      <div className="bg-white rounded-2xl border border-slate-200 p-4" data-testid="absent-card">
+        <button data-testid="absent-toggle" onClick={toggleAbsent} className="flex items-center justify-between w-full">
+          <p className="font-bold text-slate-800 text-sm">{t("absent_today")}{absent && showAbsent ? ` (${absent.length})` : ""}</p>
+          <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform ${showAbsent ? "rotate-180" : ""}`} />
+        </button>
+        {showAbsent && (
+          <div className="mt-3 space-y-1.5 max-h-72 overflow-y-auto pr-1">
+            {(absent || []).map((s) => (
+              <div key={s.id} data-testid={`absent-row-${s.id}`} className="flex flex-wrap items-center gap-2 rounded-xl border border-slate-100 bg-slate-50/60 px-3 py-2">
+                <p className="text-xs font-semibold text-slate-700 flex-1 min-w-[140px]">{s.name} <span className="text-slate-400 font-normal">· {s.class}</span></p>
+                <HsiaButtons t={t} current={null} markBusy={markBusy} busyKey={s.id}
+                  onPick={(v) => markStudent(s, v)} testidPrefix={`absent-mark-${s.id}`} />
+              </div>
+            ))}
+            {absent && absent.length === 0 && <p className="text-center text-slate-400 text-xs py-4">{t("no_data")}</p>}
+            {!absent && <p className="text-center text-slate-400 text-xs py-4">{t("loading")}</p>}
           </div>
         )}
       </div>

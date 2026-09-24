@@ -95,6 +95,63 @@ async def delete_attendance(aid: str, user: dict = Depends(admin_dep)):
     return {"ok": True}
 
 
+class AttStatusIn(BaseModel):
+    att_status: str  # present|sakit|izin|alpa
+
+
+@router.patch("/admin/attendance/{aid}/status")
+async def admin_set_att_status(aid: str, body: AttStatusIn, user: dict = Depends(admin_dep)):
+    if body.att_status not in ("present", "sakit", "izin", "alpa"):
+        raise HTTPException(status_code=422, detail="invalid_status")
+    upd = {"att_status": body.att_status, "corrected_by": user["email"]}
+    if body.att_status in ("sakit", "izin", "alpa"):
+        upd.update({"late_minutes": 0, "overtime_minutes": 0, "status": "ok"})
+    r = await db.attendance.update_one({"id": aid, "school_id": user["school_id"]}, {"$set": upd})
+    if not r.matched_count:
+        raise HTTPException(status_code=404, detail="not_found")
+    return {"ok": True}
+
+
+class AttMarkIn(BaseModel):
+    student_id: str
+    date: str
+    att_status: str
+
+
+@router.post("/admin/attendance/mark")
+async def admin_mark_student(body: AttMarkIn, user: dict = Depends(admin_dep)):
+    from routes_kiosk import _record  # impor lokal: hindari circular import
+    if body.att_status not in ("present", "sakit", "izin", "alpa"):
+        raise HTTPException(status_code=422, detail="invalid_status")
+    st = await db.students.find_one({"id": body.student_id, "school_id": user["school_id"]},
+                                    {"_id": 0, "embedding": 0})
+    if not st:
+        raise HTTPException(status_code=404, detail="student_not_found")
+    existing = await db.attendance.find_one(
+        {"school_id": user["school_id"], "student_id": st["id"], "date": body.date, "type": "in"})
+    if existing:
+        await db.attendance.update_one({"id": existing["id"]},
+                                       {"$set": {"att_status": body.att_status, "corrected_by": user["email"]}})
+        return {"ok": True, "updated": True}
+    await _record({"id": user["school_id"]}, st["id"], st["name"], "in", f"{body.date}T07:00:00",
+                  0, 0, "", uuid.uuid4().hex, offline=False, manual=True,
+                  extra={"person_type": "student", "class": st.get("class", ""),
+                         "att_status": body.att_status, "note": "Ditandai admin",
+                         "recorded_by_name": user["name"]})
+    return {"ok": True, "created": True}
+
+
+@router.get("/admin/today/absent")
+async def admin_today_absent(date: str, user: dict = Depends(admin_dep)):
+    students = await db.students.find(
+        {"school_id": user["school_id"], "status": {"$ne": "lulus"}},
+        {"_id": 0, "id": 1, "name": 1, "class": 1}).sort("name", 1).to_list(5000)
+    have = {r["student_id"] for r in await db.attendance.find(
+        {"school_id": user["school_id"], "person_type": "student", "date": date, "type": "in"},
+        {"_id": 0, "student_id": 1}).to_list(10000)}
+    return [s for s in students if s["id"] not in have]
+
+
 # ---------- Teachers ----------
 def _split_csv(s) -> list:
     return [p.strip() for p in (s or "").split(",") if p.strip()]
