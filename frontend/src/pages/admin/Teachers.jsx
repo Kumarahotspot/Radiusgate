@@ -137,6 +137,7 @@ export default function Teachers() {
             <thead>
               <tr className="text-left text-xs uppercase tracking-wide text-slate-500 border-b bg-slate-50">
                 <th className="px-4 py-3">{t("name")}</th>
+                <th className="px-4 py-3">{t("gender_short")}</th>
                 <th className="px-4 py-3">{t("email")}</th>
                 <th className="px-4 py-3">{t("nip")}</th>
                 <th className="px-4 py-3">{t("subject")}</th>
@@ -149,6 +150,11 @@ export default function Teachers() {
               {paged.map((tc) => (
                 <tr key={tc.id} data-testid={`teacher-row-${tc.id}`} className="border-b last:border-0 hover:bg-slate-50/60">
                   <td className="px-4 py-3 font-semibold text-slate-800">{tc.name}</td>
+                  <td className="px-4 py-3">
+                    <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${tc.gender === "L" ? "bg-sky-50 text-sky-700 border border-sky-200" : tc.gender === "P" ? "bg-pink-50 text-pink-700 border border-pink-200" : "text-slate-400"}`}>
+                      {tc.gender === "L" ? t("gender_l") : tc.gender === "P" ? t("gender_p") : "—"}
+                    </span>
+                  </td>
                   <td className="px-4 py-3 text-slate-600">{tc.email}</td>
                   <td className="px-4 py-3 font-mono text-xs">{tc.nip}</td>
                   <td className="px-4 py-3">{tc.subject}</td>
@@ -177,7 +183,7 @@ export default function Teachers() {
                   </td>
                 </tr>
               ))}
-              {paged.length === 0 && <tr><td colSpan={7} className="px-4 py-8 text-center text-slate-400">{t("no_data")}</td></tr>}
+              {paged.length === 0 && <tr><td colSpan={8} className="px-4 py-8 text-center text-slate-400">{t("no_data")}</td></tr>}
             </tbody>
           </table>
         </div>
