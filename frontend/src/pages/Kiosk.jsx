@@ -576,7 +576,7 @@ export default function Kiosk() {
             className="py-4 md:py-5 rounded-2xl bg-white/5 active:bg-red-500/40 text-red-400 font-extrabold text-xl transition-all active:scale-95">⌫</button>
         </div>
       )}
-      <button data-testid="kiosk-student-submit" onClick={startStudentAttend} disabled={phase !== "idle" || !nisInput.trim()}
+      <button data-testid="kiosk-student-submit" onClick={() => { clickSound(); startStudentAttend(); }} disabled={phase !== "idle" || !nisInput.trim()}
         className="w-full bg-teal-600 hover:bg-teal-500 disabled:opacity-40 text-white font-bold text-base rounded-2xl py-4 transition-all active:scale-[0.98]">
         {t("kiosk_nis_submit")}
       </button>
@@ -658,7 +658,7 @@ export default function Kiosk() {
 
         <button
           data-testid="kiosk-attend-btn"
-          onClick={startAttend}
+          onClick={() => { clickSound(); startAttend(); }}
           disabled={phase !== "idle"}
           className={`w-full max-w-md md:max-w-xl lg:max-w-2xl bg-teal-600 hover:bg-teal-500 disabled:opacity-40 text-white font-extrabold text-xl md:text-2xl rounded-3xl py-6 md:py-7 transition-all active:scale-[0.98] shadow-lg shadow-teal-900/40 ${nisFocused ? "hidden" : ""}`}
         >

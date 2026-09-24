@@ -242,3 +242,7 @@
 ## 2026-09-25 — Bunyi klik + efek menyala pada keypad manual kiosk
 - Permintaan user: "tambahkan suara klik2 sewaktu input manual di keyboard atau touchnya menyala". Setiap tekan tombol keypad kini memainkan bunyi klik singkat (Web Audio triangle 1400Hz, 70ms, reuse audioCtxRef, hormati tombol mute) DAN tombol menyala saat disentuh (active:bg teal untuk angka, amber untuk C, red untuk ⌫; active:scale tetap).
 - Terverifikasi e2e (spy AudioContext): 4 tekan tombol → 4 oscillator tercipta; class glow terpasang. ZIP di-build ulang.
+
+## 2026-09-25 — Bunyi klik juga di tombol utama kiosk
+- Persetujuan user atas saran: bunyi klik (clickSound) kini juga berbunyi saat menekan tombol utama "Absen Masuk/Pulang" dan tombol "Absen Manual" (submit NIS). Semua interaksi kiosk kini bersuara konsisten.
+- Terverifikasi e2e (spy AudioContext): klik tombol utama → oscillator tercipta; klik submit manual → oscillator tercipta. ZIP di-build ulang.
