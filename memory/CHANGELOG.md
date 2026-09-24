@@ -196,3 +196,8 @@
 - Akar masalah (direproduksi): mengetuk tombol "Absen Manual" memicu `onBlur` input NIS → layout kiosk kembali normal → tombol melompat dari top 223px ke 922px → klik tidak pernah mendarat di tombol. Fix: `onPointerDown={e => e.preventDefault()}` pada tombol submit agar input tetap fokus dan layout tidak bergeser saat tap.
 - Perbaikan tambahan: pesan error backend `too_early` dan `past_work_end` kini dipetakan ke pesan jelas ("Belum waktunya absen (mulai HH:MM)" / "Sudah lewat jam pulang (HH:MM)") di i18n ID+EN, menggantikan "Absen gagal" generik.
 - Terverifikasi e2e (mobile 390): tombol tidak lagi berpindah saat tap, request sampai ke backend, kartu hasil tampil benar (NIS tidak ditemukan / luar geofence / belum waktunya absen). ZIP di-build ulang.
+
+## 2026-09-24 — Keypad angka kustom di layar untuk absen manual NIS
+- Persetujuan user atas saran: input NIS kini readOnly (keyboard HP tidak pernah muncul); mengetuk kolom NIS masuk "mode manual" — kamera tersembunyi, keypad angka besar (1-9, 0, C=clear, ⌫=backspace, maks 12 digit) muncul di atas layar. Tombol "Absen Manual" jadi teal solid; tombol "Batal" menutup mode manual dan mengembalikan kamera. Mode manual tetap terbuka setelah sukses untuk absen beruntun yang cepat.
+- Testid baru: kiosk-keypad-0..9, kiosk-keypad-clear, kiosk-keypad-back, kiosk-manual-close.
+- Terverifikasi e2e (mobile 390): keypad muncul, ketik 10006, backspace berfungsi, submit → kartu sukses "Presensi berhasil Galang Remaja", tutup mode → kamera kembali. Data uji dibersihkan dari DB. ZIP di-build ulang.

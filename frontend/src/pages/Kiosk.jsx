@@ -466,17 +466,41 @@ export default function Kiosk() {
   // ---------- kiosk screen ----------
   const phaseText = { liveness: t("kiosk_liveness"), gps: t("kiosk_gps_getting"), sending: t("kiosk_processing") }[phase];
 
+  const pressKey = (k) => {
+    if (k === "back") setNisInput((v) => v.slice(0, -1));
+    else if (k === "clear") setNisInput("");
+    else setNisInput((v) => (v.length >= 12 ? v : v + k));
+  };
+
   const studentPanel = (
     <div className="w-full max-w-md md:max-w-xl lg:max-w-2xl space-y-3 pt-3 mt-1 border-t border-white/10" data-testid="kiosk-student-panel">
       <p className="text-center text-slate-500 text-xs">{t("kiosk_or_nis")}</p>
-      <input data-testid="kiosk-nis-input" value={nisInput} onChange={(e) => setNisInput(e.target.value)} inputMode="numeric"
-        onFocus={() => setNisFocused(true)} onBlur={() => setNisFocused(false)}
+      <input data-testid="kiosk-nis-input" value={nisInput} readOnly inputMode="none"
+        onFocus={() => setNisFocused(true)} onClick={() => setNisFocused(true)}
         placeholder={t("kiosk_nis")}
-        className="w-full text-center font-mono text-2xl tracking-widest rounded-2xl bg-white/5 border border-white/10 px-4 py-4 text-white outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 transition" />
-      <button data-testid="kiosk-student-submit" onPointerDown={(e) => e.preventDefault()} onClick={startStudentAttend} disabled={phase !== "idle" || !nisInput.trim()}
-        className="w-full bg-white/10 hover:bg-white/15 disabled:opacity-40 text-white font-bold text-base rounded-2xl py-4 transition-all active:scale-[0.98]">
+        className="w-full text-center font-mono text-2xl tracking-widest rounded-2xl bg-white/5 border border-white/10 px-4 py-4 text-white outline-none focus:border-teal-500 caret-transparent transition" />
+      {nisFocused && (
+        <div className="grid grid-cols-3 gap-2.5" data-testid="kiosk-keypad">
+          {["1","2","3","4","5","6","7","8","9"].map((d) => (
+            <button key={d} type="button" data-testid={`kiosk-keypad-${d}`} onClick={() => pressKey(d)}
+              className="py-4 md:py-5 rounded-2xl bg-white/10 hover:bg-white/15 text-white font-extrabold text-2xl transition-all active:scale-95">{d}</button>
+          ))}
+          <button type="button" data-testid="kiosk-keypad-clear" onClick={() => pressKey("clear")}
+            className="py-4 md:py-5 rounded-2xl bg-white/5 text-amber-400 font-extrabold text-xl transition-all active:scale-95">C</button>
+          <button type="button" data-testid="kiosk-keypad-0" onClick={() => pressKey("0")}
+            className="py-4 md:py-5 rounded-2xl bg-white/10 hover:bg-white/15 text-white font-extrabold text-2xl transition-all active:scale-95">0</button>
+          <button type="button" data-testid="kiosk-keypad-back" onClick={() => pressKey("back")}
+            className="py-4 md:py-5 rounded-2xl bg-white/5 text-red-400 font-extrabold text-xl transition-all active:scale-95">⌫</button>
+        </div>
+      )}
+      <button data-testid="kiosk-student-submit" onClick={startStudentAttend} disabled={phase !== "idle" || !nisInput.trim()}
+        className="w-full bg-teal-600 hover:bg-teal-500 disabled:opacity-40 text-white font-bold text-base rounded-2xl py-4 transition-all active:scale-[0.98]">
         {t("kiosk_nis_submit")}
       </button>
+      {nisFocused && (
+        <button data-testid="kiosk-manual-close" onClick={() => setNisFocused(false)}
+          className="w-full py-2.5 rounded-xl bg-white/5 text-slate-400 text-sm font-bold">{t("cancel")}</button>
+      )}
     </div>
   );
 
