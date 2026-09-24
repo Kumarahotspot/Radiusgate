@@ -64,6 +64,33 @@ export default function Kiosk() {
     window.speechSynthesis.speak(u);
   }, [muted, i18n.language]);
 
+  const audioCtxRef = useRef(null);
+  const chime = useCallback((up = true) => {
+    if (muted) return;
+    try {
+      const Ctx = window.AudioContext || window.webkitAudioContext;
+      if (!Ctx) return;
+      if (!audioCtxRef.current) audioCtxRef.current = new Ctx();
+      const ctx = audioCtxRef.current;
+      if (ctx.state === "suspended") ctx.resume();
+      const notes = up ? [659.25, 880] : [880, 659.25];
+      notes.forEach((f, i) => {
+        const o = ctx.createOscillator();
+        const g = ctx.createGain();
+        o.type = "sine";
+        o.frequency.value = f;
+        const t0 = ctx.currentTime + i * 0.18;
+        g.gain.setValueAtTime(0.0001, t0);
+        g.gain.exponentialRampToValueAtTime(0.25, t0 + 0.03);
+        g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.35);
+        o.connect(g);
+        g.connect(ctx.destination);
+        o.start(t0);
+        o.stop(t0 + 0.4);
+      });
+    } catch {}
+  }, [muted]);
+
   const loadInfo = useCallback(async (tk) => {
     try {
       const { data } = await axios.get(`${API}/kiosk/info`, { headers: { "X-Kiosk-Token": tk } });
@@ -251,6 +278,7 @@ export default function Kiosk() {
     setQueue(q);
     const name = teachers.find((x) => x.id === teacherId)?.name || "";
     setResult({ ok: true, offline: true, message: t("kiosk_offline"), name, photo });
+    chime(true);
     speak(`${t("kiosk_success")}. ${name}. ${t("kiosk_offline")}`);
     setPhase("result");
     setTimeout(() => { setPhase("idle"); setResult(null); setOfflinePick(false); }, 3500);
@@ -276,6 +304,7 @@ export default function Kiosk() {
         saveQueue(q);
         setQueue(q);
         setResult({ ok: true, offline: true, message: t("kiosk_offline"), name: nisInput.trim() });
+        chime(true);
         speak(`${t("kiosk_success")}. ${t("kiosk_offline")}`);
         setNisInput("");
         setPhase("result");
@@ -286,6 +315,7 @@ export default function Kiosk() {
         const { data } = await axios.post(`${API}/kiosk/attend-student`, payload, { headers: { "X-Kiosk-Token": token }, timeout: 20000 });
         const nm = data.name || data.student_name;
         setResult({ ok: true, name: nm, message: data.status === "late" ? `${t("kiosk_success")} · +${data.late_minutes}m` : t("kiosk_success") });
+        chime(true);
         speak(`${t("kiosk_success")}. ${nm}`);
         setNisInput("");
       } catch (err) {
@@ -345,6 +375,7 @@ export default function Kiosk() {
         const greet = customGreet.trim() || (attType === "in" ? t("kiosk_welcome") : t("kiosk_goodbye"));
         const successWord = attType === "in" ? t("kiosk_success") : t("kiosk_success_out");
         setResult({ ok: true, name: data.teacher_name, photo: f2, message: data.status === "late" ? `${t("kiosk_success")} · +${data.late_minutes}m` : t("kiosk_success"), late: data.status === "late" });
+        chime(attType === "in");
         speak(`${successWord}. ${data.teacher_name}. ${greet}`);
       } catch (err) {
         if (!err.response) {

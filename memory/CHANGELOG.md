@@ -169,3 +169,7 @@
 ## 2026-09-24 — Kartu konfirmasi absen layar penuh (foto + nama besar)
 - Persetujuan user atas saran: saat absen berhasil, kiosk menampilkan kartu konfirmasi layar penuh selama ±3 detik — hijau sukses dengan FOTO frame wajah yang baru ditangkap (bulat besar, tanpa perubahan backend karena frame sudah ada di frontend) + nama besar 4xl/6xl + pesan. Gagal → kartu merah. Absen NIS manual (tanpa foto) menampilkan avatar inisial. Jalur offline juga membawa foto.
 - Terverifikasi e2e: kartu sukses hijau (jalur offline, avatar inisial + nama + pesan) & kartu gagal merah (NIS tidak dikenal) tampil fullscreen lalu hilang otomatis; antrean offline palsu dibersihkan; mobile 390 tanpa overflow. ZIP di-build ulang.
+
+## 2026-09-24 — Bunyi "ding" merdu sebelum suara nama di kiosk
+- Persetujuan user atas saran: kartu sukses kini diawali chime Web Audio (2 nada sine E5→A5 untuk absen MASUK, turun A5→E5 untuk PULANG), diputar sebelum TTS nama; di semua jalur sukses (wajah, NIS manual, antrean offline). Hormati tombol mute; tanpa file audio eksternal (AudioContext oscillator, audioCtxRef di-reuse).
+- Terverifikasi e2e (spy AudioContext): ≥2 oscillator tercipta saat kartu sukses muncul. ZIP di-build ulang.
