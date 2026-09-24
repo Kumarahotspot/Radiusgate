@@ -5,17 +5,20 @@ import api, { errMsg } from "@/api";
 import {
   ScanFace, MapPin, WifiOff, Tablet, Receipt, Send, Languages, Volume2,
   UserPlus, Camera, FileCheck, MonitorSmartphone, ArrowRight, Check,
-  Wallet, QrCode, BellRing, FileText, MessageCircle,
+  Wallet, QrCode, BellRing, FileText, MessageCircle, Nfc, Keyboard,
 } from "lucide-react";
 
 const FEATURES = [
   { icon: ScanFace, badge: "Keamanan AI", title: "Face Recognition ArcFace + Liveness", desc: "AI mengenali wajah siswa & guru dalam hitungan detik, dan menolak kecurangan memakai foto/video HP.", wide: true },
+  { icon: Nfc, badge: "Kartu RFID", title: "Absen Tap Kartu RFID/NFC", desc: "Tempel kartu di reader USB/OTG — langsung tercatat tanpa menyentuh layar. Tersedia mode registrasi kartu massal dari kiosk.", wide: true },
+  { icon: QrCode, badge: "QR Auto-Deteksi", title: "Kartu QR Code Otomatis", desc: "QR unik anti-palsu dibuat otomatis untuk setiap siswa/guru/karyawan, terdeteksi kamera kiosk tanpa tombol, dan bisa dicetak massal per kelas dalam 1 PDF.", wide: true },
+  { icon: Keyboard, badge: "Cadangan", title: "NIS/NIP Manual + Keypad Layar", desc: "Tanpa wajah/kartu? Ketik NIS atau NIP lewat keypad angka besar di layar kiosk — lengkap bunyi klik & foto profil konfirmasi." },
+  { icon: MonitorSmartphone, badge: "Bebas Pilih", title: "Sekolah Menentukan Metodenya Sendiri", desc: "Wajah, tap kartu RFID, scan QR, atau NIS manual — semua modul tersedia dalam satu kiosk dan bisa dipakai bersamaan sesuai kebijakan sekolah.", wide: true },
   { icon: MapPin, badge: "Akurasi Lokasi", title: "GPS Geofence", desc: "Absensi hanya sah di dalam radius area sekolah yang ditentukan admin." },
   { icon: WifiOff, badge: "Anti Gangguan", title: "Offline-First Sync", desc: "Internet sekolah down? Absensi tetap jalan dan tersinkron otomatis saat online kembali." },
   { icon: Tablet, badge: "Hemat Biaya", title: "Kiosk Web di HP/Tablet", desc: "Ubah tablet atau HP bekas menjadi mesin absensi canggih — tanpa beli hardware mahal." },
   { icon: Receipt, badge: "Per-Siswa", title: "Billing Otomatis", desc: "Tagihan dihitung transparan dari jumlah siswa aktif setiap bulan." },
   { icon: Wallet, badge: "SPP Online", title: "Pembayaran Uang Sekolah", desc: "Tagihan SPP & cicilan dengan portal orang tua, kuitansi PDF otomatis, dan pengingat WhatsApp.", wide: true },
-  { icon: QrCode, badge: "Multi Payment Gateway", title: "QRIS, VA & E-Wallet", desc: "Terima pembayaran dari semua channel: QRIS, Virtual Account bank, e-wallet, sampai gerai retail — satu integrasi." },
   { icon: Send, badge: "Otomasi", title: "Invoice PDF via Email & WA", desc: "Invoice dan rekap kehadiran terkirim otomatis ke email & WhatsApp." },
   { icon: Languages, badge: "Bilingual", title: "Dwibahasa ID / EN", desc: "Seluruh portal dan kiosk mendukung Bahasa Indonesia & Inggris." },
   { icon: Volume2, badge: "Audio", title: "Umpan Balik Suara", desc: "Sapaan suara real-time memberi konfirmasi langsung saat absen berhasil." },
@@ -222,7 +225,7 @@ export default function Landing() {
       <section id="fitur" className="bg-white border-y border-slate-100">
         <div className="max-w-6xl mx-auto px-4 py-20">
           <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-center">Fitur Lengkap untuk Sekolah Indonesia</h2>
-          <p className="text-slate-500 text-sm sm:text-base text-center mt-3 max-w-2xl mx-auto">Satu platform untuk presensi wajah, geofence GPS, laporan, sampai penagihan otomatis.</p>
+          <p className="text-slate-500 text-sm sm:text-base text-center mt-3 max-w-2xl mx-auto">Satu platform untuk presensi wajah, kartu RFID, QR code, NIS manual, geofence GPS, laporan, sampai penagihan otomatis — sekolah bebas memilih metode yang dipakai.</p>
           <div ref={featRef} className="mt-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             {FEATURES.map((f, i) => (
               <div key={f.title} data-testid={`feature-${f.title.slice(0, 12).replace(/\W+/g, "-").toLowerCase()}`} style={{ animationDelay: `${i * 90}ms` }}

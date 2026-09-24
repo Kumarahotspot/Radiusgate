@@ -301,3 +301,7 @@
 - Persetujuan user atas saran: endpoint baru `GET /api/admin/qrcodes-pdf?class_name=` (admin) — menghasilkan PDF A4 berisi 6 kartu QR per halaman (2x3, QR 62mm agar mudah discan), tiap kartu: nama sekolah, QR (auto-generate qr_token bila belum ada), nama siswa, NIS + kelas. Urut per kelas lalu nama. Tanpa param = semua siswa aktif.
 - Frontend: tombol "Kartu QR (PDF)" (testid qr-pdf-btn) di toolbar halaman Siswa, unduh blob sebagai kartu-qr-siswa.pdf. i18n qr_cards_pdf (ID/EN).
 - Terverifikasi: PDF valid (%PDF, multi-halaman sesuai jumlah siswa). ZIP di-build ulang.
+
+## 2026-09-25 — Landing page: fitur RFID/QR/NIS + bebas pilih metode
+- Permintaan user: "update landing page fitur RFID barcode, sehingga sekolah bisa menentukan pilihannya sendiri, semua module tersedia". Section Fitur di Landing.jsx kini menampilkan 13 kartu termasuk: "Absen Tap Kartu RFID/NFC" (wide), "Kartu QR Code Otomatis" (wide, auto-generate + cetak massal PDF), "NIS/NIP Manual + Keypad Layar", dan kartu khusus "Sekolah Menentukan Metodenya Sendiri" (wide) yang menegaskan semua modul bisa dipakai bersamaan. Subjudul section diperbarui menyebut semua metode + kebebasan memilih.
+- Terverifikasi e2e (desktop + mobile 390): semua kartu fitur tampil, tidak ada overflow horizontal. ZIP di-build ulang.
