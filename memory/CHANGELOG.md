@@ -305,3 +305,7 @@
 ## 2026-09-25 — Landing page: fitur RFID/QR/NIS + bebas pilih metode
 - Permintaan user: "update landing page fitur RFID barcode, sehingga sekolah bisa menentukan pilihannya sendiri, semua module tersedia". Section Fitur di Landing.jsx kini menampilkan 13 kartu termasuk: "Absen Tap Kartu RFID/NFC" (wide), "Kartu QR Code Otomatis" (wide, auto-generate + cetak massal PDF), "NIS/NIP Manual + Keypad Layar", dan kartu khusus "Sekolah Menentukan Metodenya Sendiri" (wide) yang menegaskan semua modul bisa dipakai bersamaan. Subjudul section diperbarui menyebut semua metode + kebebasan memilih.
 - Terverifikasi e2e (desktop + mobile 390): semua kartu fitur tampil, tidak ada overflow horizontal. ZIP di-build ulang.
+
+## 2026-09-25 — Rapi: grid fitur landing page tanpa lubang
+- Laporan user (screenshot): ada lubang kosong di grid fitur karena 5 kartu wide (col-span-2) + 8 normal = 18 kolom tidak habis dibagi 4. Fix: hanya 3 kartu wide (Face, RFID, QR) di awal + 10 kartu normal = 16 kolom = 4 baris penuh sempurna di desktop (juga genap di md 2-kolom). Urutan disusun agar tiap baris terisi penuh.
+- Terverifikasi e2e: setiap baris grid terisi ~100%, tidak ada overflow mobile. ZIP di-build ulang.
