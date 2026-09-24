@@ -85,7 +85,11 @@
 - Permintaan user: "logo radiusgate kecilkan sedikit" → logo di header portal (Layout.jsx) dari w-11/h-11 (44px) menjadi w-9/h-9 (36px), menyamai ukuran logo navbar landing yang sebelumnya disetujui. Berlaku semua role, desktop & mobile.
 - ZIP Hostinger di-build ulang berisi perubahan ini.
 
-## 2026-09-24 — Nama pengguna pindah ke menu avatar kanan atas (semua role)
+## 2026-09-24 — Pintasan Ganti Password di dropdown avatar
+- Persetujuan user atas saran: dropdown avatar kini punya item "Ganti Password" (`user-menu-password`) untuk semua role non-ortu, membuka modal (`pw-modal`) berisi password saat ini + baru → POST /auth/change-password (endpoint sudah ada). Ortu tetap via tab Profil.
+- Reuse key i18n yang ada: change_password, current_password, new_password, password_changed, wrong_current_password, cancel, save, loading.
+- Terverifikasi e2e browser: password salah ditolak (toast), ganti Guru123!→Guru456! sukses + login ulang dengan password baru berhasil, dikembalikan ke Guru123! (kredensial demo stabil), modal tertutup, tanpa overflow mobile 390.
+- ZIP Hostinger di-build ulang berisi fitur ini.
 - Permintaan user (contoh RadiusLink): "admin Nusantara dipindah spt contoh" — teks "Portal X · Nama" di bawah logo membungkus 3 baris di HP; nama dipindah ke kanan atas sebagai menu avatar.
 - Layout.jsx: label kiri kini hanya nama portal (1 baris). Menu avatar (inisial + nama + chevron) kini berlaku untuk SEMUA role (sebelumnya hanya ortu); dropdown berisi identitas (nama + portal, `user-menu-name`), item Profil khusus ortu, dan Keluar. Tombol "Keluar" lama (`logout-btn`) dihapus — testid logout baru: `user-menu-logout`.
 - Terverifikasi screenshot: mobile 390 — label kiri 1 baris, avatar tampil, dropdown menampilkan "Admin Nusantara / Portal Admin Sekolah" + Keluar (tanpa Profil utk admin), logout kembali ke /login; desktop 1920 — nama tampil di tombol avatar, nav utuh.

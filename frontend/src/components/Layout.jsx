@@ -2,12 +2,13 @@ import { NavLink, Outlet, useNavigate, useLocation } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useAuth, homeFor } from "../context/AuthContext";
-import api from "../api";
+import { toast } from "sonner";
+import api, { errMsg } from "../api";
 import LangSwitch from "./LangSwitch";
 import {
   LayoutDashboard, School, FileText, Users, GraduationCap, Settings,
   CalendarClock, BarChart3, CreditCard, LogOut, ScanFace, MonitorSmartphone, Bell, Inbox,
-  Briefcase, Timer, Wallet, BookOpen, User, ChevronDown, Menu, X,
+  Briefcase, Timer, Wallet, BookOpen, User, ChevronDown, Menu, X, KeyRound,
 } from "lucide-react";
 
 const menus = {
@@ -70,6 +71,10 @@ export default function Layout() {
   const [pendingLeaves, setPendingLeaves] = useState(0);
   const [pendingOvertime, setPendingOvertime] = useState(0);
   const [studentLeaveToday, setStudentLeaveToday] = useState(0);
+  const [pwOpen, setPwOpen] = useState(false);
+  const [pwCur, setPwCur] = useState("");
+  const [pwNew, setPwNew] = useState("");
+  const [pwBusy, setPwBusy] = useState(false);
   useEffect(() => {
     if (user?.role === "school_admin")
       api.get("/admin/stats").then((r) => {
@@ -87,6 +92,15 @@ export default function Layout() {
   const initials = (user.name || "?").split(" ").map((w) => w[0]).filter(Boolean).slice(0, 2).join("").toUpperCase();
   const pendingMap = { leaves: pendingLeaves, overtime: pendingOvertime, student_status_menu: studentLeaveToday };
   const pendingTotal = pendingLeaves + pendingOvertime + studentLeaveToday;
+  const changePw = async (e) => {
+    e.preventDefault();
+    setPwBusy(true);
+    try {
+      await api.post("/auth/change-password", { current_password: pwCur, new_password: pwNew });
+      toast.success(t("password_changed"));
+      setPwOpen(false); setPwCur(""); setPwNew("");
+    } catch (err) { toast.error(errMsg(err)); } finally { setPwBusy(false); }
+  };
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -135,6 +149,12 @@ export default function Layout() {
                     <button data-testid="user-menu-profile" onClick={() => { setMenuOpen(false); nav("/ortu?tab=profile"); }}
                       className="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-teal-700 transition-colors">
                       <User className="w-4 h-4" /> {t("profile")}
+                    </button>
+                  )}
+                  {user.role !== "parent" && (
+                    <button data-testid="user-menu-password" onClick={() => { setMenuOpen(false); setPwOpen(true); }}
+                      className="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-teal-700 transition-colors">
+                      <KeyRound className="w-4 h-4" /> {t("change_password")}
                     </button>
                   )}
                   <div className="my-1 border-t border-slate-100" />
@@ -204,6 +224,30 @@ export default function Layout() {
             })}
           </div>
         </nav>
+      )}
+      {pwOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4" onClick={() => setPwOpen(false)}>
+          <form data-testid="pw-modal" onSubmit={changePw} onClick={(e) => e.stopPropagation()}
+            className="w-full max-w-sm bg-white rounded-2xl p-5 space-y-3 shadow-xl">
+            <p className="font-bold text-slate-800 text-sm">{t("change_password")}</p>
+            <div>
+              <label className="text-xs font-semibold text-slate-500">{t("current_password")}</label>
+              <input data-testid="pw-current" type="password" required value={pwCur} onChange={(e) => setPwCur(e.target.value)}
+                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-600/15 transition" />
+            </div>
+            <div>
+              <label className="text-xs font-semibold text-slate-500">{t("new_password")}</label>
+              <input data-testid="pw-new" type="password" required minLength={6} value={pwNew} onChange={(e) => setPwNew(e.target.value)}
+                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-600/15 transition" />
+            </div>
+            <div className="flex gap-2 pt-1">
+              <button type="button" data-testid="pw-cancel" onClick={() => setPwOpen(false)}
+                className="flex-1 rounded-xl border border-slate-200 px-3 py-2.5 text-xs font-bold text-slate-600 hover:bg-slate-50 transition-colors">{t("cancel")}</button>
+              <button data-testid="pw-submit" disabled={pwBusy}
+                className="flex-1 rounded-xl bg-teal-700 hover:bg-teal-800 text-white px-3 py-2.5 text-xs font-bold transition-colors disabled:opacity-50">{pwBusy ? t("loading") : t("save")}</button>
+            </div>
+          </form>
+        </div>
       )}
     </div>
   );
