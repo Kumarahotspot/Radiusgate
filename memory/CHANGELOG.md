@@ -106,7 +106,7 @@
 - Data demo: Budi/Kumara/Lukman = L, Siti Nuriyah = P.
 - Terverifikasi: curl PATCH gender (normalisasi "perempuan"→P), meta mengembalikan gender, UI form tampil, spy TTS pitch sesuai gender. ZIP di-build ulang.
 - CATATAN: mode offline Absen Mapel (disetujui user) masih antre dikerjakan.
-- Penyesuaian (uji user): pitch suara pria dinaikkan 0.8 → 0.9 (semula terlalu berat); suara wanita tetap 1.1. ZIP di-build ulang.
+- Penyesuaian (uji user): pitch suara pria dinaikkan 0.8 → 0.9 → 1.0 (natural seperti orang memanggil absen; semula terlalu berat); suara wanita tetap 1.1. ZIP di-build ulang.
 
 ## 2026-09-24 — Nama pengguna pindah ke menu avatar kanan atas (semua role)
 - Permintaan user (contoh RadiusLink): "admin Nusantara dipindah spt contoh" — teks "Portal X · Nama" di bawah logo membungkus 3 baris di HP; nama dipindah ke kanan atas sebagai menu avatar.
