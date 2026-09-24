@@ -291,3 +291,8 @@
 ## 2026-09-25 — Tombol QR juga di tabel Karyawan
 - Laporan user: "di karyawan di tabel blom ada QR nya". Ditambahkan tombol QR per baris karyawan (modal QrModal, ptype "employee") — backend qrcodes endpoint memang sudah mendukung employees. Ikon indikator kartu NFC juga sudah ada sebelumnya.
 - Terverifikasi e2e: tombol QR tampil di tabel Karyawan, modal terbuka dengan QR ter-render + nama. ZIP di-build ulang.
+
+## 2026-09-25 — Mode "Registrasi Kartu" di kiosk
+- Permintaan user: mode registrasi kartu massal di kiosk. Implementasi: tombol ikon NFC di overlay kamera → modal login admin sekolah (email+password, diverifikasi via /auth/me role school_admin) → layar registrasi: cari nama (siswa+guru+karyawan gabungan), pilih nama → panel "Tempelkan kartu untuk: <nama>" → tap kartu RFID → UID tersimpan via PATCH admin (banner hijau "Kartu tersimpan: Nama · UID") → otomatis kembali ke daftar untuk nama berikutnya. Baris yang sudah punya kartu menampilkan ikon NFC teal; jika dipilih lagi ada peringatan ganti kartu. Tombol "Selesai" keluar & membersihkan sesi admin (token hanya di memori). Listener RFID diarahkan ke regSave saat mode aktif (bukan absen).
+- Testid: kiosk-reg-btn, reg-login-modal, reg-email, reg-password, reg-login-submit, reg-screen, reg-search, reg-pick-*, reg-tap-panel, reg-msg, reg-done. i18n ID/EN: reg_* + login_failed + student/teacher/employee.
+- Terverifikasi e2e (mobile 390): login admin → cari "Galang" → pilih → tap kartu 7778889990 → tersimpan → kembali ke daftar → keluar OK. Data uji dibersihkan. ZIP di-build ulang.

@@ -4,7 +4,7 @@ import axios from "axios";
 import jsQR from "jsqr";
 import LangSwitch from "../components/LangSwitch";
 import { captureFrame, startCamera } from "../components/CameraCapture";
-import { ScanFace, Volume2, VolumeX, WifiOff, LogIn, LogOut, Unplug, Maximize2, Minimize2, Users, QrCode } from "lucide-react";
+import { ScanFace, Volume2, VolumeX, WifiOff, LogIn, LogOut, Unplug, Maximize2, Minimize2, Users, QrCode, Nfc, Search } from "lucide-react";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 const Q_KEY = "kiosk_queue";
@@ -31,6 +31,18 @@ export default function Kiosk() {
   const [nisFocused, setNisFocused] = useState(false);
   const [autoQ, setAutoQ] = useState(localStorage.getItem("kiosk_autoq") === "1");
   const autoQRef = useRef(localStorage.getItem("kiosk_autoq") === "1");
+  const [regAsk, setRegAsk] = useState(false);
+  const [regOn, setRegOn] = useState(false);
+  const [regEmail, setRegEmail] = useState("");
+  const [regPw, setRegPw] = useState("");
+  const [regBusy, setRegBusy] = useState(false);
+  const [regToken, setRegToken] = useState("");
+  const [regList, setRegList] = useState([]);
+  const [regQuery, setRegQuery] = useState("");
+  const [regSel, setRegSel] = useState(null);
+  const [regMsg, setRegMsg] = useState(null);
+  const regRef = useRef({ on: false, sel: null });
+  const regSaveRef = useRef(null);
   const idleSinceRef = useRef(Date.now());
   const lastErrRef = useRef("");
   const lastQrRef = useRef({ data: "", ts: 0 });
@@ -498,6 +510,70 @@ export default function Kiosk() {
     }
   };
 
+  // ---------- mode Registrasi Kartu (khusus admin sekolah) ----------
+  const regLogin = async (e) => {
+    e.preventDefault();
+    if (regBusy) return;
+    setRegBusy(true);
+    setRegMsg(null);
+    try {
+      const { data } = await axios.post(`${API}/auth/login`, { email: regEmail.trim(), password: regPw });
+      const me = await axios.get(`${API}/auth/me`, { headers: { Authorization: `Bearer ${data.token}` } });
+      if (me.data.role !== "school_admin") { setRegMsg({ ok: false, text: t("reg_not_admin") }); return; }
+      const H = { headers: { Authorization: `Bearer ${data.token}` } };
+      const [st, tc, em] = await Promise.all([
+        axios.get(`${API}/admin/students`, H),
+        axios.get(`${API}/admin/teachers`, H),
+        axios.get(`${API}/admin/employees`, H),
+      ]);
+      setRegList([
+        ...st.data.map((p) => ({ ...p, ptype: "student", nisx: p.nis })),
+        ...tc.data.map((p) => ({ ...p, ptype: "teacher", nisx: p.nip })),
+        ...em.data.map((p) => ({ ...p, ptype: "employee", nisx: p.nip })),
+      ]);
+      setRegToken(data.token);
+      setRegOn(true);
+      setRegAsk(false);
+      setRegPw("");
+      setRegMsg(null);
+    } catch {
+      setRegMsg({ ok: false, text: t("login_failed") });
+    } finally {
+      setRegBusy(false);
+    }
+  };
+
+  const regSave = async (uid) => {
+    const sel = regRef.current.sel;
+    if (!sel) { setRegMsg({ ok: false, text: t("reg_select_first") }); setTimeout(() => setRegMsg(null), 2000); return; }
+    const path = { student: "students", teacher: "teachers", employee: "employees" }[sel.ptype];
+    try {
+      await axios.patch(`${API}/admin/${path}/${sel.id}`, { card_uid: uid }, { headers: { Authorization: `Bearer ${regToken}` } });
+      clickSound();
+      chime(true);
+      setRegList((l) => l.map((p) => (p.id === sel.id && p.ptype === sel.ptype ? { ...p, card_uid: uid } : p)));
+      setRegMsg({ ok: true, text: `${t("reg_saved")}: ${sel.name} · ${uid}` });
+      setRegSel(null);
+      setTimeout(() => setRegMsg(null), 2500);
+    } catch {
+      chime(false);
+      setRegMsg({ ok: false, text: t("kiosk_failed") });
+      setTimeout(() => setRegMsg(null), 2500);
+    }
+  };
+  regSaveRef.current = regSave;
+
+  const regExit = () => {
+    setRegOn(false);
+    setRegToken("");
+    setRegList([]);
+    setRegSel(null);
+    setRegQuery("");
+    setRegMsg(null);
+  };
+
+  useEffect(() => { regRef.current = { on: regOn, sel: regSel }; }, [regOn, regSel]);
+
   // ---------- absen via kartu RFID (reader USB/OTG mode keyboard: mengetik UID lalu Enter) ----------
   const attendCard = async (uid) => {
     if (busyRef.current || phase !== "idle") return;
@@ -544,7 +620,10 @@ export default function Kiosk() {
       if (now - last > 200) buf = ""; // reader RFID mengetik sangat cepat; jeda panjang = ketik manual
       last = now;
       if (e.key === "Enter") {
-        if (buf.length >= 6 && !busyRef.current && phase === "idle") { clickSound(); attendCard(buf); }
+        if (buf.length >= 6) {
+          if (regRef.current.on) { regSaveRef.current?.(buf); }
+          else if (!busyRef.current && phase === "idle") { clickSound(); attendCard(buf); }
+        }
         buf = "";
         return;
       }
@@ -741,6 +820,10 @@ export default function Kiosk() {
               className={`p-2 rounded-xl backdrop-blur-sm transition-colors ${autoQ ? "bg-teal-600/80 text-white" : "bg-black/40 text-slate-200 hover:bg-black/60"}`}>
               <Users className="w-4 h-4" />
             </button>
+            <button data-testid="kiosk-reg-btn" onClick={() => { clickSound(); setRegAsk(true); setRegMsg(null); }} title={t("reg_cards")}
+              className="p-2 rounded-xl bg-black/40 backdrop-blur-sm text-slate-200 hover:bg-black/60 transition-colors">
+              <Nfc className="w-4 h-4" />
+            </button>
             <button data-testid="kiosk-unpair-btn" onClick={unpair} className="p-2 rounded-xl bg-black/40 backdrop-blur-sm text-slate-200 hover:bg-black/60 transition-colors"><Unplug className="w-4 h-4" /></button>
           </div>
           <div className={`absolute inset-6 rounded-2xl border-2 border-dashed pointer-events-none transition-colors ${phase === "liveness" ? "border-amber-400 animate-pulse" : "border-teal-500/40"}`} />
@@ -752,7 +835,83 @@ export default function Kiosk() {
               <p data-testid="kiosk-phase-text" className="text-white font-bold text-lg md:text-2xl animate-pulse">{phaseText}</p>
             </div>
           )}
-          {phase === "result" && result && (
+          {/* login admin untuk registrasi kartu */}
+      {regAsk && (
+        <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4" data-testid="reg-login-modal">
+          <form onSubmit={regLogin} className="bg-slate-900 border border-white/10 rounded-3xl w-full max-w-sm p-6 space-y-4">
+            <p className="text-white font-extrabold text-lg text-center">{t("reg_cards")}</p>
+            <p className="text-slate-400 text-xs text-center">{t("reg_admin_only")}</p>
+            <input data-testid="reg-email" type="email" required value={regEmail} onChange={(e) => setRegEmail(e.target.value)}
+              placeholder="Email admin" autoComplete="username"
+              className="w-full rounded-2xl bg-white/5 border border-white/10 px-4 py-3.5 text-white outline-none focus:border-teal-500 transition" />
+            <input data-testid="reg-password" type="password" required value={regPw} onChange={(e) => setRegPw(e.target.value)}
+              placeholder={t("password")} autoComplete="current-password"
+              className="w-full rounded-2xl bg-white/5 border border-white/10 px-4 py-3.5 text-white outline-none focus:border-teal-500 transition" />
+            {regMsg && !regMsg.ok && <p className="text-red-400 text-sm text-center font-bold" data-testid="reg-login-error">{regMsg.text}</p>}
+            <button data-testid="reg-login-submit" disabled={regBusy}
+              className="w-full bg-teal-600 hover:bg-teal-500 disabled:opacity-40 text-white font-bold rounded-2xl py-3.5 transition-all active:scale-[0.98]">
+              {regBusy ? "…" : t("login")}
+            </button>
+            <button type="button" data-testid="reg-login-cancel" onClick={() => setRegAsk(false)}
+              className="w-full bg-white/5 text-slate-400 font-bold rounded-2xl py-3 transition-all">{t("cancel")}</button>
+          </form>
+        </div>
+      )}
+
+      {/* layar registrasi kartu */}
+      {regOn && (
+        <div className="fixed inset-0 z-50 bg-[#0B1320] flex flex-col" data-testid="reg-screen">
+          <div className="flex items-center justify-between px-5 py-4 border-b border-white/10">
+            <p className="text-white font-extrabold text-lg flex items-center gap-2"><Nfc className="w-5 h-5 text-teal-400" /> {t("reg_cards")}</p>
+            <button data-testid="reg-done" onClick={regExit}
+              className="bg-white/10 hover:bg-white/15 text-white font-bold text-sm rounded-xl px-4 py-2 transition-all active:scale-95">{t("reg_done")}</button>
+          </div>
+          {regMsg && (
+            <div data-testid="reg-msg" className={`mx-5 mt-4 rounded-2xl px-4 py-3 text-center font-bold text-sm ${regMsg.ok ? "bg-emerald-600/80 text-white" : "bg-red-600/80 text-white"}`}>
+              {regMsg.text}
+            </div>
+          )}
+          {regSel ? (
+            <div className="flex-1 flex flex-col items-center justify-center gap-4 px-6" data-testid="reg-tap-panel">
+              <Nfc className="w-20 h-20 text-teal-400 animate-pulse" />
+              <p className="text-slate-400 text-sm">{t("reg_tap_for")}</p>
+              <p className="text-white font-extrabold text-3xl text-center">{regSel.name}</p>
+              <p className="text-slate-400 font-mono text-lg">{regSel.nisx}</p>
+              {regSel.card_uid && <p className="text-amber-400 text-sm font-bold">{t("card_registered")}: {regSel.card_uid} · {t("reg_replace_hint")}</p>}
+              <button data-testid="reg-cancel-sel" onClick={() => setRegSel(null)}
+                className="mt-2 bg-white/10 text-slate-300 font-bold rounded-xl px-6 py-2.5">{t("cancel")}</button>
+            </div>
+          ) : (
+            <>
+              <div className="px-5 pt-4">
+                <div className="relative">
+                  <Search className="w-4 h-4 text-slate-500 absolute left-4 top-1/2 -translate-y-1/2" />
+                  <input data-testid="reg-search" value={regQuery} onChange={(e) => setRegQuery(e.target.value)}
+                    placeholder={t("reg_search_ph")}
+                    className="w-full rounded-2xl bg-white/5 border border-white/10 pl-11 pr-4 py-3.5 text-white outline-none focus:border-teal-500 transition" />
+                </div>
+              </div>
+              <div className="flex-1 overflow-y-auto px-5 py-4 space-y-2" data-testid="reg-list">
+                {regList
+                  .filter((p) => { const q = regQuery.trim().toLowerCase(); return !q || p.name.toLowerCase().includes(q) || String(p.nisx || "").toLowerCase().includes(q); })
+                  .slice(0, 60)
+                  .map((p) => (
+                    <button key={`${p.ptype}-${p.id}`} data-testid={`reg-pick-${p.ptype}-${p.id}`} onClick={() => { clickSound(); setRegSel(p); }}
+                      className="w-full flex items-center gap-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl px-4 py-3.5 text-left transition-all active:scale-[0.99]">
+                      <span className="flex-1 min-w-0">
+                        <span className="block text-white font-bold truncate">{p.name}</span>
+                        <span className="block text-slate-500 text-xs font-mono">{p.nisx || "-"} · {p.ptype === "student" ? t("student") : p.ptype === "teacher" ? t("teacher") : t("employee")}</span>
+                      </span>
+                      <Nfc className={`w-5 h-5 ${p.card_uid ? "text-teal-400" : "text-slate-600"}`} />
+                    </button>
+                  ))}
+              </div>
+            </>
+          )}
+        </div>
+      )}
+
+      {phase === "result" && result && (
             <div data-testid="kiosk-result" className={`fixed inset-0 z-40 flex flex-col items-center justify-center gap-3 md:gap-5 p-6 ${result.ok ? "bg-emerald-600/95" : "bg-red-600/90"}`}>
               {result.ok && (result.photo ? (
                 <img src={result.photo} alt="" data-testid="kiosk-result-photo"
