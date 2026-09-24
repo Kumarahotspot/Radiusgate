@@ -123,6 +123,7 @@
 - ZIP Hostinger di-build ulang berisi fitur ini.
 - Revisi voice (keputusan user, opsi b): voice panggil **kembali ke suara perangkat sepenuhnya** — jalur cloud TTS di frontend dihapus (aksen Inggris OpenAI tidak disukai user). Suara perangkat id-ID: wanita pitch 1.1, pria pitch **0.8** (keputusan final user setelah mencoba 0.85/0.9/1.0). Endpoint backend `/teacher/tts` dibiarkan dormant (teruji, siap dipakai lagi bila nanti beralih ke ElevenLabs). Terverifikasi spy: speechSynthesis lang id-ID, nol panggilan cloud. ZIP di-build ulang.
 - Diagnosa "suara masih wanita" (laporan user): akar masalah GANDA — (1) bundle radiusgate.id **kedaluwarsa** (main.8e7a1329.js = build ~08:14, belum memuat fitur gender+voice; dibuktikan grep bundle live: teacher-gender/pitch= = 0), (2) guru Muhamad Aziz (SMK Perwira Bangsa) belum punya gender → diset 'L' via DB. Solusi ke user: upload ZIP terbaru + hard-refresh HP.
+- **Fix bug nyata (laporan user "di Emergent pun masih wanita")**: payload PATCH modal Ubah Guru di Teachers.jsx TIDAK menyertakan field `gender` — pilihan jenis kelamin di modal edit tidak pernah tersimpan ke server (form tambah sudah benar via `...form`). Ditambahkan `...(editFor.gender ? { gender: editFor.gender } : {})`. Inilah penyebab user memilih "pria" tapi voice tetap wanita.
 
 ## 2026-09-24 — Nama pengguna pindah ke menu avatar kanan atas (semua role)
 - Permintaan user (contoh RadiusLink): "admin Nusantara dipindah spt contoh" — teks "Portal X · Nama" di bawah logo membungkus 3 baris di HP; nama dipindah ke kanan atas sebagai menu avatar.

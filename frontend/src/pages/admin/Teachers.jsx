@@ -32,6 +32,7 @@ export default function Teachers() {
         name: editFor.name, nip: editFor.nip,
         subject: [editFor.subject, (editFor.subject_other || "").trim()].filter(Boolean).join(", "),
         active: !!editFor.active, classes: editFor.classes || "",
+        ...(editFor.gender ? { gender: editFor.gender } : {}),
         ...(editFor.new_password?.trim() ? { password: editFor.new_password.trim() } : {}),
       });
       toast.success(t("save"));
