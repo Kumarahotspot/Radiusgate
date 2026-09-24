@@ -498,6 +498,62 @@ export default function Kiosk() {
     }
   };
 
+  // ---------- absen via kartu RFID (reader USB/OTG mode keyboard: mengetik UID lalu Enter) ----------
+  const attendCard = async (uid) => {
+    if (busyRef.current || phase !== "idle") return;
+    busyRef.current = true;
+    setResult(null);
+    try {
+      setPhase("sending");
+      let coords = null;
+      try { coords = await getGps(); } catch { coords = null; }
+      const { data } = await axios.post(`${API}/kiosk/attend-card`, {
+        uid, type: attType, lat: coords?.lat ?? 0, lng: coords?.lng ?? 0,
+        ts_device: localIso(), client_uuid: crypto.randomUUID(),
+      }, { headers: { "X-Kiosk-Token": token }, timeout: 20000 });
+      const nm = data.name || data.student_name;
+      setResult({ ok: true, name: nm, photo: data.photo || "", message: data.status === "late" ? `${t("kiosk_success")} · +${data.late_minutes}m` : t("kiosk_success") });
+      chime(attType === "in");
+      speak(`${t("kiosk_success")}. ${nm}`);
+      lastErrRef.current = "";
+    } catch (err) {
+      const d = err.response?.data?.detail || "";
+      let msg = t("kiosk_failed");
+      if (d === "card_unknown") msg = t("card_unknown");
+      else if (d === "already_recorded") msg = t("kiosk_already");
+      else if (d === "no_checkin") msg = t("kiosk_no_checkin");
+      else if (d.startsWith("outside_geofence")) msg = t("kiosk_outside");
+      else if (d.startsWith("too_early")) { const p = d.split(":"); msg = t("kiosk_too_early", { time: `${p[1]}:${p[2]}` }); }
+      else if (d.startsWith("not_dismissal_time")) msg = t("kiosk_not_dismissal_time", { name: d.split(":")[1] });
+      setResult({ ok: false, message: msg });
+      speak(`${t("kiosk_failed")}. ${msg}`);
+    }
+    setPhase("result");
+    setTimeout(() => { setPhase("idle"); setResult(null); }, 3000);
+    busyRef.current = false;
+  };
+
+  useEffect(() => {
+    if (!token || !info) return;
+    let buf = "";
+    let last = 0;
+    const onKey = (e) => {
+      const el = document.activeElement;
+      if (el && (el.tagName === "INPUT" || el.tagName === "TEXTAREA") && !el.readOnly) { buf = ""; return; }
+      const now = Date.now();
+      if (now - last > 200) buf = ""; // reader RFID mengetik sangat cepat; jeda panjang = ketik manual
+      last = now;
+      if (e.key === "Enter") {
+        if (buf.length >= 6 && !busyRef.current && phase === "idle") { clickSound(); attendCard(buf); }
+        buf = "";
+        return;
+      }
+      if (e.key.length === 1) buf += e.key;
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [token, info, phase, attType]);
+
   // ---------- absen via QR code ----------
   const attendQr = async (qrData) => {
     setResult(null);

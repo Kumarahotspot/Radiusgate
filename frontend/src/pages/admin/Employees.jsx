@@ -5,7 +5,7 @@ import api, { errMsg } from "../../api";
 import CameraCapture from "../../components/CameraCapture";
 import { Plus, ScanFace, Trash2, CheckCircle2, Circle, Pencil, Search, ChevronLeft, ChevronRight } from "lucide-react";
 
-const EMPTY = { name: "", email: "", password: "", nip: "", department: "", position: "", overtime_rate: "", base_salary: "" };
+const EMPTY = { name: "", email: "", password: "", nip: "", department: "", position: "", overtime_rate: "", base_salary: "", card_uid: "" };
 
 export default function Employees() {
   const { t } = useTranslation();
@@ -53,7 +53,7 @@ export default function Employees() {
     try {
       await api.patch(`/admin/employees/${editFor.id}`, {
         name: editFor.name, nip: editFor.nip, department: editFor.department || "",
-        position: editFor.position || "", active: !!editFor.active,
+        position: editFor.position || "", active: !!editFor.active, card_uid: editFor.card_uid || "",
         overtime_rate: editFor.overtime_rate === null || editFor.overtime_rate === "" ? null : Number(editFor.overtime_rate),
         base_salary: editFor.base_salary === null || editFor.base_salary === "" ? null : Number(editFor.base_salary),
       });
@@ -94,6 +94,7 @@ export default function Employees() {
           <In label={t("email")} testid="emp-email" type="email" v={form.email} set={(v) => setForm({ ...form, email: v })} req />
           <In label={t("password")} testid="emp-password" v={form.password} set={(v) => setForm({ ...form, password: v })} req />
           <In label={t("nip")} testid="emp-nip" v={form.nip} set={(v) => setForm({ ...form, nip: v })} />
+          <In label={t("card_uid")} testid="emp-card-uid" v={form.card_uid} set={(v) => setForm({ ...form, card_uid: v })} />
           <DeptSelect label={t("department")} testid="emp-department" options={opts.departments || []} value={form.department} onChange={(v) => setForm({ ...form, department: v })} t={t} />
           <In label={t("position")} testid="emp-position" v={form.position} set={(v) => setForm({ ...form, position: v })} />
           <div>
@@ -197,6 +198,7 @@ export default function Employees() {
             <p className="sm:col-span-2 font-bold text-slate-800">{t("edit_employee")}</p>
             <In label={t("name")} testid="edit-emp-name" v={editFor.name} set={(v) => setEditFor({ ...editFor, name: v })} req />
             <In label={t("nip")} testid="edit-emp-nip" v={editFor.nip || ""} set={(v) => setEditFor({ ...editFor, nip: v })} />
+            <In label={t("card_uid")} testid="edit-emp-card-uid" v={editFor.card_uid || ""} set={(v) => setEditFor({ ...editFor, card_uid: v })} />
             <DeptSelect label={t("department")} testid="edit-emp-department" options={opts.departments || []} value={editFor.department || ""} onChange={(v) => setEditFor({ ...editFor, department: v })} t={t} />
             <In label={t("position")} testid="edit-emp-position" v={editFor.position || ""} set={(v) => setEditFor({ ...editFor, position: v })} />
             <div>

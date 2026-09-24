@@ -30,7 +30,7 @@ function ClassSelect({ testid, value, onChange, options, t, req }) {
 export default function Students() {
   const { t } = useTranslation();
   const [students, setStudents] = useState([]);
-  const [form, setForm] = useState({ name: "", nis: "", nisn: "", gender: "", class_name: "", parent_phone: "", parent_name: "", parent_email: "", address: "" });
+  const [form, setForm] = useState({ name: "", nis: "", nisn: "", gender: "", class_name: "", parent_phone: "", parent_name: "", parent_email: "", address: "", card_uid: "" });
   const [metaClasses, setMetaClasses] = useState(null);
   const [preview, setPreview] = useState(null);
   const [busy, setBusy] = useState(false);
@@ -51,7 +51,7 @@ export default function Students() {
     if (!validContacts(editFor.parent_phone, editFor.parent_email)) return;
     setBusy(true);
     try {
-      const { data } = await api.patch(`/admin/students/${editFor.id}`, { name: editFor.name, nis: editFor.nis, nisn: editFor.nisn, gender: editFor.gender, class_name: editFor.class, parent_phone: editFor.parent_phone || "", parent_name: editFor.parent_name || "", parent_email: editFor.parent_email || "", address: editFor.address || "" });
+      const { data } = await api.patch(`/admin/students/${editFor.id}`, { name: editFor.name, nis: editFor.nis, nisn: editFor.nisn, gender: editFor.gender, class_name: editFor.class, parent_phone: editFor.parent_phone || "", parent_name: editFor.parent_name || "", parent_email: editFor.parent_email || "", address: editFor.address || "", card_uid: editFor.card_uid || "" });
       if (data.parent_account === "created") toast.success(t("parent_account_created"));
       if (data.parent_account === "phone_used") toast.error(t("parent_phone_used"));
       toast.success(t("save"));
@@ -348,6 +348,7 @@ export default function Students() {
         <In label={t("name")} testid="student-name" v={form.name} set={(v) => setForm({ ...form, name: v })} req grow />
         <In label={t("nis")} testid="student-nis" v={form.nis} set={(v) => setForm({ ...form, nis: v })} />
         <In label={t("nisn")} testid="student-nisn" v={form.nisn} set={(v) => setForm({ ...form, nisn: v })} />
+        <In label={t("card_uid")} testid="student-card-uid" v={form.card_uid} set={(v) => setForm({ ...form, card_uid: v })} />
         <div>
           <label className="text-xs font-semibold text-slate-500">{t("gender")}</label>
           <select data-testid="student-gender" required value={form.gender} onChange={(e) => setForm({ ...form, gender: e.target.value })}
@@ -630,6 +631,7 @@ export default function Students() {
             <div className="grid grid-cols-2 gap-3">
               <In label={t("nis")} testid="edit-student-nis" v={editFor.nis || ""} set={(v) => setEditFor({ ...editFor, nis: v })} grow />
               <In label={t("nisn")} testid="edit-student-nisn" v={editFor.nisn || ""} set={(v) => setEditFor({ ...editFor, nisn: v })} grow />
+              <In label={t("card_uid")} testid="edit-student-card-uid" v={editFor.card_uid || ""} set={(v) => setEditFor({ ...editFor, card_uid: v })} grow />
               <div>
                 <label className="text-xs font-semibold text-slate-500">{t("gender")}</label>
                 <select data-testid="edit-student-gender" required value={editFor.gender || ""} onChange={(e) => setEditFor({ ...editFor, gender: e.target.value })}

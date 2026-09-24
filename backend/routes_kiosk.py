@@ -333,6 +333,45 @@ async def attend_student(body: AttendStudentIn, request: Request):
             "att_status": "present", "late_minutes": doc["late_minutes"], "photo": tcr.get("photo") or ""}
 
 
+class AttendCardIn(BaseModel):
+    uid: str
+    type: str = "in"
+    lat: float
+    lng: float
+    ts_device: str
+    client_uuid: str
+
+
+@router.post("/kiosk/attend-card")
+async def attend_card(body: AttendCardIn, request: Request):
+    school = await school_by_token(request)
+    uid = body.uid.strip()
+    if not uid:
+        raise HTTPException(status_code=422, detail="card_unknown")
+    att_type = body.type if body.type in ("in", "out") else "in"
+    for coll_name, ptype in (("students", "student"), ("teachers", "teacher"), ("employees", "employee")):
+        q = {"school_id": school["id"], "card_uid": uid}
+        if coll_name == "students":
+            q["status"] = {"$ne": "lulus"}
+        else:
+            q["active"] = True
+        person = await db[coll_name].find_one(q)
+        if not person:
+            continue
+        extra = {"person_type": ptype}
+        if ptype == "student":
+            extra.update({"class": person.get("class", ""), "att_status": "present"})
+        elif ptype == "employee":
+            extra["department"] = person.get("department", "")
+        doc = await _record(school, person["id"], person["name"], att_type, body.ts_device,
+                            body.lat, body.lng, "", body.client_uuid, offline=False, extra=extra)
+        if ptype == "student":
+            asyncio.create_task(_notify_parent(school, person, doc))
+        return {"ok": True, "name": person["name"], "student_name": person["name"], "status": doc["status"],
+                "late_minutes": doc["late_minutes"], "photo": person.get("photo") or ""}
+    raise HTTPException(status_code=422, detail="card_unknown")
+
+
 class AttendQrIn(BaseModel):
     qr: str
     type: str = "in"

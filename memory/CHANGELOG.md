@@ -268,3 +268,15 @@
 ## 2026-09-25 — Dedup QR: kartu yang sama di depan kamera tidak berulang
 - Polish: QR yang sama yang terus diarahkan ke kamera diabaikan selama 15 detik (lastQrRef) — mencegah kartu "Sudah absen" berulang setiap ~5 dtk saat kartu dipegang terlalu lama.
 - Terverifikasi e2e: QR ditahan 20 dtk di depan kamera → hanya 1 kartu hasil muncul. ZIP di-build ulang.
+
+## 2026-09-25 — Absen via kartu RFID (reader USB/OTG terpisah)
+- Permintaan user: "kl sy tambahkan RFID gimana" → pilihan: hardware terpisah (reader USB/OTG keyboard emulation).
+- Backend: field `card_uid` di students/teachers/employees (create + patch). Endpoint baru `POST /api/kiosk/attend-card` — cari UID di ketiga koleksi, catat absen (in/out), kembalikan nama+foto, notif ortu untuk siswa. Error `card_unknown` untuk kartu tak terdaftar.
+- Frontend kiosk: listener keyboard global — reader RFID mengetik UID cepat (<200ms antar tombol) lalu Enter → auto absen tanpa menyentuh layar (bunyi klik → kartu hasil + foto). Aman dari konflik: diabaikan saat mengetik di input biasa (pairing), tetap jalan saat panel NIS manual (readOnly) terbuka.
+- Admin: kolom "Kartu RFID (UID)" ditambahkan di form tambah/edit Siswa, Guru, dan Karyawan (daftarkan UID dengan tap kartu saat kolom fokus, atau ketik manual).
+- Catatan: mode offline belum mengantrekan absen kartu (butuh koneksi) — TODO bila diminta.
+- Terverifikasi backend: PATCH card_uid OK, attend-card UID terdaftar → sukses (foto ikut), UID ngawur → card_unknown. E2E kiosk menyusul. ZIP di-build ulang.
+
+## 2026-09-25 — RFID: verifikasi e2e selesai
+- Tes e2e kiosk (mobile 390): simulasi tap kartu (keyboard.type UID cepat + Enter) pada mode Pulang → kartu hijau "Presensi berhasil · Galang Remaja" + foto profil tampil, tanpa menyentuh layar. Data uji (record absen + card_uid) dibersihkan.
+- STATUS RFID: SELESAI & TERUJI (backend + admin form siswa/guru/karyawan + listener kiosk). Belum: antrean offline untuk kartu (butuh koneksi saat tap).

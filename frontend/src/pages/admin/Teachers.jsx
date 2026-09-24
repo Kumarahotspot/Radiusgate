@@ -12,7 +12,7 @@ export default function Teachers() {
   const [showForm, setShowForm] = useState(false);
   const [enrollFor, setEnrollFor] = useState(null);
   const [qrFor, setQrFor] = useState(null);
-  const [form, setForm] = useState({ name: "", email: "", password: "", nip: "", subject: "", classes: "", gender: "" });
+  const [form, setForm] = useState({ name: "", email: "", password: "", nip: "", subject: "", classes: "", gender: "", card_uid: "" });
   const [subjectOther, setSubjectOther] = useState("");
   const [opts, setOpts] = useState({ classes: [], subjects: [] });
   const [busy, setBusy] = useState(false);
@@ -33,7 +33,7 @@ export default function Teachers() {
       await api.patch(`/admin/teachers/${editFor.id}`, {
         name: editFor.name, nip: editFor.nip,
         subject: [editFor.subject, (editFor.subject_other || "").trim()].filter(Boolean).join(", "),
-        active: !!editFor.active, classes: editFor.classes || "",
+        active: !!editFor.active, classes: editFor.classes || "", card_uid: editFor.card_uid || "",
         ...(editFor.gender ? { gender: editFor.gender } : {}),
         ...(editFor.new_password?.trim() ? { password: editFor.new_password.trim() } : {}),
       });
@@ -94,6 +94,7 @@ export default function Teachers() {
           <In label={t("email")} testid="teacher-email" type="email" v={form.email} set={(v) => setForm({ ...form, email: v })} req />
           <In label={t("password")} testid="teacher-password" v={form.password} set={(v) => setForm({ ...form, password: v })} req />
           <In label={t("nip")} testid="teacher-nip" v={form.nip} set={(v) => setForm({ ...form, nip: v })} />
+          <In label={t("card_uid")} testid="teacher-card-uid" v={form.card_uid} set={(v) => setForm({ ...form, card_uid: v })} />
           <div>
             <label className="text-xs font-semibold text-slate-500">{t("gender")}</label>
             <select data-testid="teacher-gender" value={form.gender} onChange={(e) => setForm({ ...form, gender: e.target.value })}
@@ -216,6 +217,7 @@ export default function Teachers() {
             <In label={t("name")} testid="edit-teacher-name" v={editFor.name} set={(v) => setEditFor({ ...editFor, name: v })} req />
             <In label={t("new_password_opt")} testid="edit-teacher-password" v={editFor.new_password || ""} set={(v) => setEditFor({ ...editFor, new_password: v })} />
             <In label={t("nip")} testid="edit-teacher-nip" v={editFor.nip || ""} set={(v) => setEditFor({ ...editFor, nip: v })} />
+            <In label={t("card_uid")} testid="edit-teacher-card-uid" v={editFor.card_uid || ""} set={(v) => setEditFor({ ...editFor, card_uid: v })} />
             <div>
               <label className="text-xs font-semibold text-slate-500">{t("gender")}</label>
               <select data-testid="edit-teacher-gender" value={editFor.gender || ""} onChange={(e) => setEditFor({ ...editFor, gender: e.target.value })}

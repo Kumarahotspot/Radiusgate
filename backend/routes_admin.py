@@ -287,6 +287,7 @@ class TeacherIn(BaseModel):
     subject: str = ""
     classes: str = ""
     gender: str = ""
+    card_uid: str = ""
 
 
 class TeacherPatch(BaseModel):
@@ -297,6 +298,7 @@ class TeacherPatch(BaseModel):
     classes: str | None = None
     password: str | None = None
     gender: str | None = None
+    card_uid: str | None = None
 
 
 @router.get("/admin/teachers")
@@ -322,7 +324,7 @@ async def create_teacher(body: TeacherIn, user: dict = Depends(admin_dep)):
     teacher = {
         "id": str(uuid.uuid4()), "school_id": user["school_id"], "user_id": uid,
         "name": body.name, "nip": body.nip, "subject": body.subject, "classes": body.classes,
-        "gender": _norm_gender(body.gender),
+        "gender": _norm_gender(body.gender), "card_uid": body.card_uid.strip(),
         "embedding": None, "photo": None, "active": True, "created_at": now_iso(),
     }
     await db.teachers.insert_one(teacher)
@@ -524,6 +526,7 @@ class StudentIn(BaseModel):
     parent_name: str = ""
     parent_email: str = ""
     address: str = ""
+    card_uid: str = ""
 
 
 def _norm_gender(v: str) -> str:
@@ -555,7 +558,7 @@ async def add_student(body: StudentIn, user: dict = Depends(admin_dep)):
           "gender": _norm_gender(body.gender), "class": body.class_name, "status": "aktif",
           "parent_phone": normalize_phone(body.parent_phone),
           "parent_name": body.parent_name.strip(), "parent_email": body.parent_email.strip().lower(),
-          "address": body.address.strip()}
+          "address": body.address.strip(), "card_uid": body.card_uid.strip()}
     await db.students.insert_one(st)
     st.pop("_id", None)
     st["parent_account"] = await _ensure_parent_account(user["school_id"], st)
@@ -646,6 +649,7 @@ class StudentPatch(BaseModel):
     parent_name: str | None = None
     parent_email: str | None = None
     address: str | None = None
+    card_uid: str | None = None
 
 
 class BulkDeleteIn(BaseModel):
@@ -1031,6 +1035,7 @@ class EmployeeIn(BaseModel):
     position: str = ""
     overtime_rate: int | None = None
     base_salary: int | None = None
+    card_uid: str = ""
 
 
 class EmployeePatch(BaseModel):
@@ -1041,6 +1046,7 @@ class EmployeePatch(BaseModel):
     active: bool | None = None
     overtime_rate: int | None = None
     base_salary: int | None = None
+    card_uid: str | None = None
 
 
 @router.get("/admin/employees")
@@ -1068,7 +1074,7 @@ async def create_employee(body: EmployeeIn, user: dict = Depends(admin_dep)):
     emp = {
         "id": str(uuid.uuid4()), "school_id": user["school_id"], "user_id": uid,
         "name": body.name, "nip": body.nip, "department": body.department, "position": body.position,
-        "overtime_rate": body.overtime_rate, "base_salary": body.base_salary,
+        "overtime_rate": body.overtime_rate, "base_salary": body.base_salary, "card_uid": body.card_uid.strip(),
         "embedding": None, "photo": None, "active": True, "created_at": now_iso(),
     }
     await db.employees.insert_one(emp)
