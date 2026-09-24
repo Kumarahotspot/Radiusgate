@@ -287,3 +287,7 @@
 ## 2026-09-25 — Indikator ikon kartu RFID di kolom aksi tabel admin
 - Persetujuan user atas saran: ikon Nfc di kolom aksi tabel Siswa, Guru, dan Karyawan — menyala teal jika kartu terdaftar (tooltip menampilkan UID), abu-abu jika belum. Testid: card-student-*, card-teacher-*, card-employee-*. i18n: card_registered / card_not_registered (ID+EN).
 - Terverifikasi e2e: ikon tampil di ketiga tabel admin. ZIP di-build ulang.
+
+## 2026-09-25 — Tombol QR juga di tabel Karyawan
+- Laporan user: "di karyawan di tabel blom ada QR nya". Ditambahkan tombol QR per baris karyawan (modal QrModal, ptype "employee") — backend qrcodes endpoint memang sudah mendukung employees. Ikon indikator kartu NFC juga sudah ada sebelumnya.
+- Terverifikasi e2e: tombol QR tampil di tabel Karyawan, modal terbuka dengan QR ter-render + nama. ZIP di-build ulang.

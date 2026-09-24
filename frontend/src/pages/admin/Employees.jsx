@@ -3,7 +3,8 @@ import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import api, { errMsg } from "../../api";
 import CameraCapture from "../../components/CameraCapture";
-import { Plus, ScanFace, Trash2, CheckCircle2, Circle, Pencil, Search, ChevronLeft, ChevronRight, Nfc } from "lucide-react";
+import QrModal from "../../components/QrModal";
+import { Plus, ScanFace, Trash2, CheckCircle2, Circle, Pencil, Search, ChevronLeft, ChevronRight, Nfc, QrCode } from "lucide-react";
 
 const EMPTY = { name: "", email: "", password: "", nip: "", department: "", position: "", overtime_rate: "", base_salary: "", card_uid: "" };
 
@@ -12,6 +13,7 @@ export default function Employees() {
   const [employees, setEmployees] = useState([]);
   const [showForm, setShowForm] = useState(false);
   const [enrollFor, setEnrollFor] = useState(null);
+  const [qrFor, setQrFor] = useState(null);
   const [form, setForm] = useState(EMPTY);
   const [opts, setOpts] = useState({ departments: [] });
   const [busy, setBusy] = useState(false);
@@ -164,6 +166,10 @@ export default function Employees() {
                         className={`flex items-center px-2 py-1.5 ${emp.card_uid ? "text-teal-600" : "text-slate-300"}`}>
                         <Nfc className="w-4 h-4" />
                       </span>
+                      <button data-testid={`qr-employee-${emp.id}`} onClick={() => setQrFor(emp)}
+                        className="flex items-center gap-1 text-xs font-bold text-slate-700 hover:bg-slate-100 px-2 py-1.5 rounded-lg transition-colors">
+                        <QrCode className="w-4 h-4" /> {t("qr_code")}
+                      </button>
                       <button data-testid={`edit-employee-${emp.id}`} onClick={() => setEditFor({ ...emp, overtime_rate: emp.overtime_rate ?? "", base_salary: emp.base_salary ?? "" })}
                         className="flex items-center gap-1 text-xs font-bold text-sky-600 hover:bg-sky-50 px-2 py-1.5 rounded-lg transition-colors">
                         <Pencil className="w-4 h-4" /> {t("edit")}
@@ -223,6 +229,7 @@ export default function Employees() {
       )}
 
       {enrollFor && <CameraCapture testid="enroll-camera" onDone={enroll} onClose={() => setEnrollFor(null)} />}
+      {qrFor && <QrModal person={qrFor} ptype="employee" onClose={() => setQrFor(null)} />}
     </div>
   );
 }
