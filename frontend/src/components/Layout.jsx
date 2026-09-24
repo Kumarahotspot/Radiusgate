@@ -2,6 +2,7 @@ import { NavLink, Outlet, useNavigate, useLocation } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useAuth, homeFor } from "../context/AuthContext";
+import api from "../api";
 import LangSwitch from "./LangSwitch";
 import {
   LayoutDashboard, School, FileText, Users, GraduationCap, Settings,
@@ -66,6 +67,10 @@ export default function Layout() {
     document.addEventListener("pointerdown", close);
     return () => document.removeEventListener("pointerdown", close);
   }, []);
+  const [pendingLeaves, setPendingLeaves] = useState(0);
+  useEffect(() => {
+    if (user?.role === "school_admin") api.get("/admin/stats").then((r) => setPendingLeaves(r.data.pending_leaves || 0)).catch(() => {});
+  }, [user?.role]);
   if (!user) return null;
   const items = menus[user.role] || [];
   const initials = (user.name || "?").split(" ").map((w) => w[0]).filter(Boolean).slice(0, 2).join("").toUpperCase();
@@ -77,8 +82,12 @@ export default function Layout() {
           <div className="flex items-center gap-2 min-w-0">
             {user.role !== "parent" && items.length > 0 && (
               <button data-testid="nav-hamburger" aria-label={t("nav_menu")} onClick={() => setNavOpen(!navOpen)}
-                className="md:hidden flex items-center justify-center p-2 -ml-2 rounded-lg text-slate-600 hover:bg-slate-100 transition-colors shrink-0">
+                className="md:hidden relative flex items-center justify-center p-2 -ml-2 rounded-lg text-slate-600 hover:bg-slate-100 transition-colors shrink-0">
                 {navOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+                {pendingLeaves > 0 && (
+                  <span data-testid="nav-leaves-badge"
+                    className="absolute -top-0.5 -right-0.5 min-w-[17px] h-[17px] px-1 rounded-full bg-red-500 text-white text-[10px] font-extrabold flex items-center justify-center leading-none">{pendingLeaves}</span>
+                )}
               </button>
             )}
             <img src="/logo.png" alt="RadiusGate" className="w-11 h-11 object-contain shrink-0" />
@@ -154,6 +163,10 @@ export default function Layout() {
               <NavLink key={m.to} to={m.to} end={m.end} data-testid={`mnav-${m.key}`} onClick={() => setNavOpen(false)}
                 className={({ isActive }) => `flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-semibold transition-colors ${isActive ? "bg-teal-700 text-white" : "text-slate-700 hover:bg-slate-100"}`}>
                 <m.icon className="w-4 h-4" /> {t(m.key)}
+                {m.key === "leaves" && pendingLeaves > 0 && (
+                  <span data-testid="mnav-leaves-badge"
+                    className="ml-auto min-w-[20px] h-5 px-1.5 rounded-full bg-red-500 text-white text-[10px] font-extrabold flex items-center justify-center leading-none">{pendingLeaves}</span>
+                )}
               </NavLink>
             ))}
           </nav>

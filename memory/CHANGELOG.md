@@ -68,3 +68,9 @@
 - Terverifikasi screenshot: mobile 390 — hamburger tampil, nav desktop display:none, dropdown 4 item, klik Absen Mapel → navigasi + dropdown tertutup, scrollWidth 390 = clientWidth 390; desktop 1920 — hamburger tersembunyi, nav lengkap tampil.
 - ZIP Hostinger di-build ulang berisi perubahan ini.
 - Lanjutan (permintaan user, contoh RadiusLink): tombol ☰ dipindah ke **paling kiri sebelum logo** (bukan di kanan). Terverifikasi: posisi ham_x=8 < logo_x=52 di mobile 390, dropdown tetap berfungsi, desktop tanpa hamburger, ZIP di-build ulang.
+
+## 2026-09-24 — Badge pengajuan izin pending di menu hamburger (admin)
+- Persetujuan user atas saran: ikon ☰ di HP admin menampilkan badge merah berisi jumlah pengajuan izin/cuti yang menunggu persetujuan, agar admin tahu ada antrian tanpa membuka halaman Izin/Cuti.
+- Layout.jsx: fetch `GET /admin/stats` sekali saat mount (hanya role school_admin); badge `nav-leaves-badge` (absolute, bg-red-500) di pojok ikon ☰ bila pending_leaves > 0; chip `mnav-leaves-badge` di kanan item "Izin / Cuti" pada dropdown mobile. Desktop tidak berubah (sudah ada kartu "Pengajuan Menunggu" di dasbor).
+- Terverifikasi: leave uji dibuat via API guru (pending_leaves=1) → screenshot mobile 390: badge "1" tampil di ☰ (posisi kiri) & chip "1" di item Izin/Cuti, klik item → navigasi /admin/leaves + dropdown tertutup, tanpa overflow; desktop bersih. Leave uji dihapus (pending_leaves kembali 0).
+- ZIP Hostinger di-build ulang berisi fitur ini.
