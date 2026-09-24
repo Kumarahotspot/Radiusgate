@@ -283,3 +283,7 @@
 
 ## 2026-09-25 — Verifikasi kolom Kartu RFID di admin
 - User: "di admin blom ada kolom baru". Verifikasi screenshot preview: kolom "Kartu RFID (UID)" TERBUKTI ada di form Tambah Siswa, Tambah Guru, dan Tambah Karyawan (bukan kolom tabel — ada di dalam form/modal tambah & edit). Kemungkinan user melihat domain Hostinger yang masih build lama → wajib upload ulang ZIP terbaru.
+
+## 2026-09-25 — Indikator ikon kartu RFID di kolom aksi tabel admin
+- Persetujuan user atas saran: ikon Nfc di kolom aksi tabel Siswa, Guru, dan Karyawan — menyala teal jika kartu terdaftar (tooltip menampilkan UID), abu-abu jika belum. Testid: card-student-*, card-teacher-*, card-employee-*. i18n: card_registered / card_not_registered (ID+EN).
+- Terverifikasi e2e: ikon tampil di ketiga tabel admin. ZIP di-build ulang.

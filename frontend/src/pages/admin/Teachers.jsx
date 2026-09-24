@@ -4,7 +4,7 @@ import { toast } from "sonner";
 import api, { errMsg } from "../../api";
 import CameraCapture from "../../components/CameraCapture";
 import QrModal from "../../components/QrModal";
-import { Plus, ScanFace, Trash2, CheckCircle2, Circle, Pencil, Search, ChevronLeft, ChevronRight, QrCode } from "lucide-react";
+import { Plus, ScanFace, Trash2, CheckCircle2, Circle, Pencil, Search, ChevronLeft, ChevronRight, QrCode, Nfc } from "lucide-react";
 
 export default function Teachers() {
   const { t } = useTranslation();
@@ -178,6 +178,10 @@ export default function Teachers() {
                         className="flex items-center gap-1 text-xs font-bold text-slate-700 hover:bg-slate-100 px-2 py-1.5 rounded-lg transition-colors">
                         <QrCode className="w-4 h-4" /> {t("qr_code")}
                       </button>
+                      <span data-testid={`card-teacher-${tc.id}`} title={tc.card_uid ? `${t("card_registered")}: ${tc.card_uid}` : t("card_not_registered")}
+                        className={`flex items-center px-2 py-1.5 ${tc.card_uid ? "text-teal-600" : "text-slate-300"}`}>
+                        <Nfc className="w-4 h-4" />
+                      </span>
                       <button data-testid={`edit-teacher-${tc.id}`} onClick={() => setEditFor({ ...tc })}
                         className="flex items-center gap-1 text-xs font-bold text-sky-600 hover:bg-sky-50 px-2 py-1.5 rounded-lg transition-colors">
                         <Pencil className="w-4 h-4" /> {t("edit")}

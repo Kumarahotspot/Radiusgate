@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import api, { errMsg } from "../../api";
 import CameraCapture from "../../components/CameraCapture";
-import { Plus, ScanFace, Trash2, CheckCircle2, Circle, Pencil, Search, ChevronLeft, ChevronRight } from "lucide-react";
+import { Plus, ScanFace, Trash2, CheckCircle2, Circle, Pencil, Search, ChevronLeft, ChevronRight, Nfc } from "lucide-react";
 
 const EMPTY = { name: "", email: "", password: "", nip: "", department: "", position: "", overtime_rate: "", base_salary: "", card_uid: "" };
 
@@ -160,6 +160,10 @@ export default function Employees() {
                         className="flex items-center gap-1 text-xs font-bold text-teal-700 hover:bg-teal-50 px-2 py-1.5 rounded-lg transition-colors">
                         <ScanFace className="w-4 h-4" /> {t("enroll_face")}
                       </button>
+                      <span data-testid={`card-employee-${emp.id}`} title={emp.card_uid ? `${t("card_registered")}: ${emp.card_uid}` : t("card_not_registered")}
+                        className={`flex items-center px-2 py-1.5 ${emp.card_uid ? "text-teal-600" : "text-slate-300"}`}>
+                        <Nfc className="w-4 h-4" />
+                      </span>
                       <button data-testid={`edit-employee-${emp.id}`} onClick={() => setEditFor({ ...emp, overtime_rate: emp.overtime_rate ?? "", base_salary: emp.base_salary ?? "" })}
                         className="flex items-center gap-1 text-xs font-bold text-sky-600 hover:bg-sky-50 px-2 py-1.5 rounded-lg transition-colors">
                         <Pencil className="w-4 h-4" /> {t("edit")}

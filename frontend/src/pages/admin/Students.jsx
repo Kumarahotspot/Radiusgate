@@ -4,7 +4,7 @@ import { toast } from "sonner";
 import api, { errMsg } from "../../api";
 import CameraCapture from "../../components/CameraCapture";
 import QrModal from "../../components/QrModal";
-import { Plus, Upload, Download, Trash2, X, Pencil, ScanFace, CheckCircle2, Circle, Search, ChevronLeft, ChevronRight, GraduationCap, FileDown, MessageCircle, QrCode } from "lucide-react";
+import { Plus, Upload, Download, Trash2, X, Pencil, ScanFace, CheckCircle2, Circle, Search, ChevronLeft, ChevronRight, GraduationCap, FileDown, MessageCircle, QrCode, Nfc } from "lucide-react";
 
 function ClassSelect({ testid, value, onChange, options, t, req }) {
   const [isNew, setIsNew] = useState(false);
@@ -447,6 +447,7 @@ export default function Students() {
                     <div className="flex gap-1">
                       <button data-testid={`enroll-student-${s.id}`} onClick={() => setEnrollFor(s)} className="p-1.5 text-teal-700 hover:bg-teal-50 rounded-lg" title={t("enroll_face")}><ScanFace className="w-4 h-4" /></button>
                       <button data-testid={`qr-student-${s.id}`} onClick={() => setQrFor(s)} className="p-1.5 text-slate-700 hover:bg-slate-100 rounded-lg" title={t("qr_code")}><QrCode className="w-4 h-4" /></button>
+                      <span data-testid={`card-student-${s.id}`} title={s.card_uid ? `${t("card_registered")}: ${s.card_uid}` : t("card_not_registered")} className={`p-1.5 ${s.card_uid ? "text-teal-600" : "text-slate-300"}`}><Nfc className="w-4 h-4" /></span>
                       <button data-testid={`edit-student-${s.id}`} onClick={() => setEditFor({ ...s })} className="p-1.5 text-sky-600 hover:bg-sky-50 rounded-lg" title={t("edit")}><Pencil className="w-4 h-4" /></button>
                       {s.parent_phone && <button data-testid={`send-login-${s.id}`} onClick={() => sendLogin(s)} className="p-1.5 text-emerald-600 hover:bg-emerald-50 rounded-lg" title={t("send_parent_login")}><MessageCircle className="w-4 h-4" /></button>}
                       <button data-testid={`delete-student-${s.id}`} onClick={() => del(s.id)} className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg" title={t("delete")}><Trash2 className="w-4 h-4" /></button>
