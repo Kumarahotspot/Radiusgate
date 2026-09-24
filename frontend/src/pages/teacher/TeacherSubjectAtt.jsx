@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import api, { errMsg } from "../../api";
-import { BookOpen, Lock, LockOpen, Megaphone, X } from "lucide-react";
+import { BookOpen, Lock, LockOpen, Megaphone, Volume2, VolumeX, X } from "lucide-react";
 
 const STATUSES = ["hadir", "sakit", "izin", "alpha"];
 const ON = { hadir: "bg-emerald-600 text-white border-emerald-600", sakit: "bg-red-500 text-white border-red-500", izin: "bg-sky-500 text-white border-sky-500", alpha: "bg-slate-500 text-white border-slate-500" };
@@ -21,6 +21,24 @@ export default function TeacherSubjectAtt() {
   const [locked, setLocked] = useState(false);
   const [busy, setBusy] = useState(false);
   const [callIdx, setCallIdx] = useState(null);
+  const [muted, setMuted] = useState(() => localStorage.getItem("sa_voice_muted") === "1");
+  const speak = (text) => {
+    if (muted || !window.speechSynthesis) return;
+    window.speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = "id-ID";
+    u.rate = 0.95;
+    window.speechSynthesis.speak(u);
+  };
+  const toggleMute = () => {
+    setMuted((m) => {
+      const nv = !m;
+      localStorage.setItem("sa_voice_muted", nv ? "1" : "0");
+      if (nv) window.speechSynthesis?.cancel();
+      return nv;
+    });
+  };
+  const closeCall = () => { setCallIdx(null); window.speechSynthesis?.cancel(); };
 
   useEffect(() => {
     api.get("/teacher/subject-att/meta").then((r) => {
@@ -60,6 +78,10 @@ export default function TeacherSubjectAtt() {
       toast.error(errMsg(err));
     }
   };
+
+  useEffect(() => {
+    if (callIdx !== null && students[callIdx]) speak(students[callIdx].name);
+  }, [callIdx]); // eslint-disable-line
 
   const save = async (lock = null) => {
     setBusy(true);
@@ -194,7 +216,13 @@ export default function TeacherSubjectAtt() {
           <div className="bg-white rounded-3xl w-full max-w-md p-6 shadow-2xl">
             <div className="flex items-center justify-between mb-4">
               <span data-testid="sa-call-progress" className="text-xs font-bold text-slate-400">{callIdx + 1} / {students.length}</span>
-              <button data-testid="sa-call-close" onClick={() => setCallIdx(null)} className="text-slate-400 hover:text-slate-700 transition-colors"><X className="w-5 h-5" /></button>
+              <div className="flex items-center gap-1">
+                <button data-testid="sa-call-mute" onClick={toggleMute} title={t(muted ? "kiosk_unmute" : "kiosk_mute")}
+                  className="p-1.5 rounded-lg text-slate-400 hover:text-teal-700 hover:bg-slate-100 transition-colors">
+                  {muted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
+                </button>
+                <button data-testid="sa-call-close" onClick={closeCall} className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"><X className="w-5 h-5" /></button>
+              </div>
             </div>
             <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden mb-6">
               <div className="h-full bg-teal-600 rounded-full transition-all" style={{ width: `${((callIdx + 1) / students.length) * 100}%` }} />
@@ -212,7 +240,7 @@ export default function TeacherSubjectAtt() {
                   onClick={() => {
                     autoSave(students[callIdx].id, st);
                     if (callIdx + 1 < students.length) setCallIdx(callIdx + 1);
-                    else { setCallIdx(null); toast.success(t("call_done")); }
+                    else { closeCall(); toast.success(t("call_done")); }
                   }}
                   className={`py-4 rounded-2xl text-sm font-extrabold border-2 transition-all ${(marks[students[callIdx].id] || "hadir") === st ? ON[st] : OFF}`}>
                   {t(`att_${st}`)}
@@ -222,7 +250,7 @@ export default function TeacherSubjectAtt() {
             <div className="flex justify-between mt-5">
               <button data-testid="sa-call-prev" disabled={callIdx === 0} onClick={() => setCallIdx(callIdx - 1)}
                 className="text-xs font-bold text-slate-500 hover:text-teal-700 disabled:opacity-30 transition-colors">← {t("call_prev")}</button>
-              <button data-testid="sa-call-skip" onClick={() => callIdx + 1 < students.length ? setCallIdx(callIdx + 1) : setCallIdx(null)}
+              <button data-testid="sa-call-skip" onClick={() => callIdx + 1 < students.length ? setCallIdx(callIdx + 1) : closeCall()}
                 className="text-xs font-bold text-slate-500 hover:text-teal-700 transition-colors">{t("call_skip")} →</button>
             </div>
           </div>

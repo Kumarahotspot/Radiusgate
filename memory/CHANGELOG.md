@@ -93,6 +93,13 @@
 - Lanjutan (persetujuan user): kartu "Ganti Password" lama di halaman Presensi Saya (TeacherHome.jsx) **dihapus** — form, state `pw`/`busyPw`, handler `submitPw`, dan import KeyRound ikut dibersihkan. Guru kini ganti password hanya via menu avatar. Testid lama `teacher-pw-form` tidak lagi ada.
 - Lanjutan 2 (permintaan user): **ortu juga memakai modal avatar** — item "Ganti Password" di dropdown kini tampil untuk SEMUA role (kondisi non-parent dihapus); form "Ganti Password" di tab Profil ortu (ParentHome.jsx) dihapus beserta state `pw` & handler `submitPw` (testid `parent-pw-form` hilang). Item "Profil" ortu tetap ada. Terverifikasi e2e: tab Profil bersih (form profil utuh), dropdown ortu punya Profil + Ganti Password, modal ganti 696969→Ortu123!→696969 sukses (kredensial demo stabil), tanpa overflow mobile 390. ZIP di-build ulang.
 
+## 2026-09-24 — Voice nama siswa di mode Panggil Cepat (TTS)
+- Permintaan user: saat guru mapel memanggil siswa satu per satu (mode Panggil), nama siswa diucapkan dengan suara agar seisi ruangan mendengar.
+- TeacherSubjectAtt.jsx: helper `speak()` (SpeechSynthesis, lang id-ID, rate 0.95, cancel sebelum speak — pola sama dengan Kiosk); useEffect mengucapkan nama siswa setiap kartu panggil tampil (buka modal, lanjut, sebelumnya, lewati). Tombol mute/unmute (`sa-call-mute`, ikon Volume2/VolumeX) di header modal; preferensi tersimpan di localStorage `sa_voice_muted`. Menutup modal (X / siswa terakhir / lewati terakhir) membatalkan suara via `closeCall()`. Reuse key i18n kiosk_mute/kiosk_unmute.
+- Terverifikasi e2e (spy speechSynthesis): nama ke-1 terucap saat modal dibuka, nama berikutnya terucap saat lanjut/lewati, mute menghentikan suara, unmute mengembalikan, modal tertutup normal, tanpa overflow mobile 390.
+- ZIP Hostinger di-build ulang berisi fitur ini.
+- QUEUED (sudah disetujui user, opsi a): mode offline Absen Mapel — cache daftar siswa di localStorage, pencatatan offline dengan antrean, auto-sync saat online kembali.
+
 ## 2026-09-24 — Nama pengguna pindah ke menu avatar kanan atas (semua role)
 - Permintaan user (contoh RadiusLink): "admin Nusantara dipindah spt contoh" — teks "Portal X · Nama" di bawah logo membungkus 3 baris di HP; nama dipindah ke kanan atas sebagai menu avatar.
 - Layout.jsx: label kiri kini hanya nama portal (1 baris). Menu avatar (inisial + nama + chevron) kini berlaku untuk SEMUA role (sebelumnya hanya ortu); dropdown berisi identitas (nama + portal, `user-menu-name`), item Profil khusus ortu, dan Keluar. Tombol "Keluar" lama (`logout-btn`) dihapus — testid logout baru: `user-menu-logout`.
