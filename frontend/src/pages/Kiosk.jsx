@@ -27,6 +27,7 @@ export default function Kiosk() {
   const [result, setResult] = useState(null); // {ok, message, name}
   const [attType, setAttType] = useState("in");
   const [nisInput, setNisInput] = useState("");
+  const [nisFocused, setNisFocused] = useState(false);
   const [muted, setMuted] = useState(localStorage.getItem("kiosk_mute") === "1");
   const [queue, setQueue] = useState(loadQueue());
   const [online, setOnline] = useState(navigator.onLine);
@@ -172,6 +173,11 @@ export default function Kiosk() {
   const [saver, setSaver] = useState(false);
   const [saverSlide, setSaverSlide] = useState(0);
   const lastActRef = useRef(Date.now());
+  const [uiHidden, setUiHidden] = useState(false);
+  useEffect(() => {
+    const iv = setInterval(() => { if (Date.now() - lastActRef.current > 5000) setUiHidden(true); }, 1000);
+    return () => clearInterval(iv);
+  }, []);
 
   const todayStr = new Date().toISOString().slice(0, 10);
   const saverPhotosOn = info?.settings?.saver_photos_enabled !== false;
@@ -188,7 +194,7 @@ export default function Kiosk() {
   ];
 
   useEffect(() => {
-    const bump = () => { lastActRef.current = Date.now(); setSaver(false); };
+    const bump = () => { lastActRef.current = Date.now(); setSaver(false); setUiHidden(false); };
     window.addEventListener("pointerdown", bump);
     window.addEventListener("keydown", bump);
     return () => { window.removeEventListener("pointerdown", bump); window.removeEventListener("keydown", bump); };
@@ -458,6 +464,20 @@ export default function Kiosk() {
   // ---------- kiosk screen ----------
   const phaseText = { liveness: t("kiosk_liveness"), gps: t("kiosk_gps_getting"), sending: t("kiosk_processing") }[phase];
 
+  const studentPanel = (
+    <div className="w-full max-w-md md:max-w-xl lg:max-w-2xl space-y-3 pt-3 mt-1 border-t border-white/10" data-testid="kiosk-student-panel">
+      <p className="text-center text-slate-500 text-xs">{t("kiosk_or_nis")}</p>
+      <input data-testid="kiosk-nis-input" value={nisInput} onChange={(e) => setNisInput(e.target.value)} inputMode="numeric"
+        onFocus={() => setNisFocused(true)} onBlur={() => setNisFocused(false)}
+        placeholder={t("kiosk_nis")}
+        className="w-full text-center font-mono text-2xl tracking-widest rounded-2xl bg-white/5 border border-white/10 px-4 py-4 text-white outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 transition" />
+      <button data-testid="kiosk-student-submit" onClick={startStudentAttend} disabled={phase !== "idle" || !nisInput.trim()}
+        className="w-full bg-white/10 hover:bg-white/15 disabled:opacity-40 text-white font-bold text-base rounded-2xl py-4 transition-all active:scale-[0.98]">
+        {t("kiosk_nis_submit")}
+      </button>
+    </div>
+  );
+
   return (
     <div className="min-h-screen bg-[#0B1320] flex flex-col select-none" data-testid="kiosk-screen">
       <header className="px-5 pt-4 pb-1 text-center">
@@ -469,14 +489,14 @@ export default function Kiosk() {
         </p>
       </header>
 
-      <div className="flex-1 flex flex-col items-center justify-center px-4 pb-8 gap-5">
-        <div className="relative w-full max-w-md md:max-w-xl lg:max-w-2xl aspect-[4/3] rounded-3xl overflow-hidden bg-slate-900 border border-white/10">
+      <div className={`flex-1 flex flex-col items-center px-4 pb-8 gap-5 ${nisFocused ? "justify-start pt-10" : "justify-center"}`}>
+        <div className={`relative w-full max-w-md md:max-w-xl lg:max-w-2xl aspect-[4/3] rounded-3xl overflow-hidden bg-slate-900 border border-white/10 ${nisFocused ? "hidden" : ""}`}>
           <video ref={videoRef} autoPlay playsInline muted className="w-full h-full object-cover" data-testid="kiosk-video" />
           <div className="absolute top-2 left-2 z-10 flex flex-col items-start gap-1.5">
             {!online && <span data-testid="kiosk-offline-badge" className="flex items-center gap-1 text-xs font-bold text-amber-300 bg-black/50 backdrop-blur-sm px-2.5 py-1 rounded-full"><WifiOff className="w-3.5 h-3.5" /> Offline</span>}
             {queue.length > 0 && <span data-testid="kiosk-queue-badge" className="text-xs font-bold text-sky-300 bg-black/50 backdrop-blur-sm px-2.5 py-1 rounded-full">{t("kiosk_queue")}: {queue.length}</span>}
           </div>
-          <div className="absolute top-2 right-2 z-10 flex items-center gap-1.5">
+          <div className={`absolute top-2 right-2 z-10 flex items-center gap-1.5 transition-opacity duration-500 ${uiHidden ? "opacity-0 pointer-events-none" : "opacity-100"}`}>
             <LangSwitch dark />
             <button data-testid="kiosk-fullscreen-btn" onClick={toggleFs} title={t(isFs ? "kiosk_exit_fullscreen" : "kiosk_fullscreen")}
               className="p-2 rounded-xl bg-black/40 backdrop-blur-sm text-slate-200 hover:bg-black/60 transition-colors">
@@ -511,7 +531,7 @@ export default function Kiosk() {
           )}
         </div>
 
-        <div className="flex items-center gap-3 bg-white/5 rounded-full p-1.5" data-testid="kiosk-type-toggle">
+        <div className={`flex items-center gap-3 bg-white/5 rounded-full p-1.5 ${nisFocused ? "hidden" : ""}`} data-testid="kiosk-type-toggle">
           <button data-testid="kiosk-type-in" onClick={() => setAttType("in")}
             className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-bold transition-colors ${attType === "in" ? "bg-teal-600 text-white" : "text-slate-400"}`}>
             <LogIn className="w-4 h-4" /> {t("check_in")}
@@ -526,24 +546,15 @@ export default function Kiosk() {
           data-testid="kiosk-attend-btn"
           onClick={startAttend}
           disabled={phase !== "idle"}
-          className="w-full max-w-md md:max-w-xl lg:max-w-2xl bg-teal-600 hover:bg-teal-500 disabled:opacity-40 text-white font-extrabold text-xl md:text-2xl rounded-3xl py-6 md:py-7 transition-all active:scale-[0.98] shadow-lg shadow-teal-900/40"
+          className={`w-full max-w-md md:max-w-xl lg:max-w-2xl bg-teal-600 hover:bg-teal-500 disabled:opacity-40 text-white font-extrabold text-xl md:text-2xl rounded-3xl py-6 md:py-7 transition-all active:scale-[0.98] shadow-lg shadow-teal-900/40 ${nisFocused ? "hidden" : ""}`}
         >
           {attType === "in" ? t("check_in") : t("check_out")}
         </button>
 
-        <div className="w-full max-w-md md:max-w-xl lg:max-w-2xl space-y-3 pt-3 mt-1 border-t border-white/10" data-testid="kiosk-student-panel">
-          <p className="text-center text-slate-500 text-xs">{t("kiosk_or_nis")}</p>
-          <input data-testid="kiosk-nis-input" value={nisInput} onChange={(e) => setNisInput(e.target.value)} inputMode="numeric"
-            placeholder={t("kiosk_nis")}
-            className="w-full text-center font-mono text-xl tracking-widest rounded-2xl bg-white/5 border border-white/10 px-4 py-4 text-white outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 transition" />
-          <button data-testid="kiosk-student-submit" onClick={startStudentAttend} disabled={phase !== "idle" || !nisInput.trim()}
-            className="w-full bg-white/10 hover:bg-white/15 disabled:opacity-40 text-white font-bold text-base rounded-2xl py-4 transition-all active:scale-[0.98]">
-            {t("kiosk_nis_submit")}
-          </button>
-        </div>
+        {studentPanel}
 
         {info.locations?.length > 0 && (
-          <p className="text-slate-500 text-xs text-center">
+          <p className={`text-slate-500 text-xs text-center ${nisFocused ? "hidden" : ""}`}>
             GPS Geofence: {info.locations.map((l) => `${l.name} (r=${l.radius_m}m)`).join(" · ")}
           </p>
         )}

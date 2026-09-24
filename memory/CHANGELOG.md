@@ -182,3 +182,11 @@
 ## 2026-09-24 — Nama sekolah persis di atas kamera + tombol jadi overlay kamera
 - Permintaan user: nama sekolah ditaruh "atas persis camera". Header kiosk kini hanya berisi nama sekolah + tanggal/jam live yang terpusat dan rapat tepat di atas kotak kamera. Tombol bahasa/fullscreen/mute/unpair dipindah menjadi **overlay melayang di pojok kanan-atas kamera** (bg-black/40 backdrop-blur), badge offline/antrean di pojok kiri-atas kamera. Lebih hemat ruang vertikal dan rapi saat fullscreen.
 - Terverifikasi screenshot: mobile 390 & desktop 1920 — jarak jam→kamera rapat, tombol berada di dalam area kamera, nama terpusat, tanpa overflow. ZIP di-build ulang.
+
+## 2026-09-24 — Tombol overlay kiosk auto-hilang saat idle
+- Persetujuan user atas saran: tombol overlay kamera (bahasa/fullscreen/mute/unpair) otomatis memudar setelah 5 detik tanpa sentuhan (state `uiHidden`, interval 1s memakai `lastActRef` milik screensaver; `bump()` menampilkan lagi + reset). Badge offline/antrean (kiri) TIDAK ikut hilang agar status selalu terlihat. Transisi opacity 500ms + pointer-events-none saat tersembunyi.
+
+## 2026-09-24 — Fix: input absen manual NIS tertutup keyboard HP
+- Laporan user: di Mode Kios (HP), saat mengetik NIS manual, keyboard virtual menutupi kolom input sehingga angka tidak terlihat.
+- Solusi di `Kiosk.jsx`: state `nisFocused` — saat input NIS fokus, kamera, toggle Masuk/Pulang, tombol absen utama, dan info geofence disembunyikan (class `hidden`, TANPA unmount agar fokus tidak hilang/looping), panel manual naik ke bagian atas layar; font input diperbesar (text-2xl). Saat blur, tampilan kamera kembali normal.
+- Terverifikasi screenshot (mobile 390): kamera tersembunyi saat fokus, input berada di top 145px (di atas keyboard), nilai ketikan terlihat, kamera pulih setelah blur. ZIP di-build ulang.
