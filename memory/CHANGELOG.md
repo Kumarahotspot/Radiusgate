@@ -81,6 +81,10 @@
 - Terverifikasi screenshot: 6 tombol lebar identik 175px dalam 2 kolom (x=16/199), tanpa overflow (scrollWidth 390 = clientWidth), tautan "Unduh template CSV" tak lagi terpotong, desktop 1920 tetap sebaris.
 - ZIP Hostinger di-build ulang berisi perbaikan ini.
 
+## 2026-09-24 — Logo header portal diperkecil
+- Permintaan user: "logo radiusgate kecilkan sedikit" → logo di header portal (Layout.jsx) dari w-11/h-11 (44px) menjadi w-9/h-9 (36px), menyamai ukuran logo navbar landing yang sebelumnya disetujui. Berlaku semua role, desktop & mobile.
+- ZIP Hostinger di-build ulang berisi perubahan ini.
+
 ## 2026-09-24 — Badge diperluas: lembur pending (admin) + siswa izin hari ini (guru)
 - Persetujuan user atas saran lanjutan + permintaan tambahan: badge juga untuk lembur pending dan menu guru saat ada siswa izin/sakit.
 - Layout.jsx: state `pendingOvertime` (dari GET /admin/stats yang sama) & `studentLeaveToday` (GET /teacher/student-status, difilter tanggal hari ini di sisi klien — endpoint sudah ada, backend tidak berubah). `pendingMap` per key menu: leaves / overtime / student_status_menu. Badge ☰ (`nav-pending-badge`, menggantikan nav-leaves-badge) menampilkan TOTAL per role: admin = izin pending + lembur pending; guru = siswa sakit/izin hari ini. Chip per item menu kini generik `mnav-<key>-badge` (Izin/Cuti, Lembur, Izin Siswa).

@@ -103,7 +103,7 @@ export default function Layout() {
                 )}
               </button>
             )}
-            <img src="/logo.png" alt="RadiusGate" className="w-11 h-11 object-contain shrink-0" />
+            <img src="/logo.png" alt="RadiusGate" className="w-9 h-9 object-contain shrink-0" />
             <div className="min-w-0">
               <p className="font-bold text-slate-800 text-sm leading-tight truncate">{t("app_name")}</p>
               <p className="text-[11px] text-teal-700 font-medium leading-tight">{t(portalKey[user.role])} · {user.name}</p>
