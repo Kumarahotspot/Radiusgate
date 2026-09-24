@@ -173,3 +173,8 @@
 ## 2026-09-24 — Bunyi "ding" merdu sebelum suara nama di kiosk
 - Persetujuan user atas saran: kartu sukses kini diawali chime Web Audio (2 nada sine E5→A5 untuk absen MASUK, turun A5→E5 untuk PULANG), diputar sebelum TTS nama; di semua jalur sukses (wajah, NIS manual, antrean offline). Hormati tombol mute; tanpa file audio eksternal (AudioContext oscillator, audioCtxRef di-reuse).
 - Terverifikasi e2e (spy AudioContext): ≥2 oscillator tercipta saat kartu sukses muncul. ZIP di-build ulang.
+
+## 2026-09-24 — Header kiosk: nama sekolah + tanggal/jam di tengah atas kamera
+- Permintaan user: nama sekolah dan date-time dipindah ke tengah. Header kiosk kini `relative`: blok nama+tanggal+jam terpusat (`text-center`, padding aman dari tombol kanan), tombol-tombol (bahasa/fullscreen/mute/unpair + badge offline/antrean) absolute di kanan. Jam kini LIVE berdetak tiap detik (state `now` + interval 1s, format id-ID/en-US). Testid baru: kiosk-clock.
+- Terverifikasi screenshot: desktop 1920 — nama terpusat (selisih <30px dari tengah), jam berdetak (nilai berubah per detik); mobile 390 — terpusat & tanpa overflow. ZIP di-build ulang.
+- Fix mobile: teks tanggal/jam bertabrakan dengan tombol kanan di 390px → header kini flex-col di mobile (nama+jam terpusat penuh di baris 1, tombol di baris 2), layout absolute-kanan hanya untuk sm ke atas.

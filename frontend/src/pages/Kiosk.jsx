@@ -31,6 +31,11 @@ export default function Kiosk() {
   const [queue, setQueue] = useState(loadQueue());
   const [online, setOnline] = useState(navigator.onLine);
   const [offlinePick, setOfflinePick] = useState(false);
+  const [now, setNow] = useState(new Date());
+  useEffect(() => {
+    const iv = setInterval(() => setNow(new Date()), 1000);
+    return () => clearInterval(iv);
+  }, []);
   const [isFs, setIsFs] = useState(false);
   const toggleFs = () => {
     if (!document.fullscreenElement) document.documentElement.requestFullscreen?.().catch(() => {});
@@ -455,12 +460,16 @@ export default function Kiosk() {
 
   return (
     <div className="min-h-screen bg-[#0B1320] flex flex-col select-none" data-testid="kiosk-screen">
-      <header className="flex items-center justify-between px-5 py-4">
-        <div>
-          <p className="text-white font-extrabold" data-testid="kiosk-school-name">{info.school?.name}</p>
-          <p className="text-slate-400 text-xs">{new Date().toLocaleDateString(i18n.language === "en" ? "en-US" : "id-ID", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}</p>
+      <header className="relative px-5 py-4 flex flex-col items-center gap-2 sm:block">
+        <div className="text-center sm:px-40">
+          <p className="text-white font-extrabold truncate" data-testid="kiosk-school-name">{info.school?.name}</p>
+          <p className="text-slate-400 text-xs" data-testid="kiosk-clock">
+            {now.toLocaleDateString(i18n.language === "en" ? "en-US" : "id-ID", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}
+            {" · "}
+            {now.toLocaleTimeString(i18n.language === "en" ? "en-US" : "id-ID", { hour: "2-digit", minute: "2-digit", second: "2-digit" })}
+          </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 sm:absolute sm:right-3 sm:top-1/2 sm:-translate-y-1/2">
           {!online && <span data-testid="kiosk-offline-badge" className="flex items-center gap-1 text-xs font-bold text-amber-400 bg-amber-400/10 px-2.5 py-1 rounded-full"><WifiOff className="w-3.5 h-3.5" /> Offline</span>}
           {queue.length > 0 && <span data-testid="kiosk-queue-badge" className="text-xs font-bold text-sky-400 bg-sky-400/10 px-2.5 py-1 rounded-full">{t("kiosk_queue")}: {queue.length}</span>}
           <LangSwitch dark />
