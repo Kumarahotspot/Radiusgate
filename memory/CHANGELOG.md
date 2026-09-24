@@ -91,6 +91,7 @@
 - Terverifikasi e2e browser: password salah ditolak (toast), ganti Guru123!→Guru456! sukses + login ulang dengan password baru berhasil, dikembalikan ke Guru123! (kredensial demo stabil), modal tertutup, tanpa overflow mobile 390.
 - ZIP Hostinger di-build ulang berisi fitur ini.
 - Lanjutan (persetujuan user): kartu "Ganti Password" lama di halaman Presensi Saya (TeacherHome.jsx) **dihapus** — form, state `pw`/`busyPw`, handler `submitPw`, dan import KeyRound ikut dibersihkan. Guru kini ganti password hanya via menu avatar. Testid lama `teacher-pw-form` tidak lagi ada.
+- Lanjutan 2 (permintaan user): **ortu juga memakai modal avatar** — item "Ganti Password" di dropdown kini tampil untuk SEMUA role (kondisi non-parent dihapus); form "Ganti Password" di tab Profil ortu (ParentHome.jsx) dihapus beserta state `pw` & handler `submitPw` (testid `parent-pw-form` hilang). Item "Profil" ortu tetap ada. Terverifikasi e2e: tab Profil bersih (form profil utuh), dropdown ortu punya Profil + Ganti Password, modal ganti 696969→Ortu123!→696969 sukses (kredensial demo stabil), tanpa overflow mobile 390. ZIP di-build ulang.
 
 ## 2026-09-24 — Nama pengguna pindah ke menu avatar kanan atas (semua role)
 - Permintaan user (contoh RadiusLink): "admin Nusantara dipindah spt contoh" — teks "Portal X · Nama" di bawah logo membungkus 3 baris di HP; nama dipindah ke kanan atas sebagai menu avatar.

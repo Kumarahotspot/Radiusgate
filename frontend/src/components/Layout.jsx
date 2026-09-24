@@ -151,12 +151,10 @@ export default function Layout() {
                       <User className="w-4 h-4" /> {t("profile")}
                     </button>
                   )}
-                  {user.role !== "parent" && (
-                    <button data-testid="user-menu-password" onClick={() => { setMenuOpen(false); setPwOpen(true); }}
-                      className="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-teal-700 transition-colors">
-                      <KeyRound className="w-4 h-4" /> {t("change_password")}
-                    </button>
-                  )}
+                  <button data-testid="user-menu-password" onClick={() => { setMenuOpen(false); setPwOpen(true); }}
+                    className="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-teal-700 transition-colors">
+                    <KeyRound className="w-4 h-4" /> {t("change_password")}
+                  </button>
                   <div className="my-1 border-t border-slate-100" />
                   <button data-testid="user-menu-logout" onClick={() => { logout(); nav("/login"); }}
                     className="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs font-semibold text-slate-700 hover:bg-red-50 hover:text-red-600 transition-colors">
