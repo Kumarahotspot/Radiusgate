@@ -335,6 +335,8 @@ export default function Kiosk() {
         if (d === "student_not_found") msg = t("kiosk_student_not_found");
         else if (d.startsWith("outside_geofence")) msg = t("kiosk_outside");
         else if (d === "already_recorded") msg = t("kiosk_already");
+        else if (d.startsWith("too_early")) { const p = d.split(":"); msg = t("kiosk_too_early", { time: `${p[1]}:${p[2]}` }); }
+        else if (d.startsWith("past_work_end")) msg = t("kiosk_past_work_end", { time: d.split(":")[1] });
         setResult({ ok: false, message: msg });
         speak(`${t("kiosk_failed")}. ${msg}`);
       }
@@ -471,7 +473,7 @@ export default function Kiosk() {
         onFocus={() => setNisFocused(true)} onBlur={() => setNisFocused(false)}
         placeholder={t("kiosk_nis")}
         className="w-full text-center font-mono text-2xl tracking-widest rounded-2xl bg-white/5 border border-white/10 px-4 py-4 text-white outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 transition" />
-      <button data-testid="kiosk-student-submit" onClick={startStudentAttend} disabled={phase !== "idle" || !nisInput.trim()}
+      <button data-testid="kiosk-student-submit" onPointerDown={(e) => e.preventDefault()} onClick={startStudentAttend} disabled={phase !== "idle" || !nisInput.trim()}
         className="w-full bg-white/10 hover:bg-white/15 disabled:opacity-40 text-white font-bold text-base rounded-2xl py-4 transition-all active:scale-[0.98]">
         {t("kiosk_nis_submit")}
       </button>

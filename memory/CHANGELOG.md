@@ -190,3 +190,9 @@
 - Laporan user: di Mode Kios (HP), saat mengetik NIS manual, keyboard virtual menutupi kolom input sehingga angka tidak terlihat.
 - Solusi di `Kiosk.jsx`: state `nisFocused` — saat input NIS fokus, kamera, toggle Masuk/Pulang, tombol absen utama, dan info geofence disembunyikan (class `hidden`, TANPA unmount agar fokus tidak hilang/looping), panel manual naik ke bagian atas layar; font input diperbesar (text-2xl). Saat blur, tampilan kamera kembali normal.
 - Terverifikasi screenshot (mobile 390): kamera tersembunyi saat fokus, input berada di top 145px (di atas keyboard), nilai ketikan terlihat, kamera pulih setelah blur. ZIP di-build ulang.
+
+## 2026-09-24 — Fix: tombol "Absen Manual" tidak merespons klik (layout shift saat blur)
+- Laporan user: "abses gagal coba cek tombol absennya apakah sudah benar".
+- Akar masalah (direproduksi): mengetuk tombol "Absen Manual" memicu `onBlur` input NIS → layout kiosk kembali normal → tombol melompat dari top 223px ke 922px → klik tidak pernah mendarat di tombol. Fix: `onPointerDown={e => e.preventDefault()}` pada tombol submit agar input tetap fokus dan layout tidak bergeser saat tap.
+- Perbaikan tambahan: pesan error backend `too_early` dan `past_work_end` kini dipetakan ke pesan jelas ("Belum waktunya absen (mulai HH:MM)" / "Sudah lewat jam pulang (HH:MM)") di i18n ID+EN, menggantikan "Absen gagal" generik.
+- Terverifikasi e2e (mobile 390): tombol tidak lagi berpindah saat tap, request sampai ke backend, kartu hasil tampil benar (NIS tidak ditemukan / luar geofence / belum waktunya absen). ZIP di-build ulang.
