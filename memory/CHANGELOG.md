@@ -165,3 +165,7 @@
 
 ## 2026-09-24 — Kiosk auto-fullscreen saat dibuka
 - Persetujuan user atas saran: halaman /kiosk (setelah pairing) otomatis masuk mode layar penuh pada interaksi pertama (pointerdown listener; browser mewajibkan gestur user). Retry setiap tap sampai berhasil; berhenti setelah fullscreen aktif. Tombol ⛶ manual tetap ada.
+
+## 2026-09-24 — Kartu konfirmasi absen layar penuh (foto + nama besar)
+- Persetujuan user atas saran: saat absen berhasil, kiosk menampilkan kartu konfirmasi layar penuh selama ±3 detik — hijau sukses dengan FOTO frame wajah yang baru ditangkap (bulat besar, tanpa perubahan backend karena frame sudah ada di frontend) + nama besar 4xl/6xl + pesan. Gagal → kartu merah. Absen NIS manual (tanpa foto) menampilkan avatar inisial. Jalur offline juga membawa foto.
+- Terverifikasi e2e: kartu sukses hijau (jalur offline, avatar inisial + nama + pesan) & kartu gagal merah (NIS tidak dikenal) tampil fullscreen lalu hilang otomatis; antrean offline palsu dibersihkan; mobile 390 tanpa overflow. ZIP di-build ulang.

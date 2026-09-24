@@ -250,7 +250,7 @@ export default function Kiosk() {
     saveQueue(q);
     setQueue(q);
     const name = teachers.find((x) => x.id === teacherId)?.name || "";
-    setResult({ ok: true, offline: true, message: t("kiosk_offline"), name });
+    setResult({ ok: true, offline: true, message: t("kiosk_offline"), name, photo });
     speak(`${t("kiosk_success")}. ${name}. ${t("kiosk_offline")}`);
     setPhase("result");
     setTimeout(() => { setPhase("idle"); setResult(null); setOfflinePick(false); }, 3500);
@@ -344,7 +344,7 @@ export default function Kiosk() {
         const customGreet = (attType === "in" ? info?.settings?.greeting_in : info?.settings?.greeting_out) || "";
         const greet = customGreet.trim() || (attType === "in" ? t("kiosk_welcome") : t("kiosk_goodbye"));
         const successWord = attType === "in" ? t("kiosk_success") : t("kiosk_success_out");
-        setResult({ ok: true, name: data.teacher_name, message: data.status === "late" ? `${t("kiosk_success")} · +${data.late_minutes}m` : t("kiosk_success"), late: data.status === "late" });
+        setResult({ ok: true, name: data.teacher_name, photo: f2, message: data.status === "late" ? `${t("kiosk_success")} · +${data.late_minutes}m` : t("kiosk_success"), late: data.status === "late" });
         speak(`${successWord}. ${data.teacher_name}. ${greet}`);
       } catch (err) {
         if (!err.response) {
@@ -454,10 +454,19 @@ export default function Kiosk() {
             </div>
           )}
           {phase === "result" && result && (
-            <div data-testid="kiosk-result" className={`absolute inset-0 flex flex-col items-center justify-center gap-1 ${result.ok ? "bg-emerald-600/90" : "bg-red-600/90"}`}>
-              <p className="text-white font-extrabold text-2xl">{result.ok ? t("kiosk_success") : t("kiosk_failed")}</p>
-              {result.name && <p className="text-white/90 font-bold text-xl" data-testid="kiosk-result-name">{result.name}</p>}
-              <p className="text-white/80 text-sm px-6 text-center" data-testid="kiosk-result-msg">{result.message}</p>
+            <div data-testid="kiosk-result" className={`fixed inset-0 z-40 flex flex-col items-center justify-center gap-3 md:gap-5 p-6 ${result.ok ? "bg-emerald-600/95" : "bg-red-600/90"}`}>
+              {result.ok && (result.photo ? (
+                <img src={result.photo} alt="" data-testid="kiosk-result-photo"
+                  className="w-40 h-40 md:w-56 md:h-56 rounded-full object-cover border-4 border-white/50 shadow-2xl" />
+              ) : result.name ? (
+                <div data-testid="kiosk-result-photo"
+                  className="w-40 h-40 md:w-56 md:h-56 rounded-full bg-white/15 border-4 border-white/50 flex items-center justify-center text-white text-6xl md:text-7xl font-extrabold shadow-2xl">
+                  {result.name.split(" ").map((w) => w[0]).filter(Boolean).slice(0, 2).join("").toUpperCase()}
+                </div>
+              ) : null)}
+              <p className="text-white font-extrabold text-3xl md:text-5xl">{result.ok ? t("kiosk_success") : t("kiosk_failed")}</p>
+              {result.name && <p className="text-white font-extrabold text-4xl md:text-6xl tracking-tight text-center" data-testid="kiosk-result-name">{result.name}</p>}
+              <p className="text-white/85 text-base md:text-xl px-6 text-center max-w-xl" data-testid="kiosk-result-msg">{result.message}</p>
             </div>
           )}
         </div>
