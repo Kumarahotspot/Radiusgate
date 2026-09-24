@@ -300,35 +300,35 @@ export default function Students() {
     <div data-testid="students-page" className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h2 className="text-lg font-bold text-slate-800">{t("students")} <span data-testid="student-total" className="text-teal-700">({students.length})</span></h2>
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="grid grid-cols-2 gap-2 w-full sm:w-auto sm:flex sm:flex-wrap sm:items-center">
           {selected.size > 0 && (
             <button data-testid="bulk-delete-btn" onClick={bulkDelete}
-              className="flex items-center gap-1.5 bg-red-600 hover:bg-red-700 text-white text-xs font-bold px-4 py-2 rounded-xl transition-colors">
+              className="col-span-2 flex items-center justify-center gap-1.5 bg-red-600 hover:bg-red-700 text-white text-xs font-bold px-4 py-2 rounded-xl transition-colors w-full sm:w-auto">
               <Trash2 className="w-4 h-4" /> {t("delete_selected")} ({selected.size})
             </button>
           )}
           <button data-testid="add-student-btn" onClick={() => setShowForm(!showForm)}
-            className="flex items-center gap-1.5 bg-teal-700 hover:bg-teal-800 text-white text-xs font-bold px-4 py-2 rounded-xl transition-colors">
+            className="flex items-center justify-center gap-1.5 bg-teal-700 hover:bg-teal-800 text-white text-xs font-bold px-4 py-2 rounded-xl transition-colors w-full sm:w-auto">
             <Plus className="w-4 h-4" /> {t("add_student")}
           </button>
           <button data-testid="promote-btn" onClick={() => setPromoteOpen(true)}
-            className="flex items-center gap-1.5 bg-white border border-teal-700 text-teal-700 hover:bg-teal-50 text-xs font-bold px-4 py-2 rounded-xl transition-colors">
+            className="flex items-center justify-center gap-1.5 bg-white border border-teal-700 text-teal-700 hover:bg-teal-50 text-xs font-bold px-4 py-2 rounded-xl transition-colors w-full sm:w-auto">
             <GraduationCap className="w-4 h-4" /> {t("promote_class")}
           </button>
           <button data-testid="export-btn" onClick={doExport}
-            className="flex items-center gap-1.5 bg-white border border-teal-700 text-teal-700 hover:bg-teal-50 text-xs font-bold px-4 py-2 rounded-xl transition-colors">
+            className="flex items-center justify-center gap-1.5 bg-white border border-teal-700 text-teal-700 hover:bg-teal-50 text-xs font-bold px-4 py-2 rounded-xl transition-colors w-full sm:w-auto">
             <Download className="w-4 h-4" /> {t("export_file")}
           </button>
           <button data-testid="bulk-enroll-btn" onClick={() => { setBulkOpen(true); setBulkReport(null); setZipFile(null); setMapFile(null); }}
-            className="flex items-center gap-1.5 bg-white border border-teal-700 text-teal-700 hover:bg-teal-50 text-xs font-bold px-4 py-2 rounded-xl transition-colors">
+            className="flex items-center justify-center gap-1.5 bg-white border border-teal-700 text-teal-700 hover:bg-teal-50 text-xs font-bold px-4 py-2 rounded-xl transition-colors w-full sm:w-auto">
             <ScanFace className="w-4 h-4" /> {t("bulk_enroll")}
           </button>
           <button data-testid="parent-accounts-btn" onClick={createParents} disabled={busy}
-            className="flex items-center gap-1.5 bg-white border border-teal-700 text-teal-700 hover:bg-teal-50 text-xs font-bold px-4 py-2 rounded-xl transition-colors disabled:opacity-50">
+            className="flex items-center justify-center gap-1.5 bg-white border border-teal-700 text-teal-700 hover:bg-teal-50 text-xs font-bold px-4 py-2 rounded-xl transition-colors disabled:opacity-50 w-full sm:w-auto">
             <Plus className="w-4 h-4" /> {t("create_parent_accounts")}
           </button>
           <button data-testid="import-btn" onClick={() => fileRef.current?.click()} disabled={busy}
-            className="flex items-center gap-1.5 bg-teal-700 hover:bg-teal-800 text-white text-xs font-bold px-4 py-2 rounded-xl transition-colors disabled:opacity-50">
+            className="flex items-center justify-center gap-1.5 bg-teal-700 hover:bg-teal-800 text-white text-xs font-bold px-4 py-2 rounded-xl transition-colors disabled:opacity-50 w-full sm:w-auto">
             <Upload className="w-4 h-4" /> {busy ? t("loading") : t("import_file")}
           </button>
         </div>

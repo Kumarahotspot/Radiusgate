@@ -75,6 +75,12 @@
 - Terverifikasi: leave uji dibuat via API guru (pending_leaves=1) → screenshot mobile 390: badge "1" tampil di ☰ (posisi kiri) & chip "1" di item Izin/Cuti, klik item → navigasi /admin/leaves + dropdown tertutup, tanpa overflow; desktop bersih. Leave uji dihapus (pending_leaves kembali 0).
 - ZIP Hostinger di-build ulang berisi fitur ini.
 
+## 2026-09-24 — Rapikan toolbar halaman Siswa di mobile
+- Keluhan user (screenshot HP): 6 tombol aksi halaman Siswa (Tambah Siswa, Kenaikan Kelas, Ekspor XLS, Enroll Massal ZIP, Buat Akun Ortu, Impor CSV/XLS) tampil berantakan dengan lebar tidak seragam.
+- Students.jsx: kontainer tombol kini `grid grid-cols-2` di mobile (kembali `sm:flex` di desktop); semua tombol `w-full justify-center sm:w-auto` sehingga lebar seragam 2 kolom; tombol Hapus Terpilih `col-span-2` (lebar penuh saat muncul). Mengikuti pola toolbar Absen Mapel yang sudah disetujui user.
+- Terverifikasi screenshot: 6 tombol lebar identik 175px dalam 2 kolom (x=16/199), tanpa overflow (scrollWidth 390 = clientWidth), tautan "Unduh template CSV" tak lagi terpotong, desktop 1920 tetap sebaris.
+- ZIP Hostinger di-build ulang berisi perbaikan ini.
+
 ## 2026-09-24 — Badge diperluas: lembur pending (admin) + siswa izin hari ini (guru)
 - Persetujuan user atas saran lanjutan + permintaan tambahan: badge juga untuk lembur pending dan menu guru saat ada siswa izin/sakit.
 - Layout.jsx: state `pendingOvertime` (dari GET /admin/stats yang sama) & `studentLeaveToday` (GET /teacher/student-status, difilter tanggal hari ini di sisi klien — endpoint sudah ada, backend tidak berubah). `pendingMap` per key menu: leaves / overtime / student_status_menu. Badge ☰ (`nav-pending-badge`, menggantikan nav-leaves-badge) menampilkan TOTAL per role: admin = izin pending + lembur pending; guru = siswa sakit/izin hari ini. Chip per item menu kini generik `mnav-<key>-badge` (Izin/Cuti, Lembur, Izin Siswa).
