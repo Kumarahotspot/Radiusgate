@@ -3,6 +3,7 @@ import { useSearchParams, Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import api from "../api";
 import { CheckCircle2 } from "lucide-react";
+import PasswordInput from "../components/PasswordInput";
 
 export default function ResetPassword() {
   const { t } = useTranslation();
@@ -50,12 +51,12 @@ export default function ResetPassword() {
             <form onSubmit={submit} className="mt-6 space-y-4" data-testid="reset-form">
               <div>
                 <label className="text-xs font-semibold text-slate-400 uppercase tracking-wide">{t("new_password")}</label>
-                <input data-testid="reset-new-password" type="password" required value={pw} onChange={(e) => setPw(e.target.value)}
+                <PasswordInput testid="reset-new-password" value={pw} onChange={setPw}
                   className="mt-1.5 w-full rounded-xl bg-white/5 border border-white/10 px-4 py-3 text-white text-sm outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 transition" />
               </div>
               <div>
                 <label className="text-xs font-semibold text-slate-400 uppercase tracking-wide">{t("confirm_password")}</label>
-                <input data-testid="reset-confirm-password" type="password" required value={pw2} onChange={(e) => setPw2(e.target.value)}
+                <PasswordInput testid="reset-confirm-password" value={pw2} onChange={setPw2}
                   className="mt-1.5 w-full rounded-xl bg-white/5 border border-white/10 px-4 py-3 text-white text-sm outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 transition" />
               </div>
               {error && <p data-testid="reset-error" className="text-red-400 text-sm">{error}</p>}

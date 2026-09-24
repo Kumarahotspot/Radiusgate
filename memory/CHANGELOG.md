@@ -132,6 +132,7 @@
 ## 2026-09-24 — Tombol show/hide kata sandi di halaman login
 - Permintaan user: sering salah ketik sandi → tambahkan toggle mata (Eye/EyeOff) di kolom Kata Sandi halaman login (`login-toggle-pw`); tipe input berubah password↔text. i18n baru: show_password/hide_password (ID/EN).
 - Terverifikasi e2e: toggle mengubah tipe input, nilai sandi terlihat saat show, login tetap sukses setelah toggle. ZIP di-build ulang.
+- Lanjutan (persetujuan user): komponen reusable `components/PasswordInput.jsx` (input + toggle mata internal, testid `<id>` + `<id>-toggle`) dipasang di **modal Ganti Password** (Layout.jsx: pw-current, pw-new) dan **halaman Reset Password** (ResetPassword.jsx: reset-new-password, reset-confirm-password). Terverifikasi e2e: keempat toggle berfungsi (type↔text), modal batal normal. ZIP di-build ulang.
 - **Tabel Guru diperjelas (permintaan user)**: Kolom **L/P (Jenis Kelamin)** ditambahkan di tabel Guru halaman Admin agar status gender setiap guru terlihat jelas langsung (Laki-laki = badge biru, Perempuan = badge pink). Semua guru (Budi=L, Lukman=L, Kumara=L, Siti Nuriyah=P) sudah terdata dengan benar. ZIP di-build ulang.
 
 ## 2026-09-24 — Nama pengguna pindah ke menu avatar kanan atas (semua role)
