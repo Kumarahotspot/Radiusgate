@@ -37,8 +37,10 @@ export default function TeacherSubjectAtt() {
     window.speechSynthesis.onvoiceschanged = loadVoices;
     return () => { if (window.speechSynthesis) window.speechSynthesis.onvoiceschanged = null; };
   }, []);
-  const speak = (text) => {
-    if (muted || !window.speechSynthesis) return;
+  const audioRef = useRef(null);
+  const ttsCache = useRef({});
+  const deviceSpeak = (text) => {
+    if (!window.speechSynthesis) return;
     window.speechSynthesis.cancel();
     const u = new SpeechSynthesisUtterance(text);
     u.lang = "id-ID";
@@ -61,15 +63,35 @@ export default function TeacherSubjectAtt() {
     }
     window.speechSynthesis.speak(u);
   };
+  const speak = (text) => {
+    if (muted) return;
+    const g = meta.gender;
+    if ((g === "L" || g === "P") && navigator.onLine) {
+      const key = `${g}:${text}`;
+      const play = (s) => {
+        if (audioRef.current) audioRef.current.pause();
+        const a = new Audio(s);
+        audioRef.current = a;
+        a.play().catch(() => deviceSpeak(text));
+      };
+      const cached = ttsCache.current[key];
+      if (cached) { play(cached); return; }
+      api.post("/teacher/tts", { text })
+        .then((r) => { const src = `${api.defaults.baseURL}${r.data.url.replace("/api", "")}`; ttsCache.current[key] = src; play(src); })
+        .catch(() => deviceSpeak(text));
+      return;
+    }
+    deviceSpeak(text);
+  };
   const toggleMute = () => {
     setMuted((m) => {
       const nv = !m;
       localStorage.setItem("sa_voice_muted", nv ? "1" : "0");
-      if (nv) window.speechSynthesis?.cancel();
+      if (nv) { window.speechSynthesis?.cancel(); if (audioRef.current) audioRef.current.pause(); }
       return nv;
     });
   };
-  const closeCall = () => { setCallIdx(null); window.speechSynthesis?.cancel(); };
+  const closeCall = () => { setCallIdx(null); window.speechSynthesis?.cancel(); if (audioRef.current) audioRef.current.pause(); };
 
   useEffect(() => {
     api.get("/teacher/subject-att/meta").then((r) => {

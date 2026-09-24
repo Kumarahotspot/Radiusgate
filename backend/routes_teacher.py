@@ -193,9 +193,9 @@ async def subject_att_meta(user: dict = Depends(teacher_dep)):
     return {"subjects": _subject_list(t), "classes": _class_list(t), "gender": t.get("gender", "")}
 
 
-# ---------- TTS cloud untuk voice panggil (pria=onyx / wanita=nova, model tts-1) ----------
+# ---------- TTS cloud untuk voice panggil (ElevenLabs eleven_multilingual_v2: pria=Adam / wanita=Sarah) ----------
 TTS_DIR = "/app/backend/assets/tts"
-TTS_VOICES = {"L": "onyx", "P": "nova"}
+TTS_VOICES = {"L": "pNInz6obpgDQGcFmaJgB", "P": "EXAVITQu4vr4xnSDxMaL"}
 
 
 class TtsIn(BaseModel):
@@ -204,7 +204,7 @@ class TtsIn(BaseModel):
 
 def _tts_key(text: str, voice: str) -> str:
     import hashlib
-    return hashlib.sha256(f"{text}|{voice}|1.0|tts-1|mp3".encode()).hexdigest()
+    return hashlib.sha256(f"{text}|{voice}|eleven_multilingual_v2|el|mp3".encode()).hexdigest()
 
 
 @router.post("/teacher/tts")
@@ -212,16 +212,26 @@ async def teacher_tts(body: TtsIn, user: dict = Depends(teacher_dep)):
     import os
     import re
     t = await my_teacher(user)
-    voice = TTS_VOICES.get(t.get("gender", ""), "nova")
+    voice = TTS_VOICES.get(t.get("gender", ""), "EXAVITQu4vr4xnSDxMaL")
     text = re.sub(r"\s+", " ", re.sub(r"[*_#>~|`]", "", re.sub(r"https?://\S+", "", body.text or ""))).strip()[:120]
     if not text:
         raise HTTPException(status_code=422, detail="text_empty")
     key = _tts_key(text, voice)
     path = f"{TTS_DIR}/{key}.mp3"
     if not os.path.exists(path):
-        from emergentintegrations.llm.openai import OpenAITextToSpeech
-        tts = OpenAITextToSpeech(api_key=os.environ["EMERGENT_LLM_KEY"])
-        audio = await tts.generate_speech(text=text, model="tts-1", voice=voice)
+        import asyncio
+        import requests
+        def _gen():
+            r = requests.post(
+                f"https://api.elevenlabs.io/v1/text-to-speech/{voice}",
+                headers={"xi-api-key": os.environ["ELEVENLABS_API_KEY"], "Content-Type": "application/json"},
+                json={"text": text, "model_id": "eleven_multilingual_v2",
+                      "voice_settings": {"stability": 0.5, "similarity_boost": 0.75}},
+                timeout=30,
+            )
+            r.raise_for_status()
+            return r.content
+        audio = await asyncio.to_thread(_gen)
         with open(path, "wb") as f:
             f.write(audio)
     return {"url": f"/api/teacher/tts-file/{key}.mp3"}

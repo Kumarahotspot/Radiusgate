@@ -137,6 +137,13 @@
 - Permintaan user: sering salah ketik sandi → tambahkan toggle mata (Eye/EyeOff) di kolom Kata Sandi halaman login (`login-toggle-pw`); tipe input berubah password↔text. i18n baru: show_password/hide_password (ID/EN).
 - Terverifikasi e2e: toggle mengubah tipe input, nilai sandi terlihat saat show, login tetap sukses setelah toggle. ZIP di-build ulang.
 - Lanjutan (persetujuan user): komponen reusable `components/PasswordInput.jsx` (input + toggle mata internal, testid `<id>` + `<id>-toggle`) dipasang di **modal Ganti Password** (Layout.jsx: pw-current, pw-new) dan **halaman Reset Password** (ResetPassword.jsx: reset-new-password, reset-confirm-password). Terverifikasi e2e: keempat toggle berfungsi (type↔text), modal batal normal. ZIP di-build ulang.
+
+## 2026-09-24 — Voice panggil via ElevenLabs (suara pria/wanita asli, konsisten semua perangkat)
+- Masalah user: suara pria di perangkat tanpa voice pria id-ID terdengar "setengah wanita setengah pria" (plafon trik pitch), dan berbeda-beda antar PC/HP/Samsung Tab. User memilih ElevenLabs dan memberi API key sendiri (Free plan, disimpan sebagai `ELEVENLABS_API_KEY` di backend/.env — JANGAN dihapus).
+- Backend routes_teacher.py: endpoint dormant `/teacher/tts` diaktifkan ulang dengan ElevenLabs HTTP API (`POST /v1/text-to-speech/{voice_id}`, model `eleven_multilingual_v2`, stability 0.5, similarity_boost 0.75) via requests+asyncio.to_thread. Voice: pria = **Adam** (`pNInz6obpgDQGcFmaJgB`), wanita = **Sarah** (`EXAVITQu4vr4xnSDxMaL`) — divalidasi 200 via API langsung (Aria 402 tidak tersedia di Free). Cache key diubah (memuat `eleven_multilingual_v2|el`) agar tidak tabrakan dengan cache OpenAI lama. Serve endpoint `/teacher/tts-file/<hash>.mp3` tidak berubah.
+- Frontend TeacherSubjectAtt.jsx: jalur **cloud-first dikembalikan** (speak → POST /teacher/tts → Audio), fallback `deviceSpeak()` (speechSynthesis, pria 0.75/wanita 1.1) saat offline/error. Kini suara IDENTIK di PC/HP/Tab dan beraksen Indonesia natural.
+- Terverifikasi: curl e2e (generate mp3 valid → serve audio/mpeg → cache hit URL sama → voice pria≠wanita); UI spy: roll call memakai URL cloud tts-file, nol pemanggilan device TTS. ZIP di-build ulang.
+- Catatan biaya: free tier ±10rb kredit/bln; audio di-cache per nama+gender sehingga panggilan berulang gratis.
 - **Tabel Guru diperjelas (permintaan user)**: Kolom **L/P (Jenis Kelamin)** ditambahkan di tabel Guru halaman Admin agar status gender setiap guru terlihat jelas langsung (Laki-laki = badge biru, Perempuan = badge pink). Semua guru (Budi=L, Lukman=L, Kumara=L, Siti Nuriyah=P) sudah terdata dengan benar. ZIP di-build ulang.
 
 ## 2026-09-24 — Nama pengguna pindah ke menu avatar kanan atas (semua role)
