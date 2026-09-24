@@ -190,7 +190,7 @@ def _subject_list(t: dict) -> list:
 @router.get("/teacher/subject-att/meta")
 async def subject_att_meta(user: dict = Depends(teacher_dep)):
     t = await my_teacher(user)
-    return {"subjects": _subject_list(t), "classes": _class_list(t)}
+    return {"subjects": _subject_list(t), "classes": _class_list(t), "gender": t.get("gender", "")}
 
 
 @router.get("/teacher/subject-att")

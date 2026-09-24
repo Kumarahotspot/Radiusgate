@@ -10,7 +10,7 @@ export default function Teachers() {
   const [teachers, setTeachers] = useState([]);
   const [showForm, setShowForm] = useState(false);
   const [enrollFor, setEnrollFor] = useState(null);
-  const [form, setForm] = useState({ name: "", email: "", password: "", nip: "", subject: "", classes: "" });
+  const [form, setForm] = useState({ name: "", email: "", password: "", nip: "", subject: "", classes: "", gender: "" });
   const [subjectOther, setSubjectOther] = useState("");
   const [opts, setOpts] = useState({ classes: [], subjects: [] });
   const [busy, setBusy] = useState(false);
@@ -54,7 +54,7 @@ export default function Teachers() {
       await api.post("/admin/teachers", { ...form, subject });
       toast.success(t("save"));
       setShowForm(false);
-      setForm({ name: "", email: "", password: "", nip: "", subject: "", classes: "" });
+      setForm({ name: "", email: "", password: "", nip: "", subject: "", classes: "", gender: "" });
       setSubjectOther("");
       load();
     } catch (err) { toast.error(errMsg(err)); } finally { setBusy(false); }
@@ -91,6 +91,15 @@ export default function Teachers() {
           <In label={t("email")} testid="teacher-email" type="email" v={form.email} set={(v) => setForm({ ...form, email: v })} req />
           <In label={t("password")} testid="teacher-password" v={form.password} set={(v) => setForm({ ...form, password: v })} req />
           <In label={t("nip")} testid="teacher-nip" v={form.nip} set={(v) => setForm({ ...form, nip: v })} />
+          <div>
+            <label className="text-xs font-semibold text-slate-500">{t("gender")}</label>
+            <select data-testid="teacher-gender" value={form.gender} onChange={(e) => setForm({ ...form, gender: e.target.value })}
+              className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-600/15 transition bg-white">
+              <option value="">-</option>
+              <option value="L">{t("gender_l")}</option>
+              <option value="P">{t("gender_p")}</option>
+            </select>
+          </div>
           <div className="sm:col-span-3">
             <CheckGroup label={t("subject")} testid="teacher-subject" options={opts.subjects} value={form.subject} onChange={(v) => setForm({ ...form, subject: v })} />
             <input data-testid="teacher-subject-other" value={subjectOther} placeholder={t("subject_other")} onChange={(e) => setSubjectOther(e.target.value)}
@@ -194,6 +203,15 @@ export default function Teachers() {
             <In label={t("name")} testid="edit-teacher-name" v={editFor.name} set={(v) => setEditFor({ ...editFor, name: v })} req />
             <In label={t("new_password_opt")} testid="edit-teacher-password" v={editFor.new_password || ""} set={(v) => setEditFor({ ...editFor, new_password: v })} />
             <In label={t("nip")} testid="edit-teacher-nip" v={editFor.nip || ""} set={(v) => setEditFor({ ...editFor, nip: v })} />
+            <div>
+              <label className="text-xs font-semibold text-slate-500">{t("gender")}</label>
+              <select data-testid="edit-teacher-gender" value={editFor.gender || ""} onChange={(e) => setEditFor({ ...editFor, gender: e.target.value })}
+                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-600/15 transition bg-white">
+                <option value="">-</option>
+                <option value="L">{t("gender_l")}</option>
+                <option value="P">{t("gender_p")}</option>
+              </select>
+            </div>
             <div className="sm:col-span-2">
               <CheckGroup label={t("subject")} testid="edit-teacher-subject" options={opts.subjects} value={editFor.subject || ""} onChange={(v) => setEditFor({ ...editFor, subject: v })} />
               <input data-testid="edit-teacher-subject-other" value={editFor.subject_other || ""} placeholder={t("subject_other")} onChange={(e) => setEditFor({ ...editFor, subject_other: e.target.value })}

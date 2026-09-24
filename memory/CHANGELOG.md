@@ -98,7 +98,14 @@
 - TeacherSubjectAtt.jsx: helper `speak()` (SpeechSynthesis, lang id-ID, rate 0.95, cancel sebelum speak — pola sama dengan Kiosk); useEffect mengucapkan nama siswa setiap kartu panggil tampil (buka modal, lanjut, sebelumnya, lewati). Tombol mute/unmute (`sa-call-mute`, ikon Volume2/VolumeX) di header modal; preferensi tersimpan di localStorage `sa_voice_muted`. Menutup modal (X / siswa terakhir / lewati terakhir) membatalkan suara via `closeCall()`. Reuse key i18n kiosk_mute/kiosk_unmute.
 - Terverifikasi e2e (spy speechSynthesis): nama ke-1 terucap saat modal dibuka, nama berikutnya terucap saat lanjut/lewati, mute menghentikan suara, unmute mengembalikan, modal tertutup normal, tanpa overflow mobile 390.
 - ZIP Hostinger di-build ulang berisi fitur ini.
-- QUEUED (sudah disetujui user, opsi a): mode offline Absen Mapel — cache daftar siswa di localStorage, pencatatan offline dengan antrean, auto-sync saat online kembali.
+
+## 2026-09-24 — Voice pria/wanita otomatis sesuai jenis kelamin guru
+- Permintaan user: voice pemanggil nama siswa dibedakan per gender guru; field jenis kelamin guru ditambahkan agar voice bisa otomatis.
+- Backend: field `gender` (L/P, dinormalisasi `_norm_gender`) di TeacherIn/TeacherPatch (routes_admin.py) — tersimpan saat tambah & edit guru; `GET /teacher/subject-att/meta` kini menyertakan `gender` guru yang login.
+- Frontend Teachers.jsx: dropdown Jenis Kelamin di form tambah (`teacher-gender`) & modal edit (`edit-teacher-gender`). TeacherSubjectAtt.jsx: `speak()` memilih voice id-ID sesuai gender — P: voice perempuan (hint female/wanita/damayanti/Google Bahasa Indonesia) + pitch 1.1; L: voice pria (hint male/ardi/bayu) + pitch 0.8 (fallback pitch rendah bila perangkat tak punya voice pria id-ID). Gender kosong → voice bawaan.
+- Data demo: Budi/Kumara/Lukman = L, Siti Nuriyah = P.
+- Terverifikasi: curl PATCH gender (normalisasi "perempuan"→P), meta mengembalikan gender, UI form tampil, spy TTS pitch sesuai gender. ZIP di-build ulang.
+- CATATAN: mode offline Absen Mapel (disetujui user) masih antre dikerjakan.
 
 ## 2026-09-24 — Nama pengguna pindah ke menu avatar kanan atas (semua role)
 - Permintaan user (contoh RadiusLink): "admin Nusantara dipindah spt contoh" — teks "Portal X · Nama" di bawah logo membungkus 3 baris di HP; nama dipindah ke kanan atas sebagai menu avatar.

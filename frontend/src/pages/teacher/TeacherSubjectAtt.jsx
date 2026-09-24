@@ -28,6 +28,21 @@ export default function TeacherSubjectAtt() {
     const u = new SpeechSynthesisUtterance(text);
     u.lang = "id-ID";
     u.rate = 0.95;
+    const g = meta.gender;
+    if (g === "L" || g === "P") {
+      const idv = window.speechSynthesis.getVoices().filter((v) => (v.lang || "").toLowerCase().replace("_", "-").startsWith("id"));
+      const isFem = (v) => { const n = (v.name || "").toLowerCase(); return n.includes("female") || n.includes("wanita") || n.includes("perempuan") || n.includes("damayanti") || n.includes("google bahasa indonesia"); };
+      const isMale = (v) => { const n = (v.name || "").toLowerCase(); return !isFem(v) && (n.includes("male") || n.includes("ardi") || n.includes("bayu")); };
+      if (g === "P") {
+        const v = idv.find(isFem);
+        if (v) u.voice = v;
+        u.pitch = 1.1;
+      } else {
+        const v = idv.find(isMale) || idv.find((x) => !isFem(x));
+        if (v) u.voice = v;
+        u.pitch = 0.8;
+      }
+    }
     window.speechSynthesis.speak(u);
   };
   const toggleMute = () => {

@@ -268,6 +268,7 @@ class TeacherIn(BaseModel):
     nip: str = ""
     subject: str = ""
     classes: str = ""
+    gender: str = ""
 
 
 class TeacherPatch(BaseModel):
@@ -277,6 +278,7 @@ class TeacherPatch(BaseModel):
     active: bool | None = None
     classes: str | None = None
     password: str | None = None
+    gender: str | None = None
 
 
 @router.get("/admin/teachers")
@@ -302,6 +304,7 @@ async def create_teacher(body: TeacherIn, user: dict = Depends(admin_dep)):
     teacher = {
         "id": str(uuid.uuid4()), "school_id": user["school_id"], "user_id": uid,
         "name": body.name, "nip": body.nip, "subject": body.subject, "classes": body.classes,
+        "gender": _norm_gender(body.gender),
         "embedding": None, "photo": None, "active": True, "created_at": now_iso(),
     }
     await db.teachers.insert_one(teacher)
@@ -316,6 +319,8 @@ async def create_teacher(body: TeacherIn, user: dict = Depends(admin_dep)):
 @router.patch("/admin/teachers/{tid}")
 async def update_teacher(tid: str, body: TeacherPatch, user: dict = Depends(admin_dep)):
     upd = {k: v for k, v in body.model_dump().items() if v is not None}
+    if "gender" in upd:
+        upd["gender"] = _norm_gender(upd["gender"])
     new_pw = upd.pop("password", None)
     if new_pw is not None and len(new_pw) < 6:
         raise HTTPException(status_code=422, detail="password_too_short")
