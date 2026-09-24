@@ -1,0 +1,17 @@
+RadiusGate — Paket Landing Page & Web App (Hostinger)
+=====================================================
+
+Cara pasang:
+1. Login hPanel Hostinger → File Manager → public_html.
+2. Hapus file lama (atau timpa), lalu upload ZIP ini dan Extract.
+3. Pastikan SEMUA isi ZIP berada langsung di public_html
+   (index.html, folder static/, folder slides/, .htaccess, dst).
+   Jika hasil extract masuk ke subfolder, pindahkan isinya ke public_html.
+4. File .htaccess wajib ada (mungkin tersembunyi — aktifkan
+   "Show Hidden Files" di File Manager). Tanpa file ini, membuka
+   halaman selain beranda (mis. /login) akan tampil 404.
+5. Di HP: matikan mode "Situs Desktop" dan hard-refresh
+   (atau buka mode samaran) karena cache browser/CDN.
+
+Catatan: paket ini tertanam alamat backend saat build dibuat.
+Bila backend berpindah alamat, paket harus di-build ulang.
