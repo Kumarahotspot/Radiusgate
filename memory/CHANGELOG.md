@@ -85,6 +85,12 @@
 - Permintaan user: "logo radiusgate kecilkan sedikit" → logo di header portal (Layout.jsx) dari w-11/h-11 (44px) menjadi w-9/h-9 (36px), menyamai ukuran logo navbar landing yang sebelumnya disetujui. Berlaku semua role, desktop & mobile.
 - ZIP Hostinger di-build ulang berisi perubahan ini.
 
+## 2026-09-24 — Nama pengguna pindah ke menu avatar kanan atas (semua role)
+- Permintaan user (contoh RadiusLink): "admin Nusantara dipindah spt contoh" — teks "Portal X · Nama" di bawah logo membungkus 3 baris di HP; nama dipindah ke kanan atas sebagai menu avatar.
+- Layout.jsx: label kiri kini hanya nama portal (1 baris). Menu avatar (inisial + nama + chevron) kini berlaku untuk SEMUA role (sebelumnya hanya ortu); dropdown berisi identitas (nama + portal, `user-menu-name`), item Profil khusus ortu, dan Keluar. Tombol "Keluar" lama (`logout-btn`) dihapus — testid logout baru: `user-menu-logout`.
+- Terverifikasi screenshot: mobile 390 — label kiri 1 baris, avatar tampil, dropdown menampilkan "Admin Nusantara / Portal Admin Sekolah" + Keluar (tanpa Profil utk admin), logout kembali ke /login; desktop 1920 — nama tampil di tombol avatar, nav utuh.
+- ZIP Hostinger di-build ulang berisi perubahan ini.
+
 ## 2026-09-24 — Badge diperluas: lembur pending (admin) + siswa izin hari ini (guru)
 - Persetujuan user atas saran lanjutan + permintaan tambahan: badge juga untuk lembur pending dan menu guru saat ada siswa izin/sakit.
 - Layout.jsx: state `pendingOvertime` (dari GET /admin/stats yang sama) & `studentLeaveToday` (GET /teacher/student-status, difilter tanggal hari ini di sisi klien — endpoint sudah ada, backend tidak berubah). `pendingMap` per key menu: leaves / overtime / student_status_menu. Badge ☰ (`nav-pending-badge`, menggantikan nav-leaves-badge) menampilkan TOTAL per role: admin = izin pending + lembur pending; guru = siswa sakit/izin hari ini. Chip per item menu kini generik `mnav-<key>-badge` (Izin/Cuti, Lembur, Izin Siswa).
