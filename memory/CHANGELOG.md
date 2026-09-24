@@ -158,3 +158,7 @@
 - Terverifikasi screenshot mobile 390: admin ☰=1 + chip Lembur=1 (chip Izin/Cuti tersembunyi saat 0) → navigasi /admin/overtime OK; guru ☰=2 + chip Izin Siswa=2 (data asli: Arto & SUSIYANTO sakit hari ini) → navigasi /guru/izin OK; tanpa overflow; desktop bersih. Data uji lembur dibersihkan dari DB.
 - Catatan: akun karyawan demo `lembur@kh.net` direset passwordnya ke Lembur123! untuk pengujian (tercatat di test_credentials.md).
 - ZIP Hostinger di-build ulang berisi fitur ini.
+
+## 2026-09-24 — Mode Kios full page + tombol fullscreen
+- Permintaan user: tampilan Mode Kios dibuat full page. Kiosk.jsx: kamera, tombol absen, dan panel NIS melebar responsif (`max-w-md` → `md:max-w-xl lg:max-w-2xl`), teks fase & tombol membesar di layar md+; tombol **fullscreen** baru di header (`kiosk-fullscreen-btn`, Maximize2/Minimize2) memakai Fullscreen API agar UI browser tersembunyi saat kiosk dipajang di tablet. i18n baru: kiosk_fullscreen / kiosk_exit_fullscreen (ID/EN).
+- Terverifikasi screenshot: desktop 1920 — kamera & tombol melebar (672px), tombol fullscreen tampil & klik tanpa error; mobile 390 — layout tetap pas, tanpa overflow. ZIP di-build ulang.

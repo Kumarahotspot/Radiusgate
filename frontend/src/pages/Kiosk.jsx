@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import axios from "axios";
 import LangSwitch from "../components/LangSwitch";
 import { captureFrame, startCamera } from "../components/CameraCapture";
-import { ScanFace, Volume2, VolumeX, WifiOff, LogIn, LogOut, Unplug } from "lucide-react";
+import { ScanFace, Volume2, VolumeX, WifiOff, LogIn, LogOut, Unplug, Maximize2, Minimize2 } from "lucide-react";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 const Q_KEY = "kiosk_queue";
@@ -31,6 +31,16 @@ export default function Kiosk() {
   const [queue, setQueue] = useState(loadQueue());
   const [online, setOnline] = useState(navigator.onLine);
   const [offlinePick, setOfflinePick] = useState(false);
+  const [isFs, setIsFs] = useState(false);
+  const toggleFs = () => {
+    if (!document.fullscreenElement) document.documentElement.requestFullscreen?.().catch(() => {});
+    else document.exitFullscreen?.().catch(() => {});
+  };
+  useEffect(() => {
+    const onFs = () => setIsFs(!!document.fullscreenElement);
+    document.addEventListener("fullscreenchange", onFs);
+    return () => document.removeEventListener("fullscreenchange", onFs);
+  }, []);
   const videoRef = useRef(null);
   const streamRef = useRef(null);
   const busyRef = useRef(false);
@@ -412,6 +422,10 @@ export default function Kiosk() {
           {!online && <span data-testid="kiosk-offline-badge" className="flex items-center gap-1 text-xs font-bold text-amber-400 bg-amber-400/10 px-2.5 py-1 rounded-full"><WifiOff className="w-3.5 h-3.5" /> Offline</span>}
           {queue.length > 0 && <span data-testid="kiosk-queue-badge" className="text-xs font-bold text-sky-400 bg-sky-400/10 px-2.5 py-1 rounded-full">{t("kiosk_queue")}: {queue.length}</span>}
           <LangSwitch dark />
+          <button data-testid="kiosk-fullscreen-btn" onClick={toggleFs} title={t(isFs ? "kiosk_exit_fullscreen" : "kiosk_fullscreen")}
+            className="p-2 rounded-xl bg-white/5 text-slate-300 hover:bg-white/10 transition-colors">
+            {isFs ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+          </button>
           <button data-testid="kiosk-mute-btn" onClick={toggleMute} className="p-2 rounded-xl bg-white/5 text-slate-300 hover:bg-white/10 transition-colors">
             {muted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
           </button>
@@ -420,12 +434,12 @@ export default function Kiosk() {
       </header>
 
       <div className="flex-1 flex flex-col items-center justify-center px-4 pb-8 gap-5">
-        <div className="relative w-full max-w-md aspect-[4/3] rounded-3xl overflow-hidden bg-slate-900 border border-white/10">
+        <div className="relative w-full max-w-md md:max-w-xl lg:max-w-2xl aspect-[4/3] rounded-3xl overflow-hidden bg-slate-900 border border-white/10">
           <video ref={videoRef} autoPlay playsInline muted className="w-full h-full object-cover" data-testid="kiosk-video" />
           <div className={`absolute inset-6 rounded-2xl border-2 border-dashed pointer-events-none transition-colors ${phase === "liveness" ? "border-amber-400 animate-pulse" : "border-teal-500/40"}`} />
           {phaseText && (
             <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
-              <p data-testid="kiosk-phase-text" className="text-white font-bold text-lg animate-pulse">{phaseText}</p>
+              <p data-testid="kiosk-phase-text" className="text-white font-bold text-lg md:text-2xl animate-pulse">{phaseText}</p>
             </div>
           )}
           {phase === "result" && result && (
@@ -452,12 +466,12 @@ export default function Kiosk() {
           data-testid="kiosk-attend-btn"
           onClick={startAttend}
           disabled={phase !== "idle"}
-          className="w-full max-w-md bg-teal-600 hover:bg-teal-500 disabled:opacity-40 text-white font-extrabold text-xl rounded-3xl py-6 transition-all active:scale-[0.98] shadow-lg shadow-teal-900/40"
+          className="w-full max-w-md md:max-w-xl lg:max-w-2xl bg-teal-600 hover:bg-teal-500 disabled:opacity-40 text-white font-extrabold text-xl md:text-2xl rounded-3xl py-6 md:py-7 transition-all active:scale-[0.98] shadow-lg shadow-teal-900/40"
         >
           {attType === "in" ? t("check_in") : t("check_out")}
         </button>
 
-        <div className="w-full max-w-md space-y-3 pt-3 mt-1 border-t border-white/10" data-testid="kiosk-student-panel">
+        <div className="w-full max-w-md md:max-w-xl lg:max-w-2xl space-y-3 pt-3 mt-1 border-t border-white/10" data-testid="kiosk-student-panel">
           <p className="text-center text-slate-500 text-xs">{t("kiosk_or_nis")}</p>
           <input data-testid="kiosk-nis-input" value={nisInput} onChange={(e) => setNisInput(e.target.value)} inputMode="numeric"
             placeholder={t("kiosk_nis")}
