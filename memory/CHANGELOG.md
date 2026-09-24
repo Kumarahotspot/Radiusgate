@@ -211,3 +211,7 @@
 - Anti-spam: ruangan kosong = tidak ada gerakan = tidak ada request ke backend. Error "already_recorded" untuk nama yang SAMA berturut-turut tidak diucapkan lagi (silent) agar tidak bising saat orang berlama-lama di depan kamera. Badge "Auto" selalu terlihat di pojok kiri-atas kamera.
 - Testid baru: kiosk-autoq-btn, kiosk-autoq-badge.
 - Terverifikasi e2e (mobile 390, stream noise rAF sebagai gerakan, API di-mock): trigger otomatis tanpa sentuhan → kartu sukses → loop trigger ke-2 otomatis (antrean berjalan) → toggle OFF menghentikan watcher (badge hilang, localStorage "0", tidak ada trigger lagi). ZIP di-build ulang.
+
+## 2026-09-24 — Kartu sukses lebih singkat (2 dtk) saat mode Auto antrean aktif
+- Persetujuan user atas saran: saat mode Auto ON, kartu SUKSES (absen wajah, absen NIS manual online/offline, antrean offline guru) tampil 2000ms (dari 3000–3500ms) untuk throughput antrean lebih tinggi. Kartu GAGAL tetap durasi penuh agar sempat dibaca. Mode Auto OFF → durasi normal.
+- Terverifikasi e2e (mobile 390, noise stream, API mock): durasi kartu sukses terukur 1.8 dtk saat Auto ON dan 3.4 dtk saat OFF. ZIP di-build ulang.

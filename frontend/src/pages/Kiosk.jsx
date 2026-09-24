@@ -302,7 +302,7 @@ export default function Kiosk() {
     chime(true);
     speak(`${t("kiosk_success")}. ${name}. ${t("kiosk_offline")}`);
     setPhase("result");
-    setTimeout(() => { setPhase("idle"); setResult(null); setOfflinePick(false); }, 3500);
+    setTimeout(() => { setPhase("idle"); setResult(null); setOfflinePick(false); }, autoQRef.current ? 2000 : 3500);
   };
 
   const startStudentAttend = async () => {
@@ -329,7 +329,7 @@ export default function Kiosk() {
         speak(`${t("kiosk_success")}. ${t("kiosk_offline")}`);
         setNisInput("");
         setPhase("result");
-        setTimeout(() => { setPhase("idle"); setResult(null); setNisFocused(false); }, 3000);
+        setTimeout(() => { setPhase("idle"); setResult(null); setNisFocused(false); }, autoQRef.current ? 2000 : 3000);
         return;
       }
       let manualOk = false;
@@ -353,7 +353,7 @@ export default function Kiosk() {
         speak(`${t("kiosk_failed")}. ${msg}`);
       }
       setPhase("result");
-      setTimeout(() => { setPhase("idle"); setResult(null); if (manualOk) setNisFocused(false); }, 3000);
+      setTimeout(() => { setPhase("idle"); setResult(null); if (manualOk) setNisFocused(false); }, manualOk && autoQRef.current ? 2000 : 3000);
     } finally {
       busyRef.current = false;
     }
@@ -363,6 +363,7 @@ export default function Kiosk() {
     if (busyRef.current || phase !== "idle") return;
     busyRef.current = true;
     setResult(null);
+    let okF = false;
     try {
       // 1. liveness: two frames with motion
       setPhase("liveness");
@@ -403,6 +404,7 @@ export default function Kiosk() {
         chime(attType === "in");
         speak(`${successWord}. ${data.teacher_name}. ${greet}`);
         lastErrRef.current = "";
+        okF = true;
       } catch (err) {
         if (!err.response) {
           // network dropped mid-flight
@@ -445,7 +447,7 @@ export default function Kiosk() {
         lastErrRef.current = errKey;
       }
       setPhase("result");
-      setTimeout(() => { setPhase("idle"); setResult(null); }, 3500);
+      setTimeout(() => { setPhase("idle"); setResult(null); }, okF && autoQRef.current ? 2000 : 3500);
     } finally {
       busyRef.current = false;
     }
