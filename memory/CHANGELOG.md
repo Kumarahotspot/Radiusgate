@@ -316,3 +316,7 @@
 ## 2026-09-25 — Presentasi produk RadiusGate (PPTX) untuk penawaran ke sekolah
 - Permintaan user: "buatkan presentasi produk ini, buat saya tawarkan ke sekolah2". File `presentasi-radiusgate.pptx` (7 slide, 16:9, tema teal/dark brand): cover, masalah absensi manual, solusi kiosk web + 4 peran, 4 metode absensi (wajah/RFID/QR/NIS) dengan penegasan sekolah bebas memilih, semua modul (SPP, portal ortu, WA, lembur/penggajian, dll), cara kerja 3 langkah, dan penawaran program pilot + CTA demo gratis.
 - Endpoint download publik: GET /api/public/download/presentasi. Skrip generator disimpan di /app/memory/make_presentasi.py.
+
+## 2026-09-25 — Panduan Pengguna (User Guide) PDF
+- Permintaan user: "User Guide / cara pengoperasiannya tolong dibuatkan juga". File `panduan-radiusgate.pdf` (A4, ±8 halaman, Bahasa Indonesia): cover, daftar isi, pengenalan, Bagian A Kiosk (setup + PWA fullscreen, absen wajah/QR/RFID/NIS manual, mode Registrasi Kartu, screensaver/offline), Bagian B Portal Admin (CRUD + enroll + QR PDF + RFID, laporan, pengaturan geofence/jam, SPP, lembur, billing), Bagian C Guru (absen mapel + offline), Bagian D Karyawan, Bagian E Orang Tua, Bagian F FAQ/troubleshooting (7 skenario umum). Generator: /app/memory/make_panduan.py (reportlab).
+- Endpoint download publik: GET /api/public/download/panduan. Terverifikasi PDF valid + endpoint 200.

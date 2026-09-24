@@ -73,3 +73,9 @@ async def download_presentasi():
     return FileResponse("/app/frontend/presentasi-radiusgate.pptx",
                         media_type="application/vnd.openxmlformats-officedocument.presentationml.presentation",
                         filename="presentasi-radiusgate.pptx")
+
+
+@router.get("/public/download/panduan")
+async def download_panduan():
+    return FileResponse("/app/frontend/panduan-radiusgate.pdf", media_type="application/pdf",
+                        filename="panduan-radiusgate.pdf")
