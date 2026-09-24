@@ -37,6 +37,24 @@ async def school_today(sid: str) -> str:
     return datetime.now(timezone.utc).astimezone(tz).date().isoformat()
 
 
+# ---------- QR Code ----------
+@router.get("/admin/qrcodes/{ptype}/{pid}")
+async def get_qrcode(ptype: str, pid: str, user: dict = Depends(admin_dep)):
+    coll = {"student": db.students, "teacher": db.teachers, "employee": db.employees}.get(ptype)
+    if coll is None:
+        raise HTTPException(status_code=404, detail="not_found")
+    flt = {"id": pid, "school_id": user["school_id"]}
+    person = await coll.find_one(flt, {"_id": 0})
+    if not person:
+        raise HTTPException(status_code=404, detail="not_found")
+    tok = person.get("qr_token")
+    if not tok:
+        tok = uuid.uuid4().hex
+        await coll.update_one(flt, {"$set": {"qr_token": tok}})
+    return {"qr": f"RG1.{ptype}.{pid}.{tok}", "name": person["name"],
+            "nis": person.get("nis") or person.get("nip") or "", "photo": person.get("photo") or ""}
+
+
 # ---------- Dashboard ----------
 @router.get("/admin/stats")
 async def stats(user: dict = Depends(admin_dep)):

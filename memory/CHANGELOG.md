@@ -254,3 +254,9 @@
 ## 2026-09-25 — Kolom NIS/NIP dikosongkan setelah absen manual gagal
 - Laporan user: setelah gagal dan kembali ke menu awal, kolom masih terisi NIS/NIP lama. Kini kolom selalu dikosongkan saat kartu hasil tertutup — di semua jalur: sukses, gagal server, dan gagal GPS. Mode manual juga tertutup di jalur gagal GPS.
 - Terverifikasi e2e (mobile 390, NIS ngawur): kartu gagal → kembali ke kamera, kolom NIS kosong. ZIP di-build ulang.
+
+## 2026-09-25 — Absen via QR Code (auto-generate)
+- Permintaan user: "siapkan juga utk bisa absen via QR code, QR code auto generate".
+- Backend: `GET /api/admin/qrcodes/{ptype}/{pid}` (admin) — auto-generate `qr_token` unik per siswa/guru/karyawan (persist di DB, sekali saja). QR berisi `RG1.<ptype>.<id>.<token>` (aman: tidak bisa dipalsukan hanya dengan NIS/NIP). Endpoint kiosk baru `POST /api/kiosk/attend-qr` — validasi token+sekolah, catat absen (in/out), kembalikan nama+foto, notifikasi ortu untuk siswa.
+- Frontend: tombol QR per baris di halaman Siswa & Guru → modal `QrModal.jsx` (render QR via lib qrcode, nama+NIS/NIP, tombol Unduh PNG). Kiosk: tombol "Scan QR" di grup Masuk/Pulang — saat aktif, loop jsQR memindai kamera tiap 350ms; QR terdeteksi → bunyi klik → absen otomatis → kartu hasil dengan foto profil. Border kamera jadi hijau berdenyut + hint "Arahkan kode QR ke kamera". i18n ID/EN. Lib baru: jsqr, qrcode.
+- Terverifikasi e2e: backend (token persist, foto ikut); modal admin (QR ter-render + tombol unduh); scan kiosk dengan QR sungguhan di stream kamera → "Presensi berhasil Galang Remaja" + foto profil tampil. Record uji dibersihkan. ZIP di-build ulang.

@@ -3,7 +3,8 @@ import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import api, { errMsg } from "../../api";
 import CameraCapture from "../../components/CameraCapture";
-import { Plus, Upload, Download, Trash2, X, Pencil, ScanFace, CheckCircle2, Circle, Search, ChevronLeft, ChevronRight, GraduationCap, FileDown, MessageCircle } from "lucide-react";
+import QrModal from "../../components/QrModal";
+import { Plus, Upload, Download, Trash2, X, Pencil, ScanFace, CheckCircle2, Circle, Search, ChevronLeft, ChevronRight, GraduationCap, FileDown, MessageCircle, QrCode } from "lucide-react";
 
 function ClassSelect({ testid, value, onChange, options, t, req }) {
   const [isNew, setIsNew] = useState(false);
@@ -60,6 +61,7 @@ export default function Students() {
   };
 
   const [enrollFor, setEnrollFor] = useState(null);
+  const [qrFor, setQrFor] = useState(null);
   const [query, setQuery] = useState("");
 
   // dukung lompat dari kartu kelengkapan data di Dasbor: /admin/students?q=<kelas>
@@ -443,6 +445,7 @@ export default function Students() {
                   <td className="px-4 py-2.5">
                     <div className="flex gap-1">
                       <button data-testid={`enroll-student-${s.id}`} onClick={() => setEnrollFor(s)} className="p-1.5 text-teal-700 hover:bg-teal-50 rounded-lg" title={t("enroll_face")}><ScanFace className="w-4 h-4" /></button>
+                      <button data-testid={`qr-student-${s.id}`} onClick={() => setQrFor(s)} className="p-1.5 text-slate-700 hover:bg-slate-100 rounded-lg" title={t("qr_code")}><QrCode className="w-4 h-4" /></button>
                       <button data-testid={`edit-student-${s.id}`} onClick={() => setEditFor({ ...s })} className="p-1.5 text-sky-600 hover:bg-sky-50 rounded-lg" title={t("edit")}><Pencil className="w-4 h-4" /></button>
                       {s.parent_phone && <button data-testid={`send-login-${s.id}`} onClick={() => sendLogin(s)} className="p-1.5 text-emerald-600 hover:bg-emerald-50 rounded-lg" title={t("send_parent_login")}><MessageCircle className="w-4 h-4" /></button>}
                       <button data-testid={`delete-student-${s.id}`} onClick={() => del(s.id)} className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg" title={t("delete")}><Trash2 className="w-4 h-4" /></button>
@@ -558,6 +561,7 @@ export default function Students() {
       )}
 
       {enrollFor && <CameraCapture testid="enroll-student-camera" onDone={enroll} onClose={() => setEnrollFor(null)} />}
+      {qrFor && <QrModal person={qrFor} ptype="student" onClose={() => setQrFor(null)} />}
 
       {bulkOpen && (
         <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4" data-testid="bulk-enroll-modal">

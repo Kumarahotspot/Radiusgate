@@ -3,13 +3,15 @@ import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import api, { errMsg } from "../../api";
 import CameraCapture from "../../components/CameraCapture";
-import { Plus, ScanFace, Trash2, CheckCircle2, Circle, Pencil, Search, ChevronLeft, ChevronRight } from "lucide-react";
+import QrModal from "../../components/QrModal";
+import { Plus, ScanFace, Trash2, CheckCircle2, Circle, Pencil, Search, ChevronLeft, ChevronRight, QrCode } from "lucide-react";
 
 export default function Teachers() {
   const { t } = useTranslation();
   const [teachers, setTeachers] = useState([]);
   const [showForm, setShowForm] = useState(false);
   const [enrollFor, setEnrollFor] = useState(null);
+  const [qrFor, setQrFor] = useState(null);
   const [form, setForm] = useState({ name: "", email: "", password: "", nip: "", subject: "", classes: "", gender: "" });
   const [subjectOther, setSubjectOther] = useState("");
   const [opts, setOpts] = useState({ classes: [], subjects: [] });
@@ -171,6 +173,10 @@ export default function Teachers() {
                         className="flex items-center gap-1 text-xs font-bold text-teal-700 hover:bg-teal-50 px-2 py-1.5 rounded-lg transition-colors">
                         <ScanFace className="w-4 h-4" /> {t("enroll_face")}
                       </button>
+                      <button data-testid={`qr-teacher-${tc.id}`} onClick={() => setQrFor(tc)}
+                        className="flex items-center gap-1 text-xs font-bold text-slate-700 hover:bg-slate-100 px-2 py-1.5 rounded-lg transition-colors">
+                        <QrCode className="w-4 h-4" /> {t("qr_code")}
+                      </button>
                       <button data-testid={`edit-teacher-${tc.id}`} onClick={() => setEditFor({ ...tc })}
                         className="flex items-center gap-1 text-xs font-bold text-sky-600 hover:bg-sky-50 px-2 py-1.5 rounded-lg transition-colors">
                         <Pencil className="w-4 h-4" /> {t("edit")}
@@ -240,6 +246,7 @@ export default function Teachers() {
       )}
 
       {enrollFor && <CameraCapture testid="enroll-camera" onDone={enroll} onClose={() => setEnrollFor(null)} />}
+      {qrFor && <QrModal person={qrFor} ptype="teacher" onClose={() => setQrFor(null)} />}
     </div>
   );
 }
