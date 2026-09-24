@@ -28,8 +28,8 @@ export default function Kiosk() {
   const [attType, setAttType] = useState("in");
   const [nisInput, setNisInput] = useState("");
   const [nisFocused, setNisFocused] = useState(false);
-  const [autoQ, setAutoQ] = useState(localStorage.getItem("kiosk_autoq") !== "0");
-  const autoQRef = useRef(localStorage.getItem("kiosk_autoq") !== "0");
+  const [autoQ, setAutoQ] = useState(localStorage.getItem("kiosk_autoq") === "1");
+  const autoQRef = useRef(localStorage.getItem("kiosk_autoq") === "1");
   const idleSinceRef = useRef(Date.now());
   const lastErrRef = useRef("");
   const toggleAutoQ = () => {

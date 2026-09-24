@@ -220,3 +220,7 @@
 - Laporan user: "abses pulang selalu gagal susiyanto 2609001". Akar masalah: panel NIS manual tidak mengirim tipe absen — frontend tidak menyertakan `type` dan backend `attend-student` + sync siswa hardcode `"in"`. Akibatnya pilih "Absen Pulang" pun tetap mencatat "masuk" → duplikat → 409 already_recorded ("Sudah absen").
 - Fix: frontend mengirim `type: attType` di payload manual; backend `AttendStudentIn.type` (in|out, default in) dipakai di cabang siswa & karyawan, serta sync offline siswa menghormati `type`. Pesan error manual kini juga memetakan `no_checkin` dan `not_dismissal_time` (i18n sudah ada).
 - Terverifikasi: curl type=out untuk SUSIYANTO 2609001 → sukses (record uji dibersihkan); e2e mobile 390 — toggle Pulang + keypad NIS → kartu hasil benar (bukan "Sudah absen"). ZIP di-build ulang.
+
+## 2026-09-25 — Mode Auto antrean dimatikan secara default
+- Permintaan user: "auto absesnnya di matikan saja, karena apapun yg tertangkap kamera di record". Default `kiosk_autoq` kini OFF (hanya aktif jika toggle ditekan, persist localStorage "1"). Kiosk kembali absen hanya saat tombol ditekan; toggle Auto tetap tersedia opsional.
+- Terverifikasi e2e: default OFF → badge hilang & gerakan kamera tidak memicu absen; toggle ON → badge muncul & auto trigger berfungsi lagi. ZIP di-build ulang.
