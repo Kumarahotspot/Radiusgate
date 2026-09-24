@@ -315,14 +315,14 @@ async def attend_student(body: AttendStudentIn, request: Request):
                             extra={"person_type": "student", "class": student.get("class", ""), "att_status": att_status})
         asyncio.create_task(_notify_parent(school, student, doc))
         return {"ok": True, "student_name": student["name"], "name": student["name"], "status": doc["status"],
-                "att_status": att_status, "late_minutes": doc["late_minutes"]}
+                "att_status": att_status, "late_minutes": doc["late_minutes"], "photo": student.get("photo") or ""}
     emp = await db.employees.find_one({"school_id": school["id"], "nip": nis, "active": True})
     if emp:
         doc = await _record(school, emp["id"], emp["name"], att_type, body.ts_device,
                             body.lat, body.lng, "", body.client_uuid, offline=False,
                             extra={"person_type": "employee", "department": emp.get("department", "")})
         return {"ok": True, "student_name": emp["name"], "name": emp["name"], "status": doc["status"],
-                "att_status": "present", "late_minutes": doc["late_minutes"]}
+                "att_status": "present", "late_minutes": doc["late_minutes"], "photo": emp.get("photo") or ""}
     tcr = await db.teachers.find_one({"school_id": school["id"], "nip": nis, "active": True})
     if not tcr:
         raise HTTPException(status_code=422, detail="student_not_found")
@@ -330,7 +330,7 @@ async def attend_student(body: AttendStudentIn, request: Request):
                         body.lat, body.lng, "", body.client_uuid, offline=False,
                         extra={"person_type": "teacher"})
     return {"ok": True, "student_name": tcr["name"], "name": tcr["name"], "status": doc["status"],
-            "att_status": "present", "late_minutes": doc["late_minutes"]}
+            "att_status": "present", "late_minutes": doc["late_minutes"], "photo": tcr.get("photo") or ""}
 
 
 class SyncIn(BaseModel):

@@ -355,7 +355,7 @@ export default function Kiosk() {
       try {
         const { data } = await axios.post(`${API}/kiosk/attend-student`, payload, { headers: { "X-Kiosk-Token": token }, timeout: 20000 });
         const nm = data.name || data.student_name;
-        setResult({ ok: true, name: nm, message: data.status === "late" ? `${t("kiosk_success")} · +${data.late_minutes}m` : t("kiosk_success") });
+        setResult({ ok: true, name: nm, photo: data.photo || "", message: data.status === "late" ? `${t("kiosk_success")} · +${data.late_minutes}m` : t("kiosk_success") });
         chime(true);
         speak(`${t("kiosk_success")}. ${nm}`);
         setNisInput("");

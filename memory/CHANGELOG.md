@@ -234,3 +234,7 @@
 - Laporan user: "utk guru absen manual gagal dengan memasukan NIP". Akar masalah: endpoint `attend-student` hanya mencari di koleksi `students` (NIS) lalu `employees` (NIP) — koleksi `teachers` tidak pernah dicari, jadi NIP guru selalu "NIS tidak ditemukan".
 - Fix: `attend-student` kini mencari siswa → karyawan → **guru** (nip, active) dan mencatat dengan person_type teacher (dedup konsisten dengan absen wajah). Sync offline cabang siswa juga ditambah pencarian guru + karyawan kini menghormati `type` (in/out). Pesan error diperjelas: "NIS/NIP tidak ditemukan" (ID/EN).
 - Terverifikasi: NIP guru 223344 (Lukman) → absen sukses (record uji dibersihkan); NIP ngawur tetap ditolak student_not_found. ZIP di-build ulang.
+
+## 2026-09-25 — Foto profil di kartu hasil absen manual
+- Persetujuan user atas saran: endpoint `attend-student` kini mengembalikan `photo` (base64 yang sudah tersimpan) untuk siswa, guru, dan karyawan; frontend menampilkannya sebagai foto bulat besar di kartu sukses absen manual (fallback avatar inisial jika tidak ada foto).
+- Terverifikasi e2e (mobile 390): absen manual NIS 10006 → kartu sukses menampilkan foto profil siswa. Record uji dibersihkan. ZIP di-build ulang.
