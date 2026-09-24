@@ -229,3 +229,8 @@
 - Laporan user: "auto full page kok tidak jalan, layar disentuh baru jalan". Penjelasan: requestFullscreen() diblokir semua browser tanpa gesture pengguna — tidak bisa diakali dari JS biasa. Solusi: halaman /kiosk kini PWA-ready (manifest-kiosk.json display=fullscreen start_url=/kiosk + sw-kiosk.js + ikon 192/512 + meta apple-mobile-web-app-capable, disuntik otomatis saat halaman kiosk dibuka). Sentuhan-pertama fallback tetap ada untuk pemakaian via browser biasa.
 - Cara pakai (juga ditambahkan ke BACA-SAYA.txt di ZIP): buka /kiosk di Chrome HP kiosk → menu ⋮ → "Add to Home screen" → buka dari ikon → langsung full page otomatis.
 - Terverifikasi: manifest terpasang, SW terdaftar, ikon 192/512 & sw-kiosk.js termuat dalam ZIP build. ZIP di-build ulang.
+
+## 2026-09-25 — Fix: absen manual dengan NIP guru selalu gagal
+- Laporan user: "utk guru absen manual gagal dengan memasukan NIP". Akar masalah: endpoint `attend-student` hanya mencari di koleksi `students` (NIS) lalu `employees` (NIP) — koleksi `teachers` tidak pernah dicari, jadi NIP guru selalu "NIS tidak ditemukan".
+- Fix: `attend-student` kini mencari siswa → karyawan → **guru** (nip, active) dan mencatat dengan person_type teacher (dedup konsisten dengan absen wajah). Sync offline cabang siswa juga ditambah pencarian guru + karyawan kini menghormati `type` (in/out). Pesan error diperjelas: "NIS/NIP tidak ditemukan" (ID/EN).
+- Terverifikasi: NIP guru 223344 (Lukman) → absen sukses (record uji dibersihkan); NIP ngawur tetap ditolak student_not_found. ZIP di-build ulang.
