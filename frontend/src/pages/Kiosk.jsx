@@ -30,10 +30,10 @@ export default function Kiosk() {
   const [nisInput, setNisInput] = useState("");
   const [nisFocused, setNisFocused] = useState(false);
   const [autoQ, setAutoQ] = useState(localStorage.getItem("kiosk_autoq") === "1");
-  const [qrMode, setQrMode] = useState(false);
   const autoQRef = useRef(localStorage.getItem("kiosk_autoq") === "1");
   const idleSinceRef = useRef(Date.now());
   const lastErrRef = useRef("");
+  const lastQrRef = useRef({ data: "", ts: 0 });
   const toggleAutoQ = () => {
     const v = !autoQ;
     setAutoQ(v);
@@ -531,9 +531,9 @@ export default function Kiosk() {
     busyRef.current = false;
   };
 
-  // loop pemindai QR: aktif saat mode QR menyala dan fase idle
+  // loop pemindai QR: selalu aktif saat fase idle (auto-deteksi, tanpa tombol)
   useEffect(() => {
-    if (!qrMode || !token || !info || saver || nisFocused) return;
+    if (!token || !info || saver || nisFocused) return;
     let cancelled = false;
     const scanning = { current: false };
     const iv = setInterval(async () => {
@@ -550,15 +550,17 @@ export default function Kiosk() {
         ctx.drawImage(v, 0, 0, W, H);
         const code = jsQR(ctx.getImageData(0, 0, W, H).data, W, H);
         if (code?.data?.startsWith("RG1.")) {
+          const now = Date.now();
+          if (lastQrRef.current.data === code.data && now - lastQrRef.current.ts < 15000) return;
+          lastQrRef.current = { data: code.data, ts: now };
           busyRef.current = true;
           clickSound();
-          setQrMode(false);
           await attendQr(code.data);
         }
       } catch { /* abaikan */ } finally { scanning.current = false; }
     }, 350);
     return () => { cancelled = true; clearInterval(iv); };
-  }, [qrMode, token, info, saver, nisFocused, phase, offlinePick, attType]);
+  }, [token, info, saver, nisFocused, phase, offlinePick, attType]);
 
   // ---------- mode antrean: picu absen otomatis saat ada gerakan di depan kamera ----------
   useEffect(() => { if (phase === "idle") idleSinceRef.current = Date.now(); }, [phase]);
@@ -685,12 +687,10 @@ export default function Kiosk() {
             </button>
             <button data-testid="kiosk-unpair-btn" onClick={unpair} className="p-2 rounded-xl bg-black/40 backdrop-blur-sm text-slate-200 hover:bg-black/60 transition-colors"><Unplug className="w-4 h-4" /></button>
           </div>
-          <div className={`absolute inset-6 rounded-2xl border-2 border-dashed pointer-events-none transition-colors ${phase === "liveness" ? "border-amber-400 animate-pulse" : qrMode ? "border-emerald-400 animate-pulse" : "border-teal-500/40"}`} />
-          {qrMode && (
-            <div className="absolute bottom-2 inset-x-0 flex justify-center pointer-events-none" data-testid="kiosk-qr-hint">
-              <span className="text-xs font-bold text-white bg-emerald-600/80 px-3 py-1 rounded-full animate-pulse">{t("qr_hint")}</span>
-            </div>
-          )}
+          <div className={`absolute inset-6 rounded-2xl border-2 border-dashed pointer-events-none transition-colors ${phase === "liveness" ? "border-amber-400 animate-pulse" : "border-teal-500/40"}`} />
+          <div className="absolute bottom-2 inset-x-0 flex justify-center pointer-events-none" data-testid="kiosk-qr-hint">
+            <span className="text-xs font-bold text-white/80 bg-black/40 backdrop-blur-sm px-3 py-1 rounded-full">{t("qr_hint")}</span>
+          </div>
           {phaseText && (
             <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
               <p data-testid="kiosk-phase-text" className="text-white font-bold text-lg md:text-2xl animate-pulse">{phaseText}</p>
@@ -722,10 +722,6 @@ export default function Kiosk() {
           <button data-testid="kiosk-type-out" onClick={() => setAttType("out")}
             className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-bold transition-colors ${attType === "out" ? "bg-teal-600 text-white" : "text-slate-400"}`}>
             <LogOut className="w-4 h-4" /> {t("check_out")}
-          </button>
-          <button data-testid="kiosk-qr-toggle" onClick={() => { clickSound(); setQrMode((v) => !v); }}
-            className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-bold transition-colors ${qrMode ? "bg-emerald-500 text-white" : "text-slate-400"}`}>
-            <QrCode className="w-4 h-4" /> {t("kiosk_qr_mode")}
           </button>
         </div>
 

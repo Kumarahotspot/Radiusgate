@@ -260,3 +260,11 @@
 - Backend: `GET /api/admin/qrcodes/{ptype}/{pid}` (admin) — auto-generate `qr_token` unik per siswa/guru/karyawan (persist di DB, sekali saja). QR berisi `RG1.<ptype>.<id>.<token>` (aman: tidak bisa dipalsukan hanya dengan NIS/NIP). Endpoint kiosk baru `POST /api/kiosk/attend-qr` — validasi token+sekolah, catat absen (in/out), kembalikan nama+foto, notifikasi ortu untuk siswa.
 - Frontend: tombol QR per baris di halaman Siswa & Guru → modal `QrModal.jsx` (render QR via lib qrcode, nama+NIS/NIP, tombol Unduh PNG). Kiosk: tombol "Scan QR" di grup Masuk/Pulang — saat aktif, loop jsQR memindai kamera tiap 350ms; QR terdeteksi → bunyi klik → absen otomatis → kartu hasil dengan foto profil. Border kamera jadi hijau berdenyut + hint "Arahkan kode QR ke kamera". i18n ID/EN. Lib baru: jsqr, qrcode.
 - Terverifikasi e2e: backend (token persist, foto ikut); modal admin (QR ter-render + tombol unduh); scan kiosk dengan QR sungguhan di stream kamera → "Presensi berhasil Galang Remaja" + foto profil tampil. Record uji dibersihkan. ZIP di-build ulang.
+
+## 2026-09-25 — QR auto-deteksi selalu aktif (tombol Scan QR dihapus)
+- Permintaan user: "absensi auto autodetek qrcode dan wajah, biar tidak ada banyak tombol". Pemindai QR kini berjalan otomatis di latar belakang setiap fase idle — tanpa tombol mode. Aman dari salah rekam (beda dengan deteksi gerakan): absen hanya tercatat jika QR valid (token RG1 terverifikasi server). Tombol "Scan QR" dihapus; hint kecil "Arahkan kode QR ke kamera" selalu tampil di bawah kamera. Absen wajah tetap via tombol utama.
+- Terverifikasi e2e (mobile 390): tombol toggle hilang, hint tampil, QR di depan kamera → otomatis "Presensi berhasil Galang Remaja" tanpa sentuhan apa pun. ZIP di-build ulang.
+
+## 2026-09-25 — Dedup QR: kartu yang sama di depan kamera tidak berulang
+- Polish: QR yang sama yang terus diarahkan ke kamera diabaikan selama 15 detik (lastQrRef) — mencegah kartu "Sudah absen" berulang setiap ~5 dtk saat kartu dipegang terlalu lama.
+- Terverifikasi e2e: QR ditahan 20 dtk di depan kamera → hanya 1 kartu hasil muncul. ZIP di-build ulang.
