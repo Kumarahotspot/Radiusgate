@@ -29,6 +29,14 @@ export default function TeacherSubjectAtt() {
   const [offline, setOffline] = useState(false);
   const [pendingSync, setPendingSync] = useState(false);
   const [muted, setMuted] = useState(() => localStorage.getItem("sa_voice_muted") === "1");
+  const voicesRef = useRef([]);
+  useEffect(() => {
+    if (!window.speechSynthesis) return;
+    const loadVoices = () => { voicesRef.current = window.speechSynthesis.getVoices(); };
+    loadVoices();
+    window.speechSynthesis.onvoiceschanged = loadVoices;
+    return () => { if (window.speechSynthesis) window.speechSynthesis.onvoiceschanged = null; };
+  }, []);
   const speak = (text) => {
     if (muted || !window.speechSynthesis) return;
     window.speechSynthesis.cancel();
@@ -37,7 +45,8 @@ export default function TeacherSubjectAtt() {
     u.rate = 0.95;
     const g = meta.gender;
     if (g === "L" || g === "P") {
-      const idv = window.speechSynthesis.getVoices().filter((v) => (v.lang || "").toLowerCase().replace("_", "-").startsWith("id"));
+      const all = voicesRef.current.length ? voicesRef.current : window.speechSynthesis.getVoices();
+      const idv = all.filter((v) => (v.lang || "").toLowerCase().replace("_", "-").startsWith("id"));
       const isFem = (v) => { const n = (v.name || "").toLowerCase(); return n.includes("female") || n.includes("wanita") || n.includes("perempuan") || n.includes("damayanti") || n.includes("google bahasa indonesia"); };
       const isMale = (v) => { const n = (v.name || "").toLowerCase(); return !isFem(v) && (n.includes("male") || n.includes("ardi") || n.includes("bayu")); };
       if (g === "P") {
