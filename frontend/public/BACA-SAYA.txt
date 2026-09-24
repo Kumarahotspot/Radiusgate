@@ -15,3 +15,11 @@ Cara pasang:
 
 Catatan: paket ini tertanam alamat backend saat build dibuat.
 Bila backend berpindah alamat, paket harus di-build ulang.
+
+Mode Kios Full Page Otomatis (tanpa sentuh layar):
+1. Buka https://domain-anda/kiosk di Chrome HP/tablet kiosk.
+2. Menu Chrome (⋮) → "Add to Home screen" / "Tambahkan ke layar utama".
+3. Mulai sekarang buka kiosk dari IKON di layar utama — aplikasi
+   langsung terbuka FULL PAGE otomatis (status bar hilang).
+4. Bila dibuka lewat browser biasa, full page tetap aktif setelah
+   sentuhan pertama (batasan keamanan semua browser).

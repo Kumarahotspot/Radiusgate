@@ -68,6 +68,25 @@ export default function Kiosk() {
     document.addEventListener("pointerdown", tryFs);
     return () => document.removeEventListener("pointerdown", tryFs);
   }, [info]);
+
+  // PWA: pasang manifest fullscreen + service worker agar bisa "Add to Home Screen"
+  // dan terbuka full page otomatis tanpa sentuhan (requestFullscreen biasa diblokir browser tanpa gesture)
+  useEffect(() => {
+    let link = document.querySelector('link[rel="manifest"]');
+    if (!link) {
+      link = document.createElement("link");
+      link.rel = "manifest";
+      document.head.appendChild(link);
+    }
+    link.href = "/manifest-kiosk.json";
+    if ("serviceWorker" in navigator) navigator.serviceWorker.register("/sw-kiosk.js").catch(() => {});
+    if (!document.querySelector('meta[name="apple-mobile-web-app-capable"]')) {
+      const meta = document.createElement("meta");
+      meta.name = "apple-mobile-web-app-capable";
+      meta.content = "yes";
+      document.head.appendChild(meta);
+    }
+  }, []);
   const videoRef = useRef(null);
   const streamRef = useRef(null);
   const busyRef = useRef(false);

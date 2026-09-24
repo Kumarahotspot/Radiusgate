@@ -224,3 +224,8 @@
 ## 2026-09-25 — Mode Auto antrean dimatikan secara default
 - Permintaan user: "auto absesnnya di matikan saja, karena apapun yg tertangkap kamera di record". Default `kiosk_autoq` kini OFF (hanya aktif jika toggle ditekan, persist localStorage "1"). Kiosk kembali absen hanya saat tombol ditekan; toggle Auto tetap tersedia opsional.
 - Terverifikasi e2e: default OFF → badge hilang & gerakan kamera tidak memicu absen; toggle ON → badge muncul & auto trigger berfungsi lagi. ZIP di-build ulang.
+
+## 2026-09-25 — Full page otomatis tanpa sentuhan via PWA (Add to Home Screen)
+- Laporan user: "auto full page kok tidak jalan, layar disentuh baru jalan". Penjelasan: requestFullscreen() diblokir semua browser tanpa gesture pengguna — tidak bisa diakali dari JS biasa. Solusi: halaman /kiosk kini PWA-ready (manifest-kiosk.json display=fullscreen start_url=/kiosk + sw-kiosk.js + ikon 192/512 + meta apple-mobile-web-app-capable, disuntik otomatis saat halaman kiosk dibuka). Sentuhan-pertama fallback tetap ada untuk pemakaian via browser biasa.
+- Cara pakai (juga ditambahkan ke BACA-SAYA.txt di ZIP): buka /kiosk di Chrome HP kiosk → menu ⋮ → "Add to Home screen" → buka dari ikon → langsung full page otomatis.
+- Terverifikasi: manifest terpasang, SW terdaftar, ikon 192/512 & sw-kiosk.js termuat dalam ZIP build. ZIP di-build ulang.
