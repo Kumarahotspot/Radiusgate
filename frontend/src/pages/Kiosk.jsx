@@ -396,7 +396,7 @@ export default function Kiosk() {
         speak(`${t("kiosk_failed")}. ${msg}`);
       }
       setPhase("result");
-      setTimeout(() => { setPhase("idle"); setResult(null); if (manualOk) setNisFocused(false); }, manualOk && autoQRef.current ? 2000 : 3000);
+      setTimeout(() => { setPhase("idle"); setResult(null); setNisFocused(false); }, manualOk && autoQRef.current ? 2000 : 3000);
     } finally {
       busyRef.current = false;
     }
