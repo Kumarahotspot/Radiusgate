@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import api, { errMsg } from "../../api";
-import { CalendarClock, Plus, KeyRound } from "lucide-react";
+import { CalendarClock, Plus } from "lucide-react";
 
 export default function TeacherHome() {
   const { t } = useTranslation();
@@ -29,18 +29,6 @@ export default function TeacherHome() {
   };
 
   const badge = (s) => s === "approved" ? "bg-emerald-100 text-emerald-700" : s === "rejected" ? "bg-red-100 text-red-600" : "bg-amber-100 text-amber-700";
-
-  const [pw, setPw] = useState({ current_password: "", new_password: "" });
-  const [busyPw, setBusyPw] = useState(false);
-  const submitPw = async (e) => {
-    e.preventDefault();
-    setBusyPw(true);
-    try {
-      await api.post("/auth/change-password", pw);
-      toast.success(t("password_changed"));
-      setPw({ current_password: "", new_password: "" });
-    } catch (err) { toast.error(errMsg(err)); } finally { setBusyPw(false); }
-  };
 
   return (
     <div data-testid="teacher-home" className="space-y-6">
@@ -139,24 +127,6 @@ export default function TeacherHome() {
         ))}
         {history.length === 0 && <p className="text-center text-slate-400 text-sm py-8">{t("no_data")}</p>}
       </div>
-
-      <form onSubmit={submitPw} data-testid="teacher-pw-form" className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm max-w-md">
-        <p className="font-bold text-slate-800 text-sm mb-3 flex items-center gap-2"><KeyRound className="w-4 h-4 text-teal-700" /> {t("change_password")}</p>
-        <div className="grid sm:grid-cols-2 gap-3">
-          <div>
-            <label className="text-xs font-semibold text-slate-500">{t("current_password")}</label>
-            <input data-testid="teacher-pw-current" type="password" required value={pw.current_password} onChange={(e) => setPw({ ...pw, current_password: e.target.value })}
-              className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-teal-600" />
-          </div>
-          <div>
-            <label className="text-xs font-semibold text-slate-500">{t("new_password")}</label>
-            <input data-testid="teacher-pw-new" type="password" required minLength={6} value={pw.new_password} onChange={(e) => setPw({ ...pw, new_password: e.target.value })}
-              className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-teal-600" />
-          </div>
-        </div>
-        <button data-testid="teacher-pw-submit" disabled={busyPw}
-          className="mt-4 px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-teal-700 hover:bg-teal-800 disabled:opacity-50">{t("change_password")}</button>
-      </form>
     </div>
   );
 }
