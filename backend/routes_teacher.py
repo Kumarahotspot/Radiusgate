@@ -193,6 +193,52 @@ async def subject_att_meta(user: dict = Depends(teacher_dep)):
     return {"subjects": _subject_list(t), "classes": _class_list(t), "gender": t.get("gender", "")}
 
 
+# ---------- TTS cloud untuk voice panggil (pria=onyx / wanita=nova, model tts-1) ----------
+TTS_DIR = "/app/backend/assets/tts"
+TTS_VOICES = {"L": "onyx", "P": "nova"}
+
+
+class TtsIn(BaseModel):
+    text: str
+
+
+def _tts_key(text: str, voice: str) -> str:
+    import hashlib
+    return hashlib.sha256(f"{text}|{voice}|1.0|tts-1|mp3".encode()).hexdigest()
+
+
+@router.post("/teacher/tts")
+async def teacher_tts(body: TtsIn, user: dict = Depends(teacher_dep)):
+    import os
+    import re
+    t = await my_teacher(user)
+    voice = TTS_VOICES.get(t.get("gender", ""), "nova")
+    text = re.sub(r"\s+", " ", re.sub(r"[*_#>~|`]", "", re.sub(r"https?://\S+", "", body.text or ""))).strip()[:120]
+    if not text:
+        raise HTTPException(status_code=422, detail="text_empty")
+    key = _tts_key(text, voice)
+    path = f"{TTS_DIR}/{key}.mp3"
+    if not os.path.exists(path):
+        from emergentintegrations.llm.openai import OpenAITextToSpeech
+        tts = OpenAITextToSpeech(api_key=os.environ["EMERGENT_LLM_KEY"])
+        audio = await tts.generate_speech(text=text, model="tts-1", voice=voice)
+        with open(path, "wb") as f:
+            f.write(audio)
+    return {"url": f"/api/teacher/tts-file/{key}.mp3"}
+
+
+@router.get("/teacher/tts-file/{fname}")
+async def teacher_tts_file(fname: str):
+    import os
+    import re
+    if not re.fullmatch(r"[0-9a-f]{64}\.mp3", fname):
+        raise HTTPException(status_code=404, detail="not_found")
+    path = f"{TTS_DIR}/{fname}"
+    if not os.path.exists(path):
+        raise HTTPException(status_code=404, detail="not_found")
+    return FileResponse(path, media_type="audio/mpeg", headers={"Cache-Control": "public, max-age=31536000"})
+
+
 @router.get("/teacher/subject-att")
 async def subject_att_get(date: str, subject: str, class_name: str, user: dict = Depends(teacher_dep)):
     t = await my_teacher(user)

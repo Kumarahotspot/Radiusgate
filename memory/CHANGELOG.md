@@ -107,6 +107,13 @@
 - Terverifikasi: curl PATCH gender (normalisasi "perempuan"→P), meta mengembalikan gender, UI form tampil, spy TTS pitch sesuai gender. ZIP di-build ulang.
 - CATATAN: mode offline Absen Mapel (disetujui user) masih antre dikerjakan.
 - Penyesuaian (uji user): pitch suara pria dinaikkan 0.8 → 0.9 → 1.0 (natural seperti orang memanggil absen; semula terlalu berat); suara wanita tetap 1.1. ZIP di-build ulang.
+- Masalah lanjutan (laporan user): di HP user hanya ada voice wanita bawaan sehingga pitch 1.0 terdengar wanita lagi → **solusi final: TTS cloud OpenAI** (playbook integration_expert).
+
+## 2026-09-24 — Voice panggil via TTS cloud OpenAI (pria/wanita asli)
+- Backend routes_teacher.py: `POST /teacher/tts` {text} (auth guru) — generate audio via OpenAITextToSpeech (model `tts-1` cepat, voice `onyx` pria / `nova` wanita sesuai gender guru), cache disk `/app/backend/assets/tts/<sha256(text|voice|...)>.mp3` (idempoten, request sama tidak generate ulang); `GET /teacher/tts-file/<hash>.mp3` publik (hash 64-hex, regex-validated, Cache-Control 1 tahun).
+- Frontend TeacherSubjectAtt.jsx: `speak()` kini **cloud-first** saat guru bergender L/P & online — POST /teacher/tts → putar URL audio via `Audio` (cache URL per nama+gender di memori); fallback ke `deviceSpeak()` (speechSynthesis perangkat, pria pitch 0.9) bila offline/error/gagal play. `closeCall()` & mute ikut menghentikan audio cloud (audioRef).
+- Terverifikasi: curl e2e (generate → file audio/mpeg tersaji → cache hit URL sama → bogus 404 → tanpa auth 401/403); UI spy: roll call guru pria memakai URL cloud tts-file (bukan device TTS), siswa berikutnya memanggil cloud lagi, modal tertutup bersih, tanpa overflow mobile 390. ZIP di-build ulang.
+- Catatan: suara OpenAI dioptimalkan untuk bahasa Inggris — nama Indonesia terbaca jelas tapi bisa sedikit beraksen; jika user ingin aksen lokal penuh, upgrade ke ElevenLabs (perlu API key sendiri). Fallback perangkat tetap tersedia.
 
 ## 2026-09-24 — Nama pengguna pindah ke menu avatar kanan atas (semua role)
 - Permintaan user (contoh RadiusLink): "admin Nusantara dipindah spt contoh" — teks "Portal X · Nama" di bawah logo membungkus 3 baris di HP; nama dipindah ke kanan atas sebagai menu avatar.
