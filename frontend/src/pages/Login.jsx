@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import { useAuth, homeFor } from "../context/AuthContext";
 import api, { errMsg } from "../api";
 import LangSwitch from "../components/LangSwitch";
-import { MonitorSmartphone } from "lucide-react";
+import { MonitorSmartphone, Eye, EyeOff } from "lucide-react";
 
 export default function Login() {
   const { t } = useTranslation();
@@ -13,6 +13,7 @@ export default function Login() {
   const [params] = useSearchParams();
   const [email, setEmail] = useState(params.get("email") || "");
   const [password, setPassword] = useState("");
+  const [showPw, setShowPw] = useState(false);
   const [error, setError] = useState(null);
   const [busy, setBusy] = useState(false);
   const [forgot, setForgot] = useState(false);
@@ -121,11 +122,18 @@ export default function Login() {
             </div>
             <div>
               <label className="text-xs font-semibold text-slate-400 uppercase tracking-wide">{t("password")}</label>
-              <input
-                data-testid="login-password"
-                type="password" required value={password} onChange={(e) => setPassword(e.target.value)}
-                className="mt-1.5 w-full rounded-xl bg-white/5 border border-white/10 px-4 py-3 text-white text-sm outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 transition"
-              />
+              <div className="relative">
+                <input
+                  data-testid="login-password"
+                  type={showPw ? "text" : "password"} required value={password} onChange={(e) => setPassword(e.target.value)}
+                  className="mt-1.5 w-full rounded-xl bg-white/5 border border-white/10 px-4 py-3 pr-11 text-white text-sm outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 transition"
+                />
+                <button type="button" data-testid="login-toggle-pw" onClick={() => setShowPw(!showPw)}
+                  aria-label={t(showPw ? "hide_password" : "show_password")}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 mt-0.5 text-slate-400 hover:text-white transition-colors">
+                  {showPw ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                </button>
+              </div>
             </div>
             {error && <p data-testid="login-error" className="text-red-400 text-sm">{error}</p>}
             <button

@@ -128,6 +128,10 @@
 - Password guru demo lukman@kh.net & siti@radiusgate.id direset ke Guru123! (tercatat di test_credentials.md).
 - **Hardening mode Panggil (laporan user "klik tidak berpindah, selalu di Hadir")**: bug tidak tereproduksi di build terkini (repro persis di 3/8 Arto: maju normal, POST 200, tersimpan), NAMun ditemukan kelemahan nyata — bila autoSave gagal (error server), modal tetap maju dan status diam-diam rollback ke Hadir, sehingga terlihat "tidak berpindah & selalu Hadir". Fix: `autoSave` kini mengembalikan true/false; di mode Panggil, simpan GAGAL → modal TIDAK maju (tetap di siswa tsb) + toast error, guru bisa mengulangi. Gagal jaringan/offline tetap maju normal (masuk antrean offline). Terverifikasi e2e: jalur normal maju + POST 200; simulasi 500 → tetap di siswa + toast error + status rollback; restore data bersih.
 - ZIP di-build ulang berisi fix ini.
+
+## 2026-09-24 — Tombol show/hide kata sandi di halaman login
+- Permintaan user: sering salah ketik sandi → tambahkan toggle mata (Eye/EyeOff) di kolom Kata Sandi halaman login (`login-toggle-pw`); tipe input berubah password↔text. i18n baru: show_password/hide_password (ID/EN).
+- Terverifikasi e2e: toggle mengubah tipe input, nilai sandi terlihat saat show, login tetap sukses setelah toggle. ZIP di-build ulang.
 - **Tabel Guru diperjelas (permintaan user)**: Kolom **L/P (Jenis Kelamin)** ditambahkan di tabel Guru halaman Admin agar status gender setiap guru terlihat jelas langsung (Laki-laki = badge biru, Perempuan = badge pink). Semua guru (Budi=L, Lukman=L, Kumara=L, Siti Nuriyah=P) sudah terdata dengan benar. ZIP di-build ulang.
 
 ## 2026-09-24 — Nama pengguna pindah ke menu avatar kanan atas (semua role)
