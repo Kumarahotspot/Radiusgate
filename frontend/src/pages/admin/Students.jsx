@@ -240,6 +240,18 @@ export default function Students() {
     } catch (err) { toast.error(errMsg(err)); }
   };
 
+  const doQrPdf = async () => {
+    try {
+      const res = await api.get("/admin/qrcodes-pdf", { responseType: "blob" });
+      const url = URL.createObjectURL(new Blob([res.data], { type: "application/pdf" }));
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "kartu-qr-siswa.pdf";
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (err) { toast.error(errMsg(err)); }
+  };
+
   const commit = async () => {
     setBusy(true);
     try {
@@ -320,6 +332,10 @@ export default function Students() {
           <button data-testid="export-btn" onClick={doExport}
             className="flex items-center justify-center gap-1.5 bg-white border border-teal-700 text-teal-700 hover:bg-teal-50 text-xs font-bold px-4 py-2 rounded-xl transition-colors w-full sm:w-auto">
             <Download className="w-4 h-4" /> {t("export_file")}
+          </button>
+          <button data-testid="qr-pdf-btn" onClick={doQrPdf}
+            className="flex items-center justify-center gap-1.5 bg-white border border-teal-700 text-teal-700 hover:bg-teal-50 text-xs font-bold px-4 py-2 rounded-xl transition-colors w-full sm:w-auto">
+            <QrCode className="w-4 h-4" /> {t("qr_cards_pdf")}
           </button>
           <button data-testid="bulk-enroll-btn" onClick={() => { setBulkOpen(true); setBulkReport(null); setZipFile(null); setMapFile(null); }}
             className="flex items-center justify-center gap-1.5 bg-white border border-teal-700 text-teal-700 hover:bg-teal-50 text-xs font-bold px-4 py-2 rounded-xl transition-colors w-full sm:w-auto">

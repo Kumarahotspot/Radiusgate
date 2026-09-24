@@ -55,6 +55,63 @@ async def get_qrcode(ptype: str, pid: str, user: dict = Depends(admin_dep)):
             "nis": person.get("nis") or person.get("nip") or "", "photo": person.get("photo") or ""}
 
 
+@router.get("/admin/qrcodes-pdf")
+async def qrcodes_pdf(class_name: str = "", user: dict = Depends(admin_dep)):
+    import qrcode
+    from reportlab.lib.pagesizes import A4
+    from reportlab.lib.units import mm
+    from reportlab.pdfgen import canvas as rl_canvas
+    from reportlab.lib.utils import ImageReader
+    from fastapi.responses import StreamingResponse
+
+    flt = {"school_id": user["school_id"], "status": {"$ne": "lulus"}}
+    if class_name.strip():
+        flt["class"] = class_name.strip()
+    students = await db.students.find(flt, {"_id": 0, "embedding": 0, "photo": 0}).sort([("class", 1), ("name", 1)]).to_list(2000)
+    if not students:
+        raise HTTPException(status_code=404, detail="no_data")
+    for st in students:
+        if not st.get("qr_token"):
+            st["qr_token"] = uuid.uuid4().hex
+            await db.students.update_one({"id": st["id"]}, {"$set": {"qr_token": st["qr_token"]}})
+
+    school = await db.schools.find_one({"id": user["school_id"]}, {"_id": 0, "name": 1})
+    school_name = (school or {}).get("name", "")
+
+    buf = io.BytesIO()
+    c = rl_canvas.Canvas(buf, pagesize=A4)
+    W, H = A4
+    cols, rows = 2, 3  # 6 kartu per halaman, QR besar agar mudah discan
+    cw, ch = W / cols, H / rows
+    for i, st in enumerate(students):
+        idx = i % (cols * rows)
+        if i and idx == 0:
+            c.showPage()
+        col, row = idx % cols, idx // cols
+        x, y = col * cw, H - (row + 1) * ch
+        c.setStrokeColorRGB(0.7, 0.7, 0.7)
+        c.rect(x + 4 * mm, y + 4 * mm, cw - 8 * mm, ch - 8 * mm)
+        c.setFillColorRGB(0.06, 0.42, 0.38)
+        c.setFont("Helvetica-Bold", 8)
+        c.drawCentredString(x + cw / 2, y + ch - 9 * mm, school_name[:40])
+        qr_img = qrcode.make(f"RG1.student.{st['id']}.{st['qr_token']}")
+        ib = io.BytesIO()
+        qr_img.save(ib, format="PNG")
+        ib.seek(0)
+        qs = 62 * mm
+        c.drawImage(ImageReader(ib), x + (cw - qs) / 2, y + ch - qs - 13 * mm, qs, qs)
+        c.setFillColorRGB(0, 0, 0)
+        c.setFont("Helvetica-Bold", 11)
+        c.drawCentredString(x + cw / 2, y + 11 * mm, st["name"][:30])
+        c.setFont("Helvetica", 8)
+        c.drawCentredString(x + cw / 2, y + 6.5 * mm, f"NIS: {st.get('nis') or '-'} · {st.get('class') or '-'}")
+    c.save()
+    buf.seek(0)
+    fname = f"kartu-qr-{(class_name.strip() or 'semua').replace(' ', '-')}.pdf"
+    return StreamingResponse(buf, media_type="application/pdf",
+                             headers={"Content-Disposition": f'attachment; filename="{fname}"'})
+
+
 # ---------- Dashboard ----------
 @router.get("/admin/stats")
 async def stats(user: dict = Depends(admin_dep)):

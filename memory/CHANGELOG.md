@@ -296,3 +296,8 @@
 - Permintaan user: mode registrasi kartu massal di kiosk. Implementasi: tombol ikon NFC di overlay kamera → modal login admin sekolah (email+password, diverifikasi via /auth/me role school_admin) → layar registrasi: cari nama (siswa+guru+karyawan gabungan), pilih nama → panel "Tempelkan kartu untuk: <nama>" → tap kartu RFID → UID tersimpan via PATCH admin (banner hijau "Kartu tersimpan: Nama · UID") → otomatis kembali ke daftar untuk nama berikutnya. Baris yang sudah punya kartu menampilkan ikon NFC teal; jika dipilih lagi ada peringatan ganti kartu. Tombol "Selesai" keluar & membersihkan sesi admin (token hanya di memori). Listener RFID diarahkan ke regSave saat mode aktif (bukan absen).
 - Testid: kiosk-reg-btn, reg-login-modal, reg-email, reg-password, reg-login-submit, reg-screen, reg-search, reg-pick-*, reg-tap-panel, reg-msg, reg-done. i18n ID/EN: reg_* + login_failed + student/teacher/employee.
 - Terverifikasi e2e (mobile 390): login admin → cari "Galang" → pilih → tap kartu 7778889990 → tersimpan → kembali ke daftar → keluar OK. Data uji dibersihkan. ZIP di-build ulang.
+
+## 2026-09-25 — Cetak kartu QR massal dalam 1 PDF
+- Persetujuan user atas saran: endpoint baru `GET /api/admin/qrcodes-pdf?class_name=` (admin) — menghasilkan PDF A4 berisi 6 kartu QR per halaman (2x3, QR 62mm agar mudah discan), tiap kartu: nama sekolah, QR (auto-generate qr_token bila belum ada), nama siswa, NIS + kelas. Urut per kelas lalu nama. Tanpa param = semua siswa aktif.
+- Frontend: tombol "Kartu QR (PDF)" (testid qr-pdf-btn) di toolbar halaman Siswa, unduh blob sebagai kartu-qr-siswa.pdf. i18n qr_cards_pdf (ID/EN).
+- Terverifikasi: PDF valid (%PDF, multi-halaman sesuai jumlah siswa). ZIP di-build ulang.
