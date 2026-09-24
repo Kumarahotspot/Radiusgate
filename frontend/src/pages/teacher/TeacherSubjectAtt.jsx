@@ -56,7 +56,7 @@ export default function TeacherSubjectAtt() {
       } else {
         const v = idv.find(isMale) || idv.find((x) => !isFem(x));
         if (v) u.voice = v;
-        u.pitch = 0.8;
+        u.pitch = 0.75;
       }
     }
     window.speechSynthesis.speak(u);
