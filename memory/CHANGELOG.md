@@ -115,6 +115,13 @@
 - Terverifikasi: curl e2e (generate → file audio/mpeg tersaji → cache hit URL sama → bogus 404 → tanpa auth 401/403); UI spy: roll call guru pria memakai URL cloud tts-file (bukan device TTS), siswa berikutnya memanggil cloud lagi, modal tertutup bersih, tanpa overflow mobile 390. ZIP di-build ulang.
 - Catatan: suara OpenAI dioptimalkan untuk bahasa Inggris — nama Indonesia terbaca jelas tapi bisa sedikit beraksen; jika user ingin aksen lokal penuh, upgrade ke ElevenLabs (perlu API key sendiri). Fallback perangkat tetap tersedia.
 
+## 2026-09-24 — Mode Offline Absen Mapel (cache + antrean + auto-sync)
+- Persetujuan user (opsi a): halaman Absen Mapel tetap berfungsi penuh saat internet guru mati.
+- TeacherSubjectAtt.jsx (murni frontend, backend tidak berubah): cache localStorage per sesi (`sa_cache|tgl|mapel|kelas`: students+records+prefill+marks+flag dirty) dan cache meta (`sa_meta`) agar dropdown mapel/kelas tetap terisi offline. Gagal fetch → fallback cache + lencana "Mode Offline"; tanggal tanpa cache → pesan `sa_offline_no_cache`. autoSave offline/error jaringan (err tanpa response) → mark tersimpan lokal + dirty=true + lencana "belum tersinkron". Event `online` & reload sesi online → `syncSession` kirim bulk records ke POST /teacher/subject-att yang sudah ada → toast "tersinkron" + lencana hilang. Dirty cache di-merge saat load online agar edit offline tak hilang. Voice panggil otomatis fallback ke TTS perangkat saat offline (sudah ada di speak()).
+- i18n baru: sa_offline, sa_pending, sa_synced, sa_offline_no_cache (ID/EN).
+- Terverifikasi e2e (Playwright offline): cache tertulis saat online → offline: tanggal tanpa cache memunculkan pesan, tanggal tercache memuat siswa + lencana → tandai sakit offline → dirty=true + "belum tersinkron" → online kembali → auto-sync + toast + lencana hilang + dirty=false → status dikembalikan (Hadir 8) → tanpa overflow mobile 390.
+- ZIP Hostinger di-build ulang berisi fitur ini.
+
 ## 2026-09-24 — Nama pengguna pindah ke menu avatar kanan atas (semua role)
 - Permintaan user (contoh RadiusLink): "admin Nusantara dipindah spt contoh" — teks "Portal X · Nama" di bawah logo membungkus 3 baris di HP; nama dipindah ke kanan atas sebagai menu avatar.
 - Layout.jsx: label kiri kini hanya nama portal (1 baris). Menu avatar (inisial + nama + chevron) kini berlaku untuk SEMUA role (sebelumnya hanya ortu); dropdown berisi identitas (nama + portal, `user-menu-name`), item Profil khusus ortu, dan Keluar. Tombol "Keluar" lama (`logout-btn`) dihapus — testid logout baru: `user-menu-logout`.
