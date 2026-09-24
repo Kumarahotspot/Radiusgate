@@ -152,7 +152,7 @@ export default function TeacherSubjectAtt() {
 
   const autoSave = async (studentId, status) => {
     if (locked && !confirmedRef.current) {
-      if (!window.confirm(t("session_locked_confirm"))) return;
+      if (!window.confirm(t("session_locked_confirm"))) return false;
       confirmedRef.current = true;
     }
     const prev = marks[studentId] || "hadir";
@@ -164,16 +164,18 @@ export default function TeacherSubjectAtt() {
       setOffline(true);
       setPendingSync(true);
     };
-    if (offline || !navigator.onLine) { markDirty(); return; }
+    if (offline || !navigator.onLine) { markDirty(); return true; }
     try {
       await api.post("/teacher/subject-att", { date, subject, class_name: cls, records: [{ student_id: studentId, status }] });
       setSaved(true);
       const cached = readCache(date, subject, cls) || {};
       writeCache(date, subject, cls, { ...cached, students, marks: next, saved: true, locked, dirty: false });
+      return true;
     } catch (err) {
-      if (!err.response) { markDirty(); return; }
+      if (!err.response) { markDirty(); return true; }
       setMarks((m) => ({ ...m, [studentId]: prev }));
       toast.error(errMsg(err));
+      return false;
     }
   };
 
@@ -340,8 +342,9 @@ export default function TeacherSubjectAtt() {
             <div className="grid grid-cols-2 gap-2.5">
               {STATUSES.map((st) => (
                 <button key={st} data-testid={`sa-call-${st}`}
-                  onClick={() => {
-                    autoSave(students[callIdx].id, st);
+                  onClick={async () => {
+                    const ok = await autoSave(students[callIdx].id, st);
+                    if (!ok) return;
                     if (callIdx + 1 < students.length) setCallIdx(callIdx + 1);
                     else { closeCall(); toast.success(t("call_done")); }
                   }}
