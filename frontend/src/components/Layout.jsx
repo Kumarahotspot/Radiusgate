@@ -6,7 +6,7 @@ import LangSwitch from "./LangSwitch";
 import {
   LayoutDashboard, School, FileText, Users, GraduationCap, Settings,
   CalendarClock, BarChart3, CreditCard, LogOut, ScanFace, MonitorSmartphone, Bell, Inbox,
-  Briefcase, Timer, Wallet, BookOpen, User, ChevronDown,
+  Briefcase, Timer, Wallet, BookOpen, User, ChevronDown, Menu, X,
 } from "lucide-react";
 
 const menus = {
@@ -55,9 +55,14 @@ export default function Layout() {
   const location = useLocation();
   const ptab = new URLSearchParams(location.search).get("tab") || "";
   const [menuOpen, setMenuOpen] = useState(false);
+  const [navOpen, setNavOpen] = useState(false);
   const menuRef = useRef(null);
+  const navRef = useRef(null);
   useEffect(() => {
-    const close = (e) => { if (menuRef.current && !menuRef.current.contains(e.target)) setMenuOpen(false); };
+    const close = (e) => {
+      if (menuRef.current && !menuRef.current.contains(e.target)) setMenuOpen(false);
+      if (navRef.current && !navRef.current.contains(e.target)) setNavOpen(false);
+    };
     document.addEventListener("pointerdown", close);
     return () => document.removeEventListener("pointerdown", close);
   }, []);
@@ -67,7 +72,7 @@ export default function Layout() {
 
   return (
     <div className="min-h-screen bg-slate-50">
-      <header className="sticky top-0 z-30 bg-white border-b border-slate-200">
+      <header ref={navRef} className="sticky top-0 z-30 bg-white border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-4 h-14 flex items-center justify-between gap-3">
           <div className="flex items-center gap-2 min-w-0">
             <img src="/logo.png" alt="RadiusGate" className="w-11 h-11 object-contain shrink-0" />
@@ -77,6 +82,12 @@ export default function Layout() {
             </div>
           </div>
           <div className="flex items-center gap-2">
+            {user.role !== "parent" && items.length > 0 && (
+              <button data-testid="nav-hamburger" aria-label={t("nav_menu")} onClick={() => setNavOpen(!navOpen)}
+                className="md:hidden flex items-center justify-center p-2 rounded-lg text-slate-600 hover:bg-slate-100 transition-colors">
+                {navOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+              </button>
+            )}
             <LangSwitch />
             <button
               data-testid="kiosk-link-btn"
@@ -119,7 +130,7 @@ export default function Layout() {
           </div>
         </div>
         {user.role !== "parent" && (
-        <nav className="max-w-7xl mx-auto px-4 flex gap-1 overflow-x-auto pb-2">
+        <nav className="max-w-7xl mx-auto px-4 hidden md:flex gap-1 overflow-x-auto pb-2">
           {items.map((m) => (
             <NavLink
               key={m.to}
@@ -136,6 +147,16 @@ export default function Layout() {
             </NavLink>
           ))}
         </nav>
+        )}
+        {user.role !== "parent" && navOpen && (
+          <nav data-testid="mobile-nav" className="md:hidden border-t border-slate-100 px-4 py-2 space-y-1">
+            {items.map((m) => (
+              <NavLink key={m.to} to={m.to} end={m.end} data-testid={`mnav-${m.key}`} onClick={() => setNavOpen(false)}
+                className={({ isActive }) => `flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-semibold transition-colors ${isActive ? "bg-teal-700 text-white" : "text-slate-700 hover:bg-slate-100"}`}>
+                <m.icon className="w-4 h-4" /> {t(m.key)}
+              </NavLink>
+            ))}
+          </nav>
         )}
       </header>
       <main className={`max-w-7xl mx-auto px-4 py-6 ${user.role === "parent" ? "pb-24" : ""}`}>

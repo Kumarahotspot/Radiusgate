@@ -60,4 +60,10 @@
 - Backend: 3 endpoint di routes_admin.py (status inline, mark, daftar absent); validasi status 422, siswa 404, koreksi sakit/izin/alpa menolakkan telat/lembur.
 - Password admin demo sempat berubah dari standar → direset ke Admin123! (sesuai test_credentials.md).
 - Terverifikasi: curl e2e 9/9 PASS (create/update/patch/422/404/absent list/cleanup); testing agent iterasi 17 frontend 100% (inline HSIA + toast, kartu Belum Absen via tanggal lampau, regresi filter/search/pagination/date picker, mobile 390); residu uji lama (TEST_WINDOW) ikut dibersihkan.
-- ZIP Hostinger di-build ulang berisi fitur ini.
+- ZIP Hostinger di-build ulang berisi fitur ini; `.htaccess` + `BACA-SAYA.txt` yang hilang dari paket dipulihkan (kini disimpan di `frontend/public/` agar otomatis ikut setiap build).
+
+## 2026-09-24 — Menu hamburger di mobile (portal non-ortu)
+- Keluhan user (screenshot HP): nav pill atas portal guru terpotong ("Presensi Saya | Absen Mapel | Izin Siswa | L...") — terkesan tidak responsif. User memilih opsi hamburger (bukan bottom nav).
+- Layout.jsx: nav atas kini `hidden md:flex` (hanya desktop); di mobile muncul tombol ☰/✕ (`nav-hamburger`) di kanan atas membuka dropdown vertikal (`mobile-nav`, item `mnav-<key>`) berisi semua menu role tsb; tertutup otomatis saat klik item / klik di luar (ref di header). Berlaku untuk role owner, school_admin, teacher, employee (parent tetap bottom nav). i18n baru: nav_menu (ID/EN).
+- Terverifikasi screenshot: mobile 390 — hamburger tampil, nav desktop display:none, dropdown 4 item, klik Absen Mapel → navigasi + dropdown tertutup, scrollWidth 390 = clientWidth 390; desktop 1920 — hamburger tersembunyi, nav lengkap tampil.
+- ZIP Hostinger di-build ulang berisi perubahan ini.
