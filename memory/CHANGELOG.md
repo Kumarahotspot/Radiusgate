@@ -121,6 +121,7 @@
 - i18n baru: sa_offline, sa_pending, sa_synced, sa_offline_no_cache (ID/EN).
 - Terverifikasi e2e (Playwright offline): cache tertulis saat online → offline: tanggal tanpa cache memunculkan pesan, tanggal tercache memuat siswa + lencana → tandai sakit offline → dirty=true + "belum tersinkron" → online kembali → auto-sync + toast + lencana hilang + dirty=false → status dikembalikan (Hadir 8) → tanpa overflow mobile 390.
 - ZIP Hostinger di-build ulang berisi fitur ini.
+- Revisi voice (keputusan user, opsi b): voice panggil **kembali ke suara perangkat sepenuhnya** — jalur cloud TTS di frontend dihapus (aksen Inggris OpenAI tidak disukai user). Suara perangkat id-ID: wanita pitch 1.1, pria pitch **0.85** (titik tengah hasil uji: 0.8 berhasil tapi berat, 1.0 terdengar wanita). Endpoint backend `/teacher/tts` dibiarkan dormant (teruji, siap dipakai lagi bila nanti beralih ke ElevenLabs). Terverifikasi spy: speechSynthesis pitch 0.85 lang id-ID, nol panggilan cloud, bundle bersih. ZIP di-build ulang.
 
 ## 2026-09-24 — Nama pengguna pindah ke menu avatar kanan atas (semua role)
 - Permintaan user (contoh RadiusLink): "admin Nusantara dipindah spt contoh" — teks "Portal X · Nama" di bawah logo membungkus 3 baris di HP; nama dipindah ke kanan atas sebagai menu avatar.

@@ -29,10 +29,8 @@ export default function TeacherSubjectAtt() {
   const [offline, setOffline] = useState(false);
   const [pendingSync, setPendingSync] = useState(false);
   const [muted, setMuted] = useState(() => localStorage.getItem("sa_voice_muted") === "1");
-  const audioRef = useRef(null);
-  const ttsCache = useRef({});
-  const deviceSpeak = (text) => {
-    if (!window.speechSynthesis) return;
+  const speak = (text) => {
+    if (muted || !window.speechSynthesis) return;
     window.speechSynthesis.cancel();
     const u = new SpeechSynthesisUtterance(text);
     u.lang = "id-ID";
@@ -49,40 +47,20 @@ export default function TeacherSubjectAtt() {
       } else {
         const v = idv.find(isMale) || idv.find((x) => !isFem(x));
         if (v) u.voice = v;
-        u.pitch = 0.9;
+        u.pitch = 0.85;
       }
     }
     window.speechSynthesis.speak(u);
-  };
-  const speak = (text) => {
-    if (muted) return;
-    const g = meta.gender;
-    if ((g === "L" || g === "P") && navigator.onLine) {
-      const key = `${g}:${text}`;
-      const play = (s) => {
-        if (audioRef.current) audioRef.current.pause();
-        const a = new Audio(s);
-        audioRef.current = a;
-        a.play().catch(() => deviceSpeak(text));
-      };
-      const cached = ttsCache.current[key];
-      if (cached) { play(cached); return; }
-      api.post("/teacher/tts", { text })
-        .then((r) => { const src = `${api.defaults.baseURL}${r.data.url.replace("/api", "")}`; ttsCache.current[key] = src; play(src); })
-        .catch(() => deviceSpeak(text));
-      return;
-    }
-    deviceSpeak(text);
   };
   const toggleMute = () => {
     setMuted((m) => {
       const nv = !m;
       localStorage.setItem("sa_voice_muted", nv ? "1" : "0");
-      if (nv) { window.speechSynthesis?.cancel(); if (audioRef.current) audioRef.current.pause(); }
+      if (nv) window.speechSynthesis?.cancel();
       return nv;
     });
   };
-  const closeCall = () => { setCallIdx(null); window.speechSynthesis?.cancel(); if (audioRef.current) audioRef.current.pause(); };
+  const closeCall = () => { setCallIdx(null); window.speechSynthesis?.cancel(); };
 
   useEffect(() => {
     api.get("/teacher/subject-att/meta").then((r) => {
