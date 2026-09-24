@@ -319,9 +319,10 @@ export default function Kiosk() {
         speak(`${t("kiosk_success")}. ${t("kiosk_offline")}`);
         setNisInput("");
         setPhase("result");
-        setTimeout(() => { setPhase("idle"); setResult(null); }, 3000);
+        setTimeout(() => { setPhase("idle"); setResult(null); setNisFocused(false); }, 3000);
         return;
       }
+      let manualOk = false;
       try {
         const { data } = await axios.post(`${API}/kiosk/attend-student`, payload, { headers: { "X-Kiosk-Token": token }, timeout: 20000 });
         const nm = data.name || data.student_name;
@@ -329,6 +330,7 @@ export default function Kiosk() {
         chime(true);
         speak(`${t("kiosk_success")}. ${nm}`);
         setNisInput("");
+        manualOk = true;
       } catch (err) {
         const d = err.response?.data?.detail || "";
         let msg = t("kiosk_failed");
@@ -341,7 +343,7 @@ export default function Kiosk() {
         speak(`${t("kiosk_failed")}. ${msg}`);
       }
       setPhase("result");
-      setTimeout(() => { setPhase("idle"); setResult(null); }, 3000);
+      setTimeout(() => { setPhase("idle"); setResult(null); if (manualOk) setNisFocused(false); }, 3000);
     } finally {
       busyRef.current = false;
     }

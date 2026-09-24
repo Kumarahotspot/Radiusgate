@@ -201,3 +201,7 @@
 - Persetujuan user atas saran: input NIS kini readOnly (keyboard HP tidak pernah muncul); mengetuk kolom NIS masuk "mode manual" — kamera tersembunyi, keypad angka besar (1-9, 0, C=clear, ⌫=backspace, maks 12 digit) muncul di atas layar. Tombol "Absen Manual" jadi teal solid; tombol "Batal" menutup mode manual dan mengembalikan kamera. Mode manual tetap terbuka setelah sukses untuk absen beruntun yang cepat.
 - Testid baru: kiosk-keypad-0..9, kiosk-keypad-clear, kiosk-keypad-back, kiosk-manual-close.
 - Terverifikasi e2e (mobile 390): keypad muncul, ketik 10006, backspace berfungsi, submit → kartu sukses "Presensi berhasil Galang Remaja", tutup mode → kamera kembali. Data uji dibersihkan dari DB. ZIP di-build ulang.
+
+## 2026-09-24 — Absen manual sukses otomatis kembali ke layar utama kiosk
+- Permintaan user: setelah absen manual berhasil, kiosk otomatis keluar dari mode manual dan kembali ke tampilan kamera utama (setelah kartu sukses hilang, ±3 dtk). Jika GAGAL (NIS salah/dll), mode manual tetap terbuka agar bisa langsung coba lagi. Berlaku untuk jalur online maupun antrean offline (flag `manualOk`).
+- Terverifikasi e2e (mobile 390, API di-mock sukses): kartu sukses tampil, lalu otomatis kembali — kamera terlihat, keypad tertutup. ZIP di-build ulang.
