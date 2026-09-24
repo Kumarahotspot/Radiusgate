@@ -68,12 +68,25 @@ export default function Layout() {
     return () => document.removeEventListener("pointerdown", close);
   }, []);
   const [pendingLeaves, setPendingLeaves] = useState(0);
+  const [pendingOvertime, setPendingOvertime] = useState(0);
+  const [studentLeaveToday, setStudentLeaveToday] = useState(0);
   useEffect(() => {
-    if (user?.role === "school_admin") api.get("/admin/stats").then((r) => setPendingLeaves(r.data.pending_leaves || 0)).catch(() => {});
+    if (user?.role === "school_admin")
+      api.get("/admin/stats").then((r) => {
+        setPendingLeaves(r.data.pending_leaves || 0);
+        setPendingOvertime(r.data.pending_overtime || 0);
+      }).catch(() => {});
+    if (user?.role === "teacher")
+      api.get("/teacher/student-status").then((r) => {
+        const today = new Date().toLocaleDateString("en-CA");
+        setStudentLeaveToday((r.data || []).filter((x) => x.date === today).length);
+      }).catch(() => {});
   }, [user?.role]);
   if (!user) return null;
   const items = menus[user.role] || [];
   const initials = (user.name || "?").split(" ").map((w) => w[0]).filter(Boolean).slice(0, 2).join("").toUpperCase();
+  const pendingMap = { leaves: pendingLeaves, overtime: pendingOvertime, student_status_menu: studentLeaveToday };
+  const pendingTotal = pendingLeaves + pendingOvertime + studentLeaveToday;
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -84,9 +97,9 @@ export default function Layout() {
               <button data-testid="nav-hamburger" aria-label={t("nav_menu")} onClick={() => setNavOpen(!navOpen)}
                 className="md:hidden relative flex items-center justify-center p-2 -ml-2 rounded-lg text-slate-600 hover:bg-slate-100 transition-colors shrink-0">
                 {navOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-                {pendingLeaves > 0 && (
-                  <span data-testid="nav-leaves-badge"
-                    className="absolute -top-0.5 -right-0.5 min-w-[17px] h-[17px] px-1 rounded-full bg-red-500 text-white text-[10px] font-extrabold flex items-center justify-center leading-none">{pendingLeaves}</span>
+                {pendingTotal > 0 && (
+                  <span data-testid="nav-pending-badge"
+                    className="absolute -top-0.5 -right-0.5 min-w-[17px] h-[17px] px-1 rounded-full bg-red-500 text-white text-[10px] font-extrabold flex items-center justify-center leading-none">{pendingTotal}</span>
                 )}
               </button>
             )}
@@ -163,9 +176,9 @@ export default function Layout() {
               <NavLink key={m.to} to={m.to} end={m.end} data-testid={`mnav-${m.key}`} onClick={() => setNavOpen(false)}
                 className={({ isActive }) => `flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-semibold transition-colors ${isActive ? "bg-teal-700 text-white" : "text-slate-700 hover:bg-slate-100"}`}>
                 <m.icon className="w-4 h-4" /> {t(m.key)}
-                {m.key === "leaves" && pendingLeaves > 0 && (
-                  <span data-testid="mnav-leaves-badge"
-                    className="ml-auto min-w-[20px] h-5 px-1.5 rounded-full bg-red-500 text-white text-[10px] font-extrabold flex items-center justify-center leading-none">{pendingLeaves}</span>
+                {(pendingMap[m.key] || 0) > 0 && (
+                  <span data-testid={`mnav-${m.key}-badge`}
+                    className="ml-auto min-w-[20px] h-5 px-1.5 rounded-full bg-red-500 text-white text-[10px] font-extrabold flex items-center justify-center leading-none">{pendingMap[m.key]}</span>
                 )}
               </NavLink>
             ))}

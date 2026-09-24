@@ -74,3 +74,10 @@
 - Layout.jsx: fetch `GET /admin/stats` sekali saat mount (hanya role school_admin); badge `nav-leaves-badge` (absolute, bg-red-500) di pojok ikon ☰ bila pending_leaves > 0; chip `mnav-leaves-badge` di kanan item "Izin / Cuti" pada dropdown mobile. Desktop tidak berubah (sudah ada kartu "Pengajuan Menunggu" di dasbor).
 - Terverifikasi: leave uji dibuat via API guru (pending_leaves=1) → screenshot mobile 390: badge "1" tampil di ☰ (posisi kiri) & chip "1" di item Izin/Cuti, klik item → navigasi /admin/leaves + dropdown tertutup, tanpa overflow; desktop bersih. Leave uji dihapus (pending_leaves kembali 0).
 - ZIP Hostinger di-build ulang berisi fitur ini.
+
+## 2026-09-24 — Badge diperluas: lembur pending (admin) + siswa izin hari ini (guru)
+- Persetujuan user atas saran lanjutan + permintaan tambahan: badge juga untuk lembur pending dan menu guru saat ada siswa izin/sakit.
+- Layout.jsx: state `pendingOvertime` (dari GET /admin/stats yang sama) & `studentLeaveToday` (GET /teacher/student-status, difilter tanggal hari ini di sisi klien — endpoint sudah ada, backend tidak berubah). `pendingMap` per key menu: leaves / overtime / student_status_menu. Badge ☰ (`nav-pending-badge`, menggantikan nav-leaves-badge) menampilkan TOTAL per role: admin = izin pending + lembur pending; guru = siswa sakit/izin hari ini. Chip per item menu kini generik `mnav-<key>-badge` (Izin/Cuti, Lembur, Izin Siswa).
+- Terverifikasi screenshot mobile 390: admin ☰=1 + chip Lembur=1 (chip Izin/Cuti tersembunyi saat 0) → navigasi /admin/overtime OK; guru ☰=2 + chip Izin Siswa=2 (data asli: Arto & SUSIYANTO sakit hari ini) → navigasi /guru/izin OK; tanpa overflow; desktop bersih. Data uji lembur dibersihkan dari DB.
+- Catatan: akun karyawan demo `lembur@kh.net` direset passwordnya ke Lembur123! untuk pengujian (tercatat di test_credentials.md).
+- ZIP Hostinger di-build ulang berisi fitur ini.
