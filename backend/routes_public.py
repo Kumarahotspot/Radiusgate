@@ -79,3 +79,9 @@ async def download_presentasi():
 async def download_panduan():
     return FileResponse("/app/frontend/panduan-radiusgate.pdf", media_type="application/pdf",
                         filename="panduan-radiusgate.pdf")
+
+
+@router.get("/public/download/panduan-vps")
+async def download_panduan_vps():
+    return FileResponse("/app/PANDUAN-VPS.md", media_type="text/markdown",
+                        filename="PANDUAN-VPS.md")

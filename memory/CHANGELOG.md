@@ -320,3 +320,12 @@
 ## 2026-09-25 — Panduan Pengguna (User Guide) PDF
 - Permintaan user: "User Guide / cara pengoperasiannya tolong dibuatkan juga". File `panduan-radiusgate.pdf` (A4, ±8 halaman, Bahasa Indonesia): cover, daftar isi, pengenalan, Bagian A Kiosk (setup + PWA fullscreen, absen wajah/QR/RFID/NIS manual, mode Registrasi Kartu, screensaver/offline), Bagian B Portal Admin (CRUD + enroll + QR PDF + RFID, laporan, pengaturan geofence/jam, SPP, lembur, billing), Bagian C Guru (absen mapel + offline), Bagian D Karyawan, Bagian E Orang Tua, Bagian F FAQ/troubleshooting (7 skenario umum). Generator: /app/memory/make_panduan.py (reportlab).
 - Endpoint download publik: GET /api/public/download/panduan. Terverifikasi PDF valid + endpoint 200.
+
+## 2026-09-25 — Siap Deploy ke VPS Sendiri (Docker + Native Systemd + Panduan Lengkap)
+- Permintaan user: memindahkan aplikasi ke VPS Linux sendiri.
+- File konfigurasi produksi dibuat:
+  1. `/app/docker-compose.yml` — orkestrasi MongoDB 6.0 + FastAPI backend + React frontend Nginx.
+  2. `/app/backend/Dockerfile` — Python 3.11-slim + dependensi sistem untuk OpenCV/InsightFace/ArcFace + Pillow/ReportLab.
+  3. `/app/frontend/Dockerfile` & `nginx-spa.conf` — build multi-stage Node 18 + Nginx SPA router.
+  4. `/app/PANDUAN-VPS.md` — panduan step-by-step: spesifikasi server (Ubuntu 22.04/24.04), cara ekspor kode (Save to GitHub / VS Code), Metode Docker Compose, Metode Manual (Systemd + Nginx + Certbot SSL Let's Encrypt), migrasi DB, dan checklist post-deploy.
+- Endpoint unduh panduan: GET `/api/public/download/panduan-vps`.

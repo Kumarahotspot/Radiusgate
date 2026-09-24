@@ -1,0 +1,58 @@
+version: '3.8'
+
+services:
+  mongodb:
+    image: mongo:6.0
+    container_name: radiusgate-mongo
+    restart: always
+    environment:
+      MONGO_INITDB_DATABASE: radiusgate
+    volumes:
+      - mongo_data:/data/db
+    ports:
+      - "27017:27017"
+    networks:
+      - radiusgate-net
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: radiusgate-backend
+    restart: always
+    environment:
+      - MONGO_URL=mongodb://mongodb:27017
+      - DB_NAME=radiusgate
+      - JWT_SECRET=ganti-dengan-secret-acak-anda-yang-panjang
+      - PORT=8001
+    ports:
+      - "8001:8001"
+    depends_on:
+      - mongodb
+    volumes:
+      - ./backend/invoices:/app/invoices
+      - ./backend/assets:/app/assets
+    networks:
+      - radiusgate-net
+
+  # Frontend: opsional jika ingin build via docker
+  # Atau cukup letakkan build static di /var/www/html Nginx VPS
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: radiusgate-frontend
+    restart: always
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    networks:
+      - radiusgate-net
+
+volumes:
+  mongo_data:
+
+networks:
+  radiusgate-net:
+    driver: bridge
