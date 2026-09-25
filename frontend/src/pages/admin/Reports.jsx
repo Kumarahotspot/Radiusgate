@@ -49,6 +49,33 @@ function PagerBar({ t, pager, total, testid }) {
   );
 }
 
+function RangeShortcuts({ t, setFrom, setTo, testid }) {
+  const iso = (d) => d.toLocaleDateString("en-CA");
+  const apply = (kind) => {
+    const now = new Date();
+    const toD = iso(now);
+    let fromD = toD;
+    if (kind === "week") {
+      const day = (now.getDay() + 6) % 7;
+      fromD = iso(new Date(now.getFullYear(), now.getMonth(), now.getDate() - day));
+    } else if (kind === "month") {
+      fromD = iso(new Date(now.getFullYear(), now.getMonth(), 1));
+    } else if (kind === "semester") {
+      fromD = now.getMonth() >= 6 ? iso(new Date(now.getFullYear(), 6, 1)) : iso(new Date(now.getFullYear(), 0, 1));
+    }
+    setFrom(fromD);
+    setTo(toD);
+  };
+  const btn = "px-2.5 py-2 rounded-lg text-[11px] font-bold text-slate-600 bg-slate-100 hover:bg-teal-50 hover:text-teal-700 transition-colors";
+  return (
+    <div className="flex flex-wrap gap-1.5">
+      {["today", "week", "month", "semester"].map((k) => (
+        <button key={k} data-testid={`${testid}-range-${k}`} onClick={() => apply(k)} className={btn}>{t(`range_${k}`)}</button>
+      ))}
+    </div>
+  );
+}
+
 function PersonReport({ t, person, from, to, setFrom, setTo, classes }) {
   const meta = PERSON_META[person];
   const p = meta.prefix;
@@ -98,6 +125,7 @@ function PersonReport({ t, person, from, to, setFrom, setTo, classes }) {
           <input data-testid={`${p}-to`} type="date" value={to} onChange={(e) => setTo(e.target.value)}
             className="mt-1 block rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-teal-600" />
         </div>
+        <RangeShortcuts t={t} setFrom={setFrom} setTo={setTo} testid={p} />
         {meta.showClass && (
           <div className="min-w-0 max-w-full">
             <label className="text-xs font-semibold text-slate-500">{t("class")}</label>
@@ -331,6 +359,7 @@ export default function Reports() {
           <input data-testid="report-to" type="date" value={to} onChange={(e) => setTo(e.target.value)}
             className="mt-1 block rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-teal-600" />
         </div>
+        <RangeShortcuts t={t} setFrom={setFrom} setTo={setTo} testid="report" />
         <div>
           <label className="text-xs font-semibold text-slate-500">{t("type")}</label>
           <select data-testid="report-person" value={person} onChange={(e) => setPerson(e.target.value)}
@@ -409,6 +438,7 @@ export default function Reports() {
               <input data-testid="sa-to" type="date" value={to} onChange={(e) => setTo(e.target.value)}
                 className="mt-1 block rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-teal-600" />
             </div>
+            <RangeShortcuts t={t} setFrom={setFrom} setTo={setTo} testid="sa" />
             <div className="min-w-0 max-w-full">
               <label className="text-xs font-semibold text-slate-500">{t("class")}</label>
               <select data-testid="sa-class" value={saClass} onChange={(e) => setSaClass(e.target.value)}
