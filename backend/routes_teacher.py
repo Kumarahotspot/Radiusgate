@@ -306,6 +306,60 @@ async def subject_att_export(date: str, subject: str, class_name: str, user: dic
                              headers={"Content-Disposition": f'attachment; filename="{fname}"'})
 
 
+@router.get("/teacher/subject-att/recap-export")
+async def subject_att_recap_export(month: str, subject: str, class_name: str, user: dict = Depends(teacher_dep)):
+    import io as _io
+    import re as _re
+    import calendar as _cal
+    from openpyxl import Workbook
+    from fastapi.responses import StreamingResponse
+    t = await my_teacher(user)
+    if subject not in _subject_list(t):
+        raise HTTPException(status_code=403, detail="Mapel tidak diampu")
+    if class_name not in _class_list(t):
+        raise HTTPException(status_code=403, detail="Kelas tidak diampu")
+    if not _re.match(r"^\d{4}-\d{2}$", month or ""):
+        raise HTTPException(status_code=422, detail="invalid_month")
+    y, m = map(int, month.split("-"))
+    ndays = _cal.monthrange(y, m)[1]
+    dates = [f"{month}-{d:02d}" for d in range(1, ndays + 1)]
+    recs = await db.subject_attendance.find(
+        {"school_id": user["school_id"], "teacher_id": t["id"], "subject": subject,
+         "class_name": class_name, "date": {"$regex": f"^{month}-"}},
+        {"_id": 0, "student_id": 1, "student_name": 1, "nis": 1, "date": 1, "status": 1}).to_list(20000)
+    if not recs:
+        raise HTTPException(status_code=404, detail="no_data")
+    per = {}
+    for r in recs:
+        per.setdefault(r["student_id"], {"name": r.get("student_name", ""), "nis": r.get("nis", ""), "days": {}})["days"][r["date"]] = r["status"]
+    abbr = {"hadir": "H", "sakit": "S", "izin": "I", "alpha": "A"}
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Rekap Bulanan"
+    ws.append(["Rekap Absensi Mata Pelajaran (Bulanan)"])
+    ws.append(["Guru", t["name"], "Mapel", subject, "Kelas", class_name, "Bulan", month])
+    ws.append([])
+    ws.append(["No", "Nama Siswa", "NIS"] + [str(d) for d in range(1, ndays + 1)] + ["H", "S", "I", "A"])
+    for i, st in enumerate(sorted(per.values(), key=lambda x: x["name"]), 1):
+        counts = {"hadir": 0, "sakit": 0, "izin": 0, "alpha": 0}
+        row = [i, st["name"], st["nis"]]
+        for d in dates:
+            v = st["days"].get(d, "")
+            row.append(abbr.get(v, ""))
+            if v in counts:
+                counts[v] += 1
+        ws.append(row + [counts["hadir"], counts["sakit"], counts["izin"], counts["alpha"]])
+    ws.column_dimensions["A"].width = 6
+    ws.column_dimensions["B"].width = 30
+    ws.column_dimensions["C"].width = 14
+    bio2 = _io.BytesIO()
+    wb.save(bio2)
+    bio2.seek(0)
+    fname2 = f"rekap-mapel-{subject}-{class_name}-{month}.xlsx".replace(" ", "_").replace("/", "-")
+    return StreamingResponse(bio2, media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                             headers={"Content-Disposition": f'attachment; filename="{fname2}"'})
+
+
 class SubjectAttIn(BaseModel):
     date: str
     subject: str

@@ -40,6 +40,18 @@ export default function TeacherSubjectAtt() {
       URL.revokeObjectURL(url);
     } catch (err) { toast.error(errMsg(err)); }
   };
+  const [recapMonth, setRecapMonth] = useState(today.slice(0, 7));
+  const doRecapExport = async () => {
+    try {
+      const res = await api.get("/teacher/subject-att/recap-export", { params: { month: recapMonth, subject, class_name: cls }, responseType: "blob" });
+      const url = URL.createObjectURL(new Blob([res.data]));
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `rekap-mapel-${subject}-${cls}-${recapMonth}.xlsx`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (err) { toast.error(errMsg(err)); }
+  };
   const voicesRef = useRef([]);
   useEffect(() => {
     if (!window.speechSynthesis) return;
@@ -277,6 +289,12 @@ export default function TeacherSubjectAtt() {
         <button data-testid="sa-export" onClick={doExport} disabled={!saved}
           className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-teal-800 bg-teal-50 border border-teal-200 hover:bg-teal-100 disabled:opacity-50 transition-colors">
           <Download className="w-4 h-4" /> {t("sa_export")}
+        </button>
+        <input data-testid="sa-recap-month" type="month" value={recapMonth} onChange={(e) => setRecapMonth(e.target.value)}
+          className="rounded-xl border border-slate-200 px-3 py-2 text-xs bg-white outline-none focus:border-teal-600" />
+        <button data-testid="sa-recap-export" onClick={doRecapExport} disabled={!subject || !cls}
+          className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-teal-800 bg-teal-50 border border-teal-200 hover:bg-teal-100 disabled:opacity-50 transition-colors">
+          <Download className="w-4 h-4" /> {t("sa_recap_export")}
         </button>
         </div>
       </div>

@@ -351,3 +351,8 @@
 - Permintaan user (screenshot halaman Absen Mapel): "tambahkan export". Endpoint baru `GET /api/teacher/subject-att/export?date&subject&class_name` (teacher) — menghasilkan XLSX (openpyxl) berisi header (guru, mapel, kelas, tanggal) + tabel No/Nama/NIS/Status dari sesi tersimpan; 404 bila sesi belum tersimpan; validasi mapel & kelas yang diampu.
 - Frontend: tombol "Ekspor Excel" (testid sa-export, ikon Download) di toolbar Absen Mapel, aktif setelah sesi tersimpan, unduh blob `absen-mapel-<mapel>-<kelas>-<tanggal>.xlsx`. i18n sa_export (ID/EN).
 - Terverifikasi backend: login Lukman → export Agama/Kelas X TAV/2026-09-25 → XLSX valid berisi baris siswa. ZIP di-build ulang.
+
+## 2026-09-25 — Ekspor rekap absensi mapel bulanan
+- Persetujuan user atas saran: endpoint baru `GET /api/teacher/subject-att/recap-export?month=YYYY-MM&subject&class_name` (teacher) — XLSX rekap bulanan: baris per siswa, kolom tanggal 1..31 (H/S/I/A), plus kolom total H/S/I/A per siswa. Validasi mapel/kelas yang diampu; 404 bila belum ada data bulan itu.
+- Frontend: input bulan (type=month, testid sa-recap-month) + tombol "Rekap Bulanan" (sa-recap-export) di toolbar Absen Mapel, unduh `rekap-mapel-<mapel>-<kelas>-<bulan>.xlsx`. i18n sa_recap_export (ID/EN).
+- Terverifikasi backend: login Lukman → rekap Agama/Kelas X TAV/2026-09 → XLSX valid (kolom tanggal + total). ZIP di-build ulang.
