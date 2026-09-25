@@ -272,6 +272,40 @@ async def subject_att_get(date: str, subject: str, class_name: str, user: dict =
             "prefill": prefill, "saved": bool(recs), "locked": bool(recs and recs[0].get("locked"))}
 
 
+@router.get("/teacher/subject-att/export")
+async def subject_att_export(date: str, subject: str, class_name: str, user: dict = Depends(teacher_dep)):
+    import io as _io
+    from openpyxl import Workbook
+    from fastapi.responses import StreamingResponse
+    t = await my_teacher(user)
+    if subject not in _subject_list(t):
+        raise HTTPException(status_code=403, detail="Mapel tidak diampu")
+    if class_name not in _class_list(t):
+        raise HTTPException(status_code=403, detail="Kelas tidak diampu")
+    recs = await db.subject_attendance.find(
+        {"school_id": user["school_id"], "teacher_id": t["id"], "date": date,
+         "subject": subject, "class_name": class_name}, {"_id": 0}).sort("student_name", 1).to_list(500)
+    if not recs:
+        raise HTTPException(status_code=404, detail="no_data")
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Absensi Mapel"
+    ws.append(["Absensi Mata Pelajaran"])
+    ws.append(["Guru", t["name"], "Mapel", subject, "Kelas", class_name, "Tanggal", date])
+    ws.append([])
+    ws.append(["No", "Nama Siswa", "NIS", "Status"])
+    for i, r in enumerate(recs, 1):
+        ws.append([i, r.get("student_name", ""), r.get("nis", ""), r.get("status", "")])
+    for col, w in zip("ABCD", (6, 32, 16, 12)):
+        ws.column_dimensions[col].width = w
+    bio = _io.BytesIO()
+    wb.save(bio)
+    bio.seek(0)
+    fname = f"absen-mapel-{subject}-{class_name}-{date}.xlsx".replace(" ", "_").replace("/", "-")
+    return StreamingResponse(bio, media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                             headers={"Content-Disposition": f'attachment; filename="{fname}"'})
+
+
 class SubjectAttIn(BaseModel):
     date: str
     subject: str

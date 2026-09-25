@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import api, { errMsg } from "../../api";
-import { BookOpen, Lock, LockOpen, Megaphone, Volume2, VolumeX, X } from "lucide-react";
+import { BookOpen, Download, Lock, LockOpen, Megaphone, Volume2, VolumeX, X } from "lucide-react";
 
 const STATUSES = ["hadir", "sakit", "izin", "alpha"];
 const ON = { hadir: "bg-emerald-600 text-white border-emerald-600", sakit: "bg-red-500 text-white border-red-500", izin: "bg-sky-500 text-white border-sky-500", alpha: "bg-slate-500 text-white border-slate-500" };
@@ -29,6 +29,17 @@ export default function TeacherSubjectAtt() {
   const [offline, setOffline] = useState(false);
   const [pendingSync, setPendingSync] = useState(false);
   const [muted, setMuted] = useState(() => localStorage.getItem("sa_voice_muted") === "1");
+  const doExport = async () => {
+    try {
+      const res = await api.get("/teacher/subject-att/export", { params: { date, subject, class_name: cls }, responseType: "blob" });
+      const url = URL.createObjectURL(new Blob([res.data]));
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `absen-mapel-${subject}-${cls}-${date}.xlsx`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (err) { toast.error(errMsg(err)); }
+  };
   const voicesRef = useRef([]);
   useEffect(() => {
     if (!window.speechSynthesis) return;
@@ -263,6 +274,10 @@ export default function TeacherSubjectAtt() {
             <LockOpen className="w-4 h-4" /> {t("lock_done")}
           </button>
         )}
+        <button data-testid="sa-export" onClick={doExport} disabled={!saved}
+          className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-teal-800 bg-teal-50 border border-teal-200 hover:bg-teal-100 disabled:opacity-50 transition-colors">
+          <Download className="w-4 h-4" /> {t("sa_export")}
+        </button>
         </div>
       </div>
 

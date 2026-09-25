@@ -346,3 +346,8 @@
 ## 2026-09-25 — Shortcut "Buka Kiosk + Auto-Pair" untuk admin
 - Persetujuan user atas saran: tombol Kiosk di header untuk role school_admin kini otomatis membuka tab baru `/kiosk?pair=<kode>` (kode diambil dari /admin/settings) — kiosk langsung ter-pair tanpa ketik kode. Role lain tetap membuka /kiosk biasa. Ditambah item "Salin Link Kiosk (Auto-Pair)" di menu avatar admin (copy link ke clipboard + toast) untuk dikirim/dibuka di tablet kiosk. i18n ID/EN: kiosk_copy_link, kiosk_link_copied.
 - Terverifikasi e2e: URL /kiosk?pair=KIOSK-DEMO-1 langsung masuk layar kiosk tanpa form pairing; item menu avatar admin tampil. ZIP di-build ulang.
+
+## 2026-09-25 — Ekspor Excel absensi per mapel (halaman guru)
+- Permintaan user (screenshot halaman Absen Mapel): "tambahkan export". Endpoint baru `GET /api/teacher/subject-att/export?date&subject&class_name` (teacher) — menghasilkan XLSX (openpyxl) berisi header (guru, mapel, kelas, tanggal) + tabel No/Nama/NIS/Status dari sesi tersimpan; 404 bila sesi belum tersimpan; validasi mapel & kelas yang diampu.
+- Frontend: tombol "Ekspor Excel" (testid sa-export, ikon Download) di toolbar Absen Mapel, aktif setelah sesi tersimpan, unduh blob `absen-mapel-<mapel>-<kelas>-<tanggal>.xlsx`. i18n sa_export (ID/EN).
+- Terverifikasi backend: login Lukman → export Agama/Kelas X TAV/2026-09-25 → XLSX valid berisi baris siswa. ZIP di-build ulang.
