@@ -380,3 +380,4 @@
 - `Kiosk.jsx`: jika kiosk belum dipairing tapi ada sesi login di browser (localStorage `token`), kiosk otomatis fetch kode dan langsung aktif tanpa input kode.
 - Teruji: curl (teacher/admin → kode OK, parent → 403, anon → 401) + screenshot e2e (login guru → buka /kiosk tanpa kiosk_token → langsung tampil kiosk "SMA Nusantara (Demo)" tanpa form kode).
 - Deployment user: Save to GitHub → `git pull && sudo docker compose up -d --build` di VPS (panduan SSH: `ssh-keygen -R <ip>` saat fingerprint berubah setelah reinstall VPS).
+- Pagination "Tampilkan entri" di semua tabel halaman Laporan admin (`Reports.jsx`): hook `usePager` + komponen `PagerBar` (opsi 20/50/100/200/500/1000, tombol prev/next, info "x–y dari z"). Diterapkan ke tabel Harian utama, Per Mapel, Per Siswa/Guru/Karyawan (harian & rekap). Teruji: pilih 50 → render tepat 50 baris, tanpa overflow mobile.

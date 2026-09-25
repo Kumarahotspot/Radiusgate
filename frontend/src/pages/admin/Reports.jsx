@@ -1,13 +1,52 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import api from "../../api";
-import { FileSpreadsheet, FileText } from "lucide-react";
+import { ChevronLeft, ChevronRight, FileSpreadsheet, FileText } from "lucide-react";
 
 const PERSON_META = {
   student: { prefix: "st", slug: "siswa", showClass: true },
   teacher: { prefix: "tc", slug: "guru", showClass: false },
   employee: { prefix: "emp", slug: "karyawan", showClass: false },
 };
+
+const PAGE_SIZES = [20, 50, 100, 200, 500, 1000];
+
+function usePager(list) {
+  const [pageSize, setPageSize] = useState(20);
+  const [page, setPage] = useState(1);
+  useEffect(() => { setPage(1); }, [list.length, pageSize]);
+  const totalPages = Math.max(1, Math.ceil(list.length / pageSize));
+  const safePage = Math.min(page, totalPages);
+  return { pageSize, setPageSize, page: safePage, setPage, totalPages, paged: list.slice((safePage - 1) * pageSize, safePage * pageSize) };
+}
+
+function PagerBar({ t, pager, total, testid }) {
+  const { pageSize, setPageSize, page, setPage, totalPages } = pager;
+  return (
+    <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 border-t border-slate-100">
+      <div className="flex items-center gap-2">
+        <span className="text-xs font-semibold text-slate-500">{t("show_entries")}</span>
+        <select data-testid={`${testid}-page-size`} value={pageSize} onChange={(e) => { setPageSize(Number(e.target.value)); setPage(1); }}
+          className="rounded-lg border border-slate-200 px-2 py-1.5 text-xs bg-white outline-none focus:border-teal-600">
+          {PAGE_SIZES.map((s) => <option key={s} value={s}>{s}</option>)}
+        </select>
+      </div>
+      <div className="flex items-center gap-2">
+        <span className="text-xs text-slate-500">
+          {total === 0 ? "0" : `${(page - 1) * pageSize + 1}–${Math.min(page * pageSize, total)}`} {t("of")} {total}
+        </span>
+        <button data-testid={`${testid}-page-prev`} disabled={page <= 1} onClick={() => setPage(page - 1)}
+          className="p-1.5 rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-100 disabled:opacity-40 disabled:hover:bg-transparent transition-colors">
+          <ChevronLeft className="w-4 h-4" />
+        </button>
+        <button data-testid={`${testid}-page-next`} disabled={page >= totalPages} onClick={() => setPage(page + 1)}
+          className="p-1.5 rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-100 disabled:opacity-40 disabled:hover:bg-transparent transition-colors">
+          <ChevronRight className="w-4 h-4" />
+        </button>
+      </div>
+    </div>
+  );
+}
 
 function PersonReport({ t, person, from, to, setFrom, setTo, classes }) {
   const meta = PERSON_META[person];
@@ -22,6 +61,8 @@ function PersonReport({ t, person, from, to, setFrom, setTo, classes }) {
   const frecap = pfilter ? recap.filter((r) => r.name === pfilter) : recap;
   const refLabel = person === "student" ? t("nis") : t("nip");
   const grpLabel = person === "student" ? t("class") : person === "teacher" ? t("mapel") : t("department");
+  const dailyPager = usePager(frows);
+  const recapPager = usePager(frecap);
 
   useEffect(() => {
     const params = { person, date_from: from, date_to: to };
@@ -116,7 +157,7 @@ function PersonReport({ t, person, from, to, setFrom, setTo, classes }) {
                 </tr>
               </thead>
               <tbody>
-                {frows.map((r) => {
+                {dailyPager.paged.map((r) => {
                   const st = r.att_status && r.att_status !== "present" ? r.att_status : r.status;
                   return (
                     <tr key={r.id} data-testid={`${p}-row-${r.id}`} className="border-b last:border-0 hover:bg-slate-50/60">
@@ -154,7 +195,7 @@ function PersonReport({ t, person, from, to, setFrom, setTo, classes }) {
                 </tr>
               </thead>
               <tbody>
-                {frecap.map((r) => (
+                {recapPager.paged.map((r) => (
                   <tr key={r.id} data-testid={`${p}-recap-row-${r.id}`} className="border-b last:border-0 hover:bg-slate-50/60">
                     <td className="px-4 py-2.5 font-semibold text-slate-800">{r.name}</td>
                     <td className="px-4 py-2.5 font-mono text-xs text-slate-500">{r.ref || "-"}</td>
@@ -172,6 +213,9 @@ function PersonReport({ t, person, from, to, setFrom, setTo, classes }) {
             </table>
           )}
         </div>
+        {sub === "daily"
+          ? <PagerBar t={t} pager={dailyPager} total={frows.length} testid={`${p}-daily`} />
+          : <PagerBar t={t} pager={recapPager} total={frecap.length} testid={`${p}-recap`} />}
       </div>
     </>
   );
@@ -192,6 +236,8 @@ export default function Reports() {
   const [saRows, setSaRows] = useState([]);
   const [sessDate, setSessDate] = useState(today);
   const [sessions, setSessions] = useState([]);
+  const pager = usePager(rows);
+  const saPager = usePager(saRows);
 
   useEffect(() => {
     api.get("/admin/meta/options").then((r) => setOpts(r.data));
@@ -324,7 +370,7 @@ export default function Reports() {
               </tr>
             </thead>
             <tbody>
-              {rows.map((r) => (
+              {pager.paged.map((r) => (
                 <tr key={r.id} className="border-b last:border-0 hover:bg-slate-50/60">
                   <td className="px-4 py-2.5">{r.date}</td>
                   <td className="px-4 py-2.5 font-semibold text-slate-800">{r.teacher_name}</td>
@@ -346,6 +392,7 @@ export default function Reports() {
             </tbody>
           </table>
         </div>
+        <PagerBar t={t} pager={pager} total={rows.length} testid="daily" />
       </div>
       </>)}
 
@@ -394,7 +441,7 @@ export default function Reports() {
                   </tr>
                 </thead>
                 <tbody>
-                  {saRows.map((r) => (
+                  {saPager.paged.map((r) => (
                     <tr key={r.id} className="border-b last:border-0 hover:bg-slate-50/60">
                       <td className="px-4 py-2.5 font-mono text-xs">{r.date}</td>
                       <td className="px-4 py-2.5">{r.class_name}</td>
@@ -413,6 +460,7 @@ export default function Reports() {
                 </tbody>
               </table>
             </div>
+            <PagerBar t={t} pager={saPager} total={saRows.length} testid="sa" />
           </div>
         </>
       )}
