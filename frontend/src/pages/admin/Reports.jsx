@@ -16,6 +16,10 @@ function PersonReport({ t, person, from, to, setFrom, setTo, classes }) {
   const [rows, setRows] = useState([]);
   const [recap, setRecap] = useState([]);
   const [sub, setSub] = useState("daily");
+  const [pfilter, setPfilter] = useState("");
+  const nameOptions = [...new Set(recap.map((r) => r.name).filter(Boolean))].sort();
+  const frows = pfilter ? rows.filter((r) => (r.teacher_name || r.name) === pfilter) : rows;
+  const frecap = pfilter ? recap.filter((r) => r.name === pfilter) : recap;
   const refLabel = person === "student" ? t("nis") : t("nip");
   const grpLabel = person === "student" ? t("class") : person === "teacher" ? t("mapel") : t("department");
 
@@ -62,6 +66,16 @@ function PersonReport({ t, person, from, to, setFrom, setTo, classes }) {
             </select>
           </div>
         )}
+        {person !== "student" && (
+          <div className="min-w-0 max-w-full">
+            <label className="text-xs font-semibold text-slate-500">{t("name")}</label>
+            <select data-testid={`${p}-name-filter`} value={pfilter} onChange={(e) => setPfilter(e.target.value)}
+              className="mt-1 block w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-teal-600 bg-white">
+              <option value="">{t("all_people")}</option>
+              {nameOptions.map((n) => <option key={n} value={n}>{n}</option>)}
+            </select>
+          </div>
+        )}
         <div className="flex gap-2 ml-auto">
           <button data-testid={`${p}-export-xlsx`} onClick={() => doExport("xlsx")}
             className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 transition-colors">
@@ -77,11 +91,11 @@ function PersonReport({ t, person, from, to, setFrom, setTo, classes }) {
       <div className="flex gap-2">
         <button data-testid={`${p}-tab-daily`} onClick={() => setSub("daily")}
           className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${sub === "daily" ? "bg-teal-700 text-white shadow-sm" : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-100"}`}>
-          {t("tab_daily")} ({rows.length})
+          {t("tab_daily")} ({frows.length})
         </button>
         <button data-testid={`${p}-tab-recap`} onClick={() => setSub("recap")}
           className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${sub === "recap" ? "bg-teal-700 text-white shadow-sm" : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-100"}`}>
-          {t("tab_recap")} ({recap.length})
+          {t("tab_recap")} ({frecap.length})
         </button>
       </div>
 
@@ -102,7 +116,7 @@ function PersonReport({ t, person, from, to, setFrom, setTo, classes }) {
                 </tr>
               </thead>
               <tbody>
-                {rows.map((r) => {
+                {frows.map((r) => {
                   const st = r.att_status && r.att_status !== "present" ? r.att_status : r.status;
                   return (
                     <tr key={r.id} data-testid={`${p}-row-${r.id}`} className="border-b last:border-0 hover:bg-slate-50/60">
@@ -121,7 +135,7 @@ function PersonReport({ t, person, from, to, setFrom, setTo, classes }) {
                     </tr>
                   );
                 })}
-                {rows.length === 0 && <tr><td colSpan={8} className="px-4 py-8 text-center text-slate-400">{t("no_data")}</td></tr>}
+                {frows.length === 0 && <tr><td colSpan={8} className="px-4 py-8 text-center text-slate-400">{t("no_data")}</td></tr>}
               </tbody>
             </table>
           ) : (
@@ -140,7 +154,7 @@ function PersonReport({ t, person, from, to, setFrom, setTo, classes }) {
                 </tr>
               </thead>
               <tbody>
-                {recap.map((r) => (
+                {frecap.map((r) => (
                   <tr key={r.id} data-testid={`${p}-recap-row-${r.id}`} className="border-b last:border-0 hover:bg-slate-50/60">
                     <td className="px-4 py-2.5 font-semibold text-slate-800">{r.name}</td>
                     <td className="px-4 py-2.5 font-mono text-xs text-slate-500">{r.ref || "-"}</td>
@@ -153,7 +167,7 @@ function PersonReport({ t, person, from, to, setFrom, setTo, classes }) {
                     <td className="px-4 py-2.5 text-slate-600">{r.active_days}</td>
                   </tr>
                 ))}
-                {recap.length === 0 && <tr><td colSpan={9} className="px-4 py-8 text-center text-slate-400">{t("no_data")}</td></tr>}
+                {frecap.length === 0 && <tr><td colSpan={9} className="px-4 py-8 text-center text-slate-400">{t("no_data")}</td></tr>}
               </tbody>
             </table>
           )}

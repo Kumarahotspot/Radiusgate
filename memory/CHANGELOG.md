@@ -369,3 +369,6 @@
 
 ## 2026-09-25 — Fix susulan: dropdown Kelas juga di-union dengan data absensi
 - Persetujuan user atas saran testing agent: `meta_options` kini juga meng-union-kan daftar kelas dengan distinct `class_name` dari `subject_attendance` dan `class` dari `attendance`, sehingga kelas kustom yang punya data absensi selalu muncul di filter Laporan (pola bug yang sama seperti mapel "Agama").
+
+## 2026-09-25 — Filter dropdown nama pada tab Per Guru & Per Karyawan di Laporan
+- Laporan user: "Per Guru blom ada filternya". Komponen PersonReport (tab Per Guru/Per Karyawan) kini punya dropdown filter nama (testid tc-name-filter / emp-name-filter) — opsi dari daftar nama yang punya data pada rentang tanggal, memfilter tabel Harian & Rekap + counter tab secara client-side. Tab siswa tidak diberi dropdown nama (sudah ada filter kelas + pencarian).
