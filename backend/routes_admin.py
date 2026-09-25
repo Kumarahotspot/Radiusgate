@@ -319,6 +319,9 @@ async def meta_options(user: dict = Depends(admin_dep)):
     subjects, _ = await _effective_list(user["school_id"], "subject")
     majors, _ = await _effective_list(user["school_id"], "major")
     departments, _ = await _effective_list(user["school_id"], "department")
+    # mapel yang punya data absensi (mis. mapel kustom yang belum masuk master list) harus selalu muncul di filter
+    att_subjects = await db.subject_attendance.distinct("subject", {"school_id": user["school_id"]})
+    subjects = sorted(set(subjects) | {s for s in att_subjects if s})
     return {"classes": classes, "subjects": subjects, "majors": majors, "departments": departments}
 
 
