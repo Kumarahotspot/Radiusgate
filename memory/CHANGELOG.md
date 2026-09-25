@@ -366,3 +366,6 @@
 - Laporan user (screenshot): dropdown "Mata Pelajaran" tidak memuat "Agama" padahal tabel menampilkan baris Agama. Akar masalah: endpoint `GET /admin/meta/options` memakai master list `settings.subject_list` (berisi "Pendidikan Agama dan Budi Pekerti" dll) — mapel kustom "Agama" yang dipakai guru Lukman tidak ada di sana. Fix: `meta_options` kini meng-union-kan daftar mapel dengan distinct `subject` dari `subject_attendance` sekolah, sehingga mapel yang punya data absensi selalu muncul di filter.
 - Backend-only change (frontend tidak berubah → ZIP tidak perlu di-build ulang). VPS: cukup `git pull && sudo docker compose up -d --build`.
 - Verifikasi wajib: testing_agent (lihat laporan iterasi terbaru).
+
+## 2026-09-25 — Fix susulan: dropdown Kelas juga di-union dengan data absensi
+- Persetujuan user atas saran testing agent: `meta_options` kini juga meng-union-kan daftar kelas dengan distinct `class_name` dari `subject_attendance` dan `class` dari `attendance`, sehingga kelas kustom yang punya data absensi selalu muncul di filter Laporan (pola bug yang sama seperti mapel "Agama").
