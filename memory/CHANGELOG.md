@@ -361,3 +361,8 @@
 - Persetujuan user atas saran: endpoint baru `GET /api/admin/subject-att/recap-export?month=YYYY-MM` (admin) — XLSX multi-sheet: tiap kombinasi Mapel–Kelas jadi 1 sheet (nama sheet disanitasi & anti-duplikat), kolom tanggal 1..31 + total H/S/I/A per siswa.
 - Frontend: di halaman Laporan → tab "Absen Mapel" muncul panel pemilih bulan + tombol "Rekap Bulanan" (testid recap-month / recap-export-btn), unduh `rekap-mapel-bulanan-<bulan>.xlsx`. i18n sa_recap_month (ID/EN).
 - Terverifikasi backend: login admin → rekap 2026-09 → XLSX valid 5 sheet (Agama/B.Indonesia/Matematika X TAV, Matematika X TB 1, PRE X TAV). Panel terverifikasi tampil di tab subject. ZIP di-build ulang.
+
+## 2026-09-25 — Fix: mapel "Agama" tidak muncul di dropdown filter Laporan → Per Mapel
+- Laporan user (screenshot): dropdown "Mata Pelajaran" tidak memuat "Agama" padahal tabel menampilkan baris Agama. Akar masalah: endpoint `GET /admin/meta/options` memakai master list `settings.subject_list` (berisi "Pendidikan Agama dan Budi Pekerti" dll) — mapel kustom "Agama" yang dipakai guru Lukman tidak ada di sana. Fix: `meta_options` kini meng-union-kan daftar mapel dengan distinct `subject` dari `subject_attendance` sekolah, sehingga mapel yang punya data absensi selalu muncul di filter.
+- Backend-only change (frontend tidak berubah → ZIP tidak perlu di-build ulang). VPS: cukup `git pull && sudo docker compose up -d --build`.
+- Verifikasi wajib: testing_agent (lihat laporan iterasi terbaru).

@@ -1,0 +1,18 @@
+{
+  "summary": "Verified bug fix: 'Per Mapel' dropdown on /admin/reports now includes custom subject 'Agama' (present in subject_attendance but not in master subject_list). Backend API GET /api/admin/meta/options returns subjects union'd with distinct subject_attendance.subject. Frontend dropdown shows 'Agama' plus all master subjects; selecting 'Agama' filters table to only Agama rows (Kelas X TAV, guru Lukman) as expected.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": [],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "routes_admin.py meta_options: fix is correct and minimal — union of master/derived list with distinct subject_attendance.subject. No regression to other kinds (class/major/department). Consider similar union for classes if custom classes are logged in attendance without being in master list (out of scope for this bug)."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "100%", "frontend": "100%"},
+  "test_credentials": "admin@nusantara.sch.id / Admin123! (SMA Nusantara demo)",
+  "seed_data_creation": "None — read-only testing.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Bug fix at /app/backend/routes_admin.py lines 315-325 verified. API returns 'Agama' in subjects[]. UI at /admin/reports tab-subject shows 'Agama' in Mata Pelajaran dropdown and filters correctly. 24 Agama rows returned when filter applied.",
+  "rca of the issue": "Root cause: meta_options endpoint only returned subjects from settings.subject_list (master list) or teachers.subject fallback. Custom subject 'Agama' had attendance records via subject_attendance collection but was never added to master list, so it was missing from the report filter even though data existed. Fix unions master/derived list with db.subject_attendance.distinct('subject', {school_id}). Verified: API returns Agama; UI dropdown shows Agama; filter works."
+}
