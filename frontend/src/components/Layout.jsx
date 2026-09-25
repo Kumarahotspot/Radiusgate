@@ -128,7 +128,16 @@ export default function Layout() {
             <LangSwitch />
             <button
               data-testid="kiosk-link-btn"
-              onClick={() => nav("/kiosk")}
+              onClick={async () => {
+                if (user.role === "school_admin") {
+                  try {
+                    const { data } = await api.get("/admin/settings");
+                    const code = data?.school?.kiosk_token;
+                    if (code) { window.open(`${window.location.origin}/kiosk?pair=${code}`, "_blank"); return; }
+                  } catch { /* lanjut ke halaman kiosk biasa */ }
+                }
+                nav("/kiosk");
+              }}
               className="flex items-center gap-1.5 text-xs font-semibold text-slate-600 hover:text-teal-700 px-2 py-1.5 rounded-lg hover:bg-slate-100 transition-colors"
             >
               <MonitorSmartphone className="w-4 h-4" /> <span className="hidden sm:inline">Kiosk</span>
@@ -150,6 +159,20 @@ export default function Layout() {
                     <button data-testid="user-menu-profile" onClick={() => { setMenuOpen(false); nav("/ortu?tab=profile"); }}
                       className="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-teal-700 transition-colors">
                       <User className="w-4 h-4" /> {t("profile")}
+                    </button>
+                  )}
+                  {user.role === "school_admin" && (
+                    <button data-testid="user-menu-kiosk-link" onClick={async () => {
+                      setMenuOpen(false);
+                      try {
+                        const { data } = await api.get("/admin/settings");
+                        const code = data?.school?.kiosk_token;
+                        await navigator.clipboard.writeText(`${window.location.origin}/kiosk?pair=${code}`);
+                        toast.success(t("kiosk_link_copied"));
+                      } catch { toast.error(t("failed")); }
+                    }}
+                      className="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-teal-700 transition-colors">
+                      <MonitorSmartphone className="w-4 h-4" /> {t("kiosk_copy_link")}
                     </button>
                   )}
                   <button data-testid="user-menu-password" onClick={() => { setMenuOpen(false); setPwOpen(true); }}

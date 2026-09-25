@@ -342,3 +342,7 @@
 ## 2026-09-25 — Fix: tombol Kiosk hilang di tampilan mobile header
 - Laporan user (screenshot): menu "Kiosk" tampil di desktop tapi hilang di mobile. Penyebab: class `hidden sm:flex` di Layout.jsx. Fix: tombol selalu tampil; ikon MonitorSmartphone selalu terlihat, teks "Kiosk" hanya muncul mulai breakpoint sm agar header tidak penuh.
 - Terverifikasi e2e (mobile 390, login guru): tombol Kiosk terlihat & tidak ada overflow. ZIP di-build ulang.
+
+## 2026-09-25 — Shortcut "Buka Kiosk + Auto-Pair" untuk admin
+- Persetujuan user atas saran: tombol Kiosk di header untuk role school_admin kini otomatis membuka tab baru `/kiosk?pair=<kode>` (kode diambil dari /admin/settings) — kiosk langsung ter-pair tanpa ketik kode. Role lain tetap membuka /kiosk biasa. Ditambah item "Salin Link Kiosk (Auto-Pair)" di menu avatar admin (copy link ke clipboard + toast) untuk dikirim/dibuka di tablet kiosk. i18n ID/EN: kiosk_copy_link, kiosk_link_copied.
+- Terverifikasi e2e: URL /kiosk?pair=KIOSK-DEMO-1 langsung masuk layar kiosk tanpa form pairing; item menu avatar admin tampil. ZIP di-build ulang.
