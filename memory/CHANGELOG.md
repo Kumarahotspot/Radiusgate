@@ -338,3 +338,7 @@
 - Implementasi: komponen `PortalLink` di `Landing.jsx` membaca environment `REACT_APP_PORTAL_URL`. Jika diisi, tombol diarahkan ke URL eksternal (mis. `https://absensi.radiusgate.id/login` dan `/kiosk`).
 - File panduan dibuat: `/app/PANDUAN-DUA-DOMAIN.md` (GET `/api/public/download/panduan-dua-domain`).
 - Paket `landing-radiusgate.zip` sudah di-build ulang dengan konfigurasi redirect ke `https://absensi.radiusgate.id`.
+
+## 2026-09-25 — Fix: tombol Kiosk hilang di tampilan mobile header
+- Laporan user (screenshot): menu "Kiosk" tampil di desktop tapi hilang di mobile. Penyebab: class `hidden sm:flex` di Layout.jsx. Fix: tombol selalu tampil; ikon MonitorSmartphone selalu terlihat, teks "Kiosk" hanya muncul mulai breakpoint sm agar header tidak penuh.
+- Terverifikasi e2e (mobile 390, login guru): tombol Kiosk terlihat & tidak ada overflow. ZIP di-build ulang.

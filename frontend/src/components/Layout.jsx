@@ -129,9 +129,9 @@ export default function Layout() {
             <button
               data-testid="kiosk-link-btn"
               onClick={() => nav("/kiosk")}
-              className="hidden sm:flex items-center gap-1.5 text-xs font-semibold text-slate-600 hover:text-teal-700 px-2 py-1.5 rounded-lg hover:bg-slate-100 transition-colors"
+              className="flex items-center gap-1.5 text-xs font-semibold text-slate-600 hover:text-teal-700 px-2 py-1.5 rounded-lg hover:bg-slate-100 transition-colors"
             >
-              <MonitorSmartphone className="w-4 h-4" /> Kiosk
+              <MonitorSmartphone className="w-4 h-4" /> <span className="hidden sm:inline">Kiosk</span>
             </button>
             <div className="relative" ref={menuRef}>
               <button data-testid="user-menu-btn" onClick={() => setMenuOpen(!menuOpen)}
