@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import api from "../../api";
+import MonthYearPicker from "../../components/MonthYearPicker";
 import { ChevronLeft, ChevronRight, FileSpreadsheet, FileText } from "lucide-react";
 
 const PERSON_META = {
@@ -310,8 +311,7 @@ export default function Reports() {
         <div className="bg-white rounded-2xl border border-slate-200 p-4 flex flex-wrap items-end gap-3" data-testid="subject-recap-panel">
           <div>
             <label className="text-xs font-semibold text-slate-500">{t("sa_recap_month")}</label>
-            <input data-testid="recap-month" type="month" value={recapMonth} onChange={(e) => setRecapMonth(e.target.value)}
-              className="mt-1 block rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-teal-600" />
+            <MonthYearPicker testid="recap-month" value={recapMonth} onChange={setRecapMonth} allowEmpty={false} />
           </div>
           <button data-testid="recap-export-btn" onClick={doRecapExport}
             className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 transition-colors">

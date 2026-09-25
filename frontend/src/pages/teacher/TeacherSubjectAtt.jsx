@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import api, { errMsg } from "../../api";
+import MonthYearPicker from "../../components/MonthYearPicker";
 import { BookOpen, Download, Lock, LockOpen, Megaphone, Volume2, VolumeX, X } from "lucide-react";
 
 const STATUSES = ["hadir", "sakit", "izin", "alpha"];
@@ -290,8 +291,7 @@ export default function TeacherSubjectAtt() {
           className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-teal-800 bg-teal-50 border border-teal-200 hover:bg-teal-100 disabled:opacity-50 transition-colors">
           <Download className="w-4 h-4" /> {t("sa_export")}
         </button>
-        <input data-testid="sa-recap-month" type="month" value={recapMonth} onChange={(e) => setRecapMonth(e.target.value)}
-          className="rounded-xl border border-slate-200 px-3 py-2 text-xs bg-white outline-none focus:border-teal-600" />
+        <MonthYearPicker testid="sa-recap-month" value={recapMonth} onChange={setRecapMonth} allowEmpty={false} />
         <button data-testid="sa-recap-export" onClick={doRecapExport} disabled={!subject || !cls}
           className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-teal-800 bg-teal-50 border border-teal-200 hover:bg-teal-100 disabled:opacity-50 transition-colors">
           <Download className="w-4 h-4" /> {t("sa_recap_export")}
