@@ -87,6 +87,12 @@ async def download_panduan_vps():
                         filename="PANDUAN-VPS.md")
 
 
+@router.get("/public/download/panduan-dua-domain")
+async def download_panduan_dua_domain():
+    return FileResponse("/app/PANDUAN-DUA-DOMAIN.md", media_type="text/markdown",
+                        filename="PANDUAN-DUA-DOMAIN.md")
+
+
 @router.get("/public/download/install-script")
 async def download_install_script():
     return FileResponse("/app/install-vps.sh", media_type="text/x-sh",

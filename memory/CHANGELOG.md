@@ -332,3 +332,9 @@
 
 ## 2026-09-25 — Fix restore-db.sh: auto-sudo docker + auto-install mongorestore
 - User menjalankan restore di VPS sebagai user biasa → "permission denied docker.sock" lalu jatuh ke native "mongorestore: command not found". Fix: script otomatis mendeteksi dan memakai `sudo docker` bila perlu, mencari container mongo dengan grep fleksibel, dan bila native → auto-install mongodb-database-tools (apt, fallback unduh .deb resmi MongoDB). Cukup jalankan ulang 1 perintah yang sama.
+
+## 2026-09-25 — Dukungan Arsitektur Dua Domain (radiusgate.id -> absensi.radiusgate.id)
+- Permintaan user: landing page di `radiusgate.id` hanya untuk marketing, tombol-tombolnya (Masuk Portal, Mode Kiosk, Coba Demo, Daftar) otomatis redirect ke subdomain aplikasi `https://absensi.radiusgate.id`.
+- Implementasi: komponen `PortalLink` di `Landing.jsx` membaca environment `REACT_APP_PORTAL_URL`. Jika diisi, tombol diarahkan ke URL eksternal (mis. `https://absensi.radiusgate.id/login` dan `/kiosk`).
+- File panduan dibuat: `/app/PANDUAN-DUA-DOMAIN.md` (GET `/api/public/download/panduan-dua-domain`).
+- Paket `landing-radiusgate.zip` sudah di-build ulang dengan konfigurasi redirect ke `https://absensi.radiusgate.id`.

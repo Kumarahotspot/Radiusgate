@@ -65,6 +65,16 @@ const WA_MSGS = {
 
 const rupiah = (n) => "Rp " + n.toLocaleString("id-ID");
 
+const PORTAL_BASE = process.env.REACT_APP_PORTAL_URL || "";
+const portalUrl = (path) => (PORTAL_BASE ? `${PORTAL_BASE}${path}` : path);
+
+function PortalLink({ to, children, ...props }) {
+  if (PORTAL_BASE) {
+    return <a href={portalUrl(to)} {...props}>{children}</a>;
+  }
+  return <Link to={to} {...props}>{children}</Link>;
+}
+
 export default function Landing() {
   const [students, setStudents] = useState(300);
   const [form, setForm] = useState({ school_name: "", contact_person: "", email: "", phone: "", student_count: "", message: "" });
@@ -142,14 +152,14 @@ export default function Landing() {
             <a data-testid="nav-link-kontak" href="#kontak" className="hover:text-teal-700 transition-colors">Kontak</a>
           </nav>
           <div className="flex items-center gap-2">
-            <Link data-testid="nav-kiosk-button" to="/kiosk"
+            <PortalLink data-testid="nav-kiosk-button" to="/kiosk"
               className="hidden sm:flex items-center gap-1.5 text-xs font-bold px-4 py-2 rounded-xl border border-teal-700 text-teal-700 hover:bg-teal-50 transition-colors">
               <MonitorSmartphone className="w-4 h-4" /> Mode Kiosk
-            </Link>
-            <Link data-testid="nav-login-button" to="/login"
+            </PortalLink>
+            <PortalLink data-testid="nav-login-button" to="/login"
               className="text-xs font-bold px-4 py-2 rounded-xl bg-teal-700 text-white hover:bg-teal-800 transition-colors">
               Masuk Portal
-            </Link>
+            </PortalLink>
           </div>
         </div>
       </header>
@@ -172,10 +182,10 @@ export default function Landing() {
               className="flex items-center gap-2 bg-teal-700 hover:bg-teal-800 text-white font-bold text-sm px-6 py-3.5 rounded-2xl transition-colors shadow-lg shadow-teal-700/20">
               Daftar Pilot Sekolah <ArrowRight className="w-4 h-4" />
             </a>
-            <Link data-testid="hero-cta-kiosk-demo" to="/kiosk"
+            <PortalLink data-testid="hero-cta-kiosk-demo" to="/kiosk"
               className="flex items-center gap-2 bg-white border border-slate-200 hover:border-teal-600 hover:text-teal-700 font-bold text-sm px-6 py-3.5 rounded-2xl transition-colors">
               Coba Mode Kiosk
-            </Link>
+            </PortalLink>
           </div>
           <div className="mt-10 grid grid-cols-2 sm:grid-cols-4 gap-4">
             {[["AI ArcFace", "Pengenalan Wajah"], ["< 3 Detik", "Proses Presensi"], ["100%", "Bisa Offline"], ["Rp 0", "Biaya Alat Khusus"]].map(([v, l]) => (
@@ -616,9 +626,9 @@ export default function Landing() {
             <a href="#fitur" className="hover:text-white transition-colors">Fitur</a>
             <a href="#cara-kerja" className="hover:text-white transition-colors">Cara Kerja</a>
             <a href="#harga" className="hover:text-white transition-colors">Harga</a>
-            <Link to="/login" className="hover:text-white transition-colors">Masuk Portal</Link>
-            <Link data-testid="footer-trial-link" to="/daftar" className="hover:text-white transition-colors">Daftar Trial Gratis</Link>
-            <Link to="/kiosk" className="hover:text-white transition-colors">Mode Kiosk</Link>
+            <PortalLink to="/login" className="hover:text-white transition-colors">Masuk Portal</PortalLink>
+            <PortalLink data-testid="footer-trial-link" to="/daftar" className="hover:text-white transition-colors">Daftar Trial Gratis</PortalLink>
+            <PortalLink to="/kiosk" className="hover:text-white transition-colors">Mode Kiosk</PortalLink>
             <Link data-testid="footer-privacy-link" to="/privasi" className="hover:text-white transition-colors">Kebijakan Privasi</Link>
             <Link data-testid="footer-terms-link" to="/syarat" className="hover:text-white transition-colors">Syarat & Ketentuan</Link>
           </nav>
