@@ -37,6 +37,65 @@ async def school_today(sid: str) -> str:
     return datetime.now(timezone.utc).astimezone(tz).date().isoformat()
 
 
+@router.get("/admin/subject-att/recap-export")
+async def admin_subject_recap_export(month: str, user: dict = Depends(admin_dep)):
+    import re as _re
+    import calendar as _cal
+    from openpyxl import Workbook
+    from fastapi.responses import StreamingResponse
+    if not _re.match(r"^\d{4}-\d{2}$", month or ""):
+        raise HTTPException(status_code=422, detail="invalid_month")
+    y, m = map(int, month.split("-"))
+    ndays = _cal.monthrange(y, m)[1]
+    dates = [f"{month}-{d:02d}" for d in range(1, ndays + 1)]
+    recs = await db.subject_attendance.find(
+        {"school_id": user["school_id"], "date": {"$regex": f"^{month}-"}},
+        {"_id": 0, "student_id": 1, "student_name": 1, "nis": 1, "date": 1, "status": 1,
+         "subject": 1, "class_name": 1, "teacher_name": 1}).to_list(100000)
+    if not recs:
+        raise HTTPException(status_code=404, detail="no_data")
+    groups = {}
+    for r in recs:
+        gkey = (r.get("subject") or "-", r.get("class_name") or "-", r.get("teacher_name") or "-")
+        g = groups.setdefault(gkey, {})
+        g.setdefault(r["student_id"], {"name": r.get("student_name", ""), "nis": r.get("nis", ""), "days": {}})["days"][r["date"]] = r["status"]
+    abbr = {"hadir": "H", "sakit": "S", "izin": "I", "alpha": "A"}
+    wb = Workbook()
+    first = True
+    for (subject, cls, tname), per in sorted(groups.items()):
+        ws = wb.active if first else wb.create_sheet()
+        first = False
+        base = _re.sub(r"[\\/*?:\[\]]", "-", f"{subject} - {cls}")[:31]
+        title = base
+        n = 1
+        while title in wb.sheetnames:
+            n += 1
+            title = f"{base[:27]} ({n})"
+        ws.title = title
+        ws.append([f"Rekap Absensi Mapel Bulanan: {subject} — {cls} (Guru: {tname})"])
+        ws.append(["Bulan", month])
+        ws.append([])
+        ws.append(["No", "Nama Siswa", "NIS"] + [str(d) for d in range(1, ndays + 1)] + ["H", "S", "I", "A"])
+        for i, st in enumerate(sorted(per.values(), key=lambda x: x["name"]), 1):
+            counts = {"hadir": 0, "sakit": 0, "izin": 0, "alpha": 0}
+            row = [i, st["name"], st["nis"]]
+            for d in dates:
+                v = st["days"].get(d, "")
+                row.append(abbr.get(v, ""))
+                if v in counts:
+                    counts[v] += 1
+            ws.append(row + [counts["hadir"], counts["sakit"], counts["izin"], counts["alpha"]])
+        ws.column_dimensions["A"].width = 6
+        ws.column_dimensions["B"].width = 30
+        ws.column_dimensions["C"].width = 14
+    bio = io.BytesIO()
+    wb.save(bio)
+    bio.seek(0)
+    fname = f"rekap-mapel-bulanan-{month}.xlsx"
+    return StreamingResponse(bio, media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                             headers={"Content-Disposition": f'attachment; filename="{fname}"'})
+
+
 # ---------- QR Code ----------
 @router.get("/admin/qrcodes/{ptype}/{pid}")
 async def get_qrcode(ptype: str, pid: str, user: dict = Depends(admin_dep)):

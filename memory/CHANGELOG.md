@@ -356,3 +356,8 @@
 - Persetujuan user atas saran: endpoint baru `GET /api/teacher/subject-att/recap-export?month=YYYY-MM&subject&class_name` (teacher) — XLSX rekap bulanan: baris per siswa, kolom tanggal 1..31 (H/S/I/A), plus kolom total H/S/I/A per siswa. Validasi mapel/kelas yang diampu; 404 bila belum ada data bulan itu.
 - Frontend: input bulan (type=month, testid sa-recap-month) + tombol "Rekap Bulanan" (sa-recap-export) di toolbar Absen Mapel, unduh `rekap-mapel-<mapel>-<kelas>-<bulan>.xlsx`. i18n sa_recap_export (ID/EN).
 - Terverifikasi backend: login Lukman → rekap Agama/Kelas X TAV/2026-09 → XLSX valid (kolom tanggal + total). ZIP di-build ulang.
+
+## 2026-09-25 — Rekap mapel bulanan untuk admin (semua mapel & kelas)
+- Persetujuan user atas saran: endpoint baru `GET /api/admin/subject-att/recap-export?month=YYYY-MM` (admin) — XLSX multi-sheet: tiap kombinasi Mapel–Kelas jadi 1 sheet (nama sheet disanitasi & anti-duplikat), kolom tanggal 1..31 + total H/S/I/A per siswa.
+- Frontend: di halaman Laporan → tab "Absen Mapel" muncul panel pemilih bulan + tombol "Rekap Bulanan" (testid recap-month / recap-export-btn), unduh `rekap-mapel-bulanan-<bulan>.xlsx`. i18n sa_recap_month (ID/EN).
+- Terverifikasi backend: login admin → rekap 2026-09 → XLSX valid 5 sheet (Agama/B.Indonesia/Matematika X TAV, Matematika X TB 1, PRE X TAV). Panel terverifikasi tampil di tab subject. ZIP di-build ulang.

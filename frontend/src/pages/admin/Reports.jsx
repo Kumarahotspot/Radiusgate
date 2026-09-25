@@ -216,6 +216,17 @@ export default function Reports() {
     URL.revokeObjectURL(url);
   };
 
+  const [recapMonth, setRecapMonth] = useState(new Date().toLocaleDateString("en-CA").slice(0, 7));
+  const doRecapExport = async () => {
+    const r = await api.get("/admin/subject-att/recap-export", { params: { month: recapMonth }, responseType: "blob" });
+    const url = URL.createObjectURL(r.data);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `rekap-mapel-bulanan-${recapMonth}.xlsx`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   const personProps = { t, from, to, setFrom, setTo };
 
   return (
@@ -235,6 +246,19 @@ export default function Reports() {
         <button data-testid="tab-sessions" onClick={() => setTab("sessions")}
           className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-colors ${tab === "sessions" ? "bg-teal-700 text-white" : "text-slate-600 hover:bg-slate-100"}`}>{t("sessions_tab")}</button>
       </div>
+      {tab === "subject" && (
+        <div className="bg-white rounded-2xl border border-slate-200 p-4 flex flex-wrap items-end gap-3" data-testid="subject-recap-panel">
+          <div>
+            <label className="text-xs font-semibold text-slate-500">{t("sa_recap_month")}</label>
+            <input data-testid="recap-month" type="month" value={recapMonth} onChange={(e) => setRecapMonth(e.target.value)}
+              className="mt-1 block rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-teal-600" />
+          </div>
+          <button data-testid="recap-export-btn" onClick={doRecapExport}
+            className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 transition-colors">
+            <FileSpreadsheet className="w-4 h-4" /> {t("sa_recap_export")}
+          </button>
+        </div>
+      )}
       {tab === "daily" && (<>
       <div className="bg-white rounded-2xl border border-slate-200 p-4 flex flex-wrap items-end gap-3">
         <div>
