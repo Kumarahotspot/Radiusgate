@@ -129,11 +129,10 @@ export default function Layout() {
             <button
               data-testid="kiosk-link-btn"
               onClick={async () => {
-                if (user.role === "school_admin") {
+                if (user.role !== "parent") {
                   try {
-                    const { data } = await api.get("/admin/settings");
-                    const code = data?.school?.kiosk_token;
-                    if (code) { window.open(`${window.location.origin}/kiosk?pair=${code}`, "_blank"); return; }
+                    const { data } = await api.get("/auth/kiosk-code");
+                    if (data?.code) { window.open(`${window.location.origin}/kiosk?pair=${data.code}`, "_blank"); return; }
                   } catch { /* lanjut ke halaman kiosk biasa */ }
                 }
                 nav("/kiosk");

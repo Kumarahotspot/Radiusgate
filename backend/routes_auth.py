@@ -52,6 +52,16 @@ async def me(user: dict = Depends(get_current_user)):
     return user
 
 
+@router.get("/auth/kiosk-code")
+async def kiosk_code(user: dict = Depends(get_current_user)):
+    if user.get("role") == "parent" or not user.get("school_id"):
+        raise HTTPException(status_code=403, detail="forbidden")
+    school = await db.schools.find_one({"id": user["school_id"]}, {"_id": 0, "kiosk_token": 1})
+    if not school or not school.get("kiosk_token"):
+        raise HTTPException(status_code=404, detail="school_not_found")
+    return {"code": school["kiosk_token"]}
+
+
 class ChangePasswordIn(BaseModel):
     current_password: str
     new_password: str

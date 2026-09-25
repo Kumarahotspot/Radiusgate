@@ -203,6 +203,21 @@ export default function Kiosk() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // auto-pair jika user sedang login di perangkat ini (tanpa perlu ketik kode)
+  useEffect(() => {
+    if (token) return;
+    const authTok = localStorage.getItem("token");
+    if (!authTok) return;
+    axios.get(`${API}/auth/kiosk-code`, { headers: { Authorization: `Bearer ${authTok}` } })
+      .then(({ data }) => {
+        if (data?.code) {
+          localStorage.setItem(T_KEY, data.code);
+          setToken(data.code);
+        }
+      })
+      .catch(() => {});
+  }, [token]);
+
   useEffect(() => {
     const on = () => setOnline(true);
     const off = () => setOnline(false);

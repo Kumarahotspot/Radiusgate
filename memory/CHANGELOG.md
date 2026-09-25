@@ -372,3 +372,11 @@
 
 ## 2026-09-25 — Filter dropdown nama pada tab Per Guru & Per Karyawan di Laporan
 - Laporan user: "Per Guru blom ada filternya". Komponen PersonReport (tab Per Guru/Per Karyawan) kini punya dropdown filter nama (testid tc-name-filter / emp-name-filter) — opsi dari daftar nama yang punya data pada rentang tanggal, memfilter tabel Harian & Rekap + counter tab secara client-side. Tab siswa tidak diberi dropdown nama (sudah ada filter kelas + pencarian).
+
+
+## 2026-09-25 (lanjutan) — Auto-pair Kiosk untuk user login
+- Endpoint baru `GET /api/auth/kiosk-code` (routes_auth.py): mengembalikan `kiosk_token` sekolah untuk role `school_admin`, `teacher`, `employee`; parent ditolak (403), tanpa login 401.
+- `Layout.jsx`: tombol Kiosk di header kini auto-pair untuk SEMUA role non-parent (dulu hanya school_admin via `/admin/settings`), membuka `/kiosk?pair=CODE` di tab baru.
+- `Kiosk.jsx`: jika kiosk belum dipairing tapi ada sesi login di browser (localStorage `token`), kiosk otomatis fetch kode dan langsung aktif tanpa input kode.
+- Teruji: curl (teacher/admin → kode OK, parent → 403, anon → 401) + screenshot e2e (login guru → buka /kiosk tanpa kiosk_token → langsung tampil kiosk "SMA Nusantara (Demo)" tanpa form kode).
+- Deployment user: Save to GitHub → `git pull && sudo docker compose up -d --build` di VPS (panduan SSH: `ssh-keygen -R <ip>` saat fingerprint berubah setelah reinstall VPS).

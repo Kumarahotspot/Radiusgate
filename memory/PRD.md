@@ -12,6 +12,7 @@ Aplikasi absensi berbasis Kiosk Web App (browser HP/tablet) + face recognition (
   3. **Kartu QR Code**: auto-generate token unik per orang (anti-palsu), kamera kiosk auto-deteksi (tanpa tombol), cetak massal per kelas dalam 1 PDF A4 (6 kartu/halaman).
   4. **NIS / NIP Manual**: keypad angka besar di layar kiosk (readOnly input, anti keyboard HP menutup), bunyi klik Web Audio + tombol menyala, foto profil konfirmasi.
 - **PWA Fullscreen Kiosk**: Kiosk mendukung install "Add to Home screen" (PWA dengan `display: fullscreen`) agar otomatis full page tanpa perlu menyentuh layar.
+- **Auto-Pair Kiosk untuk User Login**: Siapa pun yang sudah login (admin/guru/karyawan) membuka Kiosk tanpa mengetik kode — token kiosk diambil otomatis via `GET /api/auth/kiosk-code`. Input kode manual hanya untuk perangkat yang belum login sama sekali.
 - **Materi Pemasaran & Edukasi**:
   - File Presentasi Penawaran Sekolah (`presentasi-radiusgate.pptx`, 7 slide 16:9).
   - Panduan Pengguna / User Guide lengkap (`panduan-radiusgate.pdf`, 8 halaman A4).
