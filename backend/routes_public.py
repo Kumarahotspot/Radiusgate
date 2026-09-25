@@ -91,3 +91,16 @@ async def download_panduan_vps():
 async def download_install_script():
     return FileResponse("/app/install-vps.sh", media_type="text/x-sh",
                         filename="install-vps.sh")
+
+
+@router.get("/public/download/backup-database")
+async def download_backup_database():
+    return FileResponse("/app/frontend/radiusgate_backup_database.tar.gz",
+                        media_type="application/gzip",
+                        filename="radiusgate_backup_database.tar.gz")
+
+
+@router.get("/public/download/restore-script")
+async def download_restore_script():
+    return FileResponse("/app/restore-db.sh", media_type="text/x-sh",
+                        filename="restore-db.sh")
