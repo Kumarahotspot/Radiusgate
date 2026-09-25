@@ -23,7 +23,7 @@ function usePager(list) {
 function PagerBar({ t, pager, total, testid }) {
   const { pageSize, setPageSize, page, setPage, totalPages } = pager;
   return (
-    <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 border-t border-slate-100">
+    <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 border-b border-slate-100">
       <div className="flex items-center gap-2">
         <span className="text-xs font-semibold text-slate-500">{t("show_entries")}</span>
         <select data-testid={`${testid}-page-size`} value={pageSize} onChange={(e) => { setPageSize(Number(e.target.value)); setPage(1); }}
@@ -141,6 +141,9 @@ function PersonReport({ t, person, from, to, setFrom, setTo, classes }) {
       </div>
 
       <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+        {sub === "daily"
+          ? <PagerBar t={t} pager={dailyPager} total={frows.length} testid={`${p}-daily`} />
+          : <PagerBar t={t} pager={recapPager} total={frecap.length} testid={`${p}-recap`} />}
         <div className="overflow-x-auto">
           {sub === "daily" ? (
             <table data-testid={`${p}-daily-table`} className="w-full text-sm">
@@ -213,9 +216,6 @@ function PersonReport({ t, person, from, to, setFrom, setTo, classes }) {
             </table>
           )}
         </div>
-        {sub === "daily"
-          ? <PagerBar t={t} pager={dailyPager} total={frows.length} testid={`${p}-daily`} />
-          : <PagerBar t={t} pager={recapPager} total={frecap.length} testid={`${p}-recap`} />}
       </div>
     </>
   );
@@ -353,6 +353,7 @@ export default function Reports() {
       </div>
 
       <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+        <PagerBar t={t} pager={pager} total={rows.length} testid="daily" />
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
@@ -392,7 +393,6 @@ export default function Reports() {
             </tbody>
           </table>
         </div>
-        <PagerBar t={t} pager={pager} total={rows.length} testid="daily" />
       </div>
       </>)}
 
@@ -427,6 +427,7 @@ export default function Reports() {
             </div>
           </div>
           <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+            <PagerBar t={t} pager={saPager} total={saRows.length} testid="sa" />
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
@@ -460,7 +461,6 @@ export default function Reports() {
                 </tbody>
               </table>
             </div>
-            <PagerBar t={t} pager={saPager} total={saRows.length} testid="sa" />
           </div>
         </>
       )}
