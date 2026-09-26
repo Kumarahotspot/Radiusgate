@@ -16,7 +16,7 @@ from db import db
 from auth import require_roles, hash_password
 from faceutil import embed, cos_sim, NoFaceError, MATCH_SIM_THRESHOLD
 from starlette.concurrency import run_in_threadpool
-from pdfgen import build_report_pdf, build_kiosk_poster_pdf, build_recap_pdf
+from pdfgen import build_report_pdf, build_kiosk_poster_pdf, build_recap_pdf, build_warning_letter_pdf
 from storage import put_object, get_object
 from notif import normalize_phone, send_whatsapp
 
@@ -555,23 +555,179 @@ class SettingsIn(BaseModel):
     saver_enabled: bool | None = None
     saver_photos_enabled: bool | None = None
     student_dismissal: dict | None = None
+    org_type: str | None = None
+    sp_thresholds: dict | None = None
 
 
 @router.get("/admin/settings")
 async def get_settings(user: dict = Depends(admin_dep)):
     st = await db.settings.find_one({"school_id": user["school_id"]}, {"_id": 0})
     locs = await db.locations.find({"school_id": user["school_id"]}, {"_id": 0}).to_list(100)
-    school = await db.schools.find_one({"id": user["school_id"]}, {"_id": 0, "kiosk_token": 1, "name": 1})
+    school = await db.schools.find_one({"id": user["school_id"]}, {"_id": 0, "kiosk_token": 1, "name": 1, "org_type": 1})
     return {"settings": st, "locations": locs, "school": school}
 
 
 @router.put("/admin/settings")
 async def put_settings(body: SettingsIn, user: dict = Depends(admin_dep)):
     upd = {k: v for k, v in body.model_dump().items() if v is not None}
-    if not upd:
+    org = upd.pop("org_type", None)
+    if org is not None:
+        if org not in ("school", "company"):
+            raise HTTPException(status_code=422, detail="org_type tidak valid")
+        await db.schools.update_one({"id": user["school_id"]}, {"$set": {"org_type": org}})
+    if not upd and org is None:
         raise HTTPException(status_code=400, detail="Tidak ada perubahan")
-    await db.settings.update_one({"school_id": user["school_id"]}, {"$set": upd}, upsert=True)
+    if upd:
+        await db.settings.update_one({"school_id": user["school_id"]}, {"$set": upd}, upsert=True)
     return {"ok": True}
+
+
+# ---------- Shift Kerja ----------
+def _valid_hhmm(v: str):
+    try:
+        hh, mm = map(int, v.split(":"))
+        if not (0 <= hh <= 23 and 0 <= mm <= 59):
+            raise ValueError
+    except Exception:
+        raise HTTPException(status_code=422, detail="Format jam harus HH:MM")
+
+
+class ShiftIn(BaseModel):
+    name: str
+    start: str
+    end: str
+
+
+@router.get("/admin/shifts")
+async def list_shifts(user: dict = Depends(admin_dep)):
+    return await db.shifts.find({"school_id": user["school_id"]}, {"_id": 0}).to_list(100)
+
+
+@router.post("/admin/shifts")
+async def create_shift(body: ShiftIn, user: dict = Depends(admin_dep)):
+    _valid_hhmm(body.start)
+    _valid_hhmm(body.end)
+    doc = {"id": str(uuid.uuid4()), "school_id": user["school_id"], "name": body.name.strip(),
+           "start": body.start, "end": body.end, "created_at": now_iso()}
+    await db.shifts.insert_one(doc)
+    doc.pop("_id", None)
+    return doc
+
+
+@router.patch("/admin/shifts/{shid}")
+async def update_shift(shid: str, body: ShiftIn, user: dict = Depends(admin_dep)):
+    _valid_hhmm(body.start)
+    _valid_hhmm(body.end)
+    r = await db.shifts.update_one({"id": shid, "school_id": user["school_id"]},
+                                   {"$set": {"name": body.name.strip(), "start": body.start, "end": body.end}})
+    if not r.matched_count:
+        raise HTTPException(status_code=404, detail="Shift tidak ditemukan")
+    return {"ok": True}
+
+
+@router.delete("/admin/shifts/{shid}")
+async def delete_shift(shid: str, user: dict = Depends(admin_dep)):
+    await db.shifts.delete_one({"id": shid, "school_id": user["school_id"]})
+    await db.employees.update_many({"school_id": user["school_id"], "shift_id": shid}, {"$unset": {"shift_id": ""}})
+    return {"ok": True}
+
+
+# ---------- Surat Peringatan (SP1/SP2/SP3) ----------
+def _sp_thresholds(settings: dict | None) -> dict:
+    raw = (settings or {}).get("sp_thresholds") or {}
+    return {"SP1": int(raw.get("SP1", 3)), "SP2": int(raw.get("SP2", 6)), "SP3": int(raw.get("SP3", 10))}
+
+
+@router.get("/admin/warnings/candidates")
+async def warning_candidates(month: str, user: dict = Depends(admin_dep)):
+    sid = user["school_id"]
+    settings = await db.settings.find_one({"school_id": sid}, {"_id": 0, "sp_thresholds": 1})
+    th = _sp_thresholds(settings)
+    rows = await db.attendance.find(
+        {"school_id": sid, "date": {"$regex": f"^{month}"}, "status": "late", "type": "in"},
+        {"_id": 0, "person_type": 1, "teacher_id": 1, "employee_id": 1, "teacher_name": 1}).to_list(20000)
+    counts, meta = {}, {}
+    for r in rows:
+        pt = r.get("person_type", "teacher")
+        pid = r.get("employee_id") if pt == "employee" else r.get("teacher_id")
+        if not pid:
+            continue
+        counts[pid] = counts.get(pid, 0) + 1
+        meta[pid] = (r.get("teacher_name") or "", pt)
+    issued = await db.warning_letters.find({"school_id": sid, "month": month}, {"_id": 0, "person_id": 1, "level": 1}).to_list(500)
+    issued_by = {}
+    for wl in issued:
+        issued_by.setdefault(wl["person_id"], []).append(wl["level"])
+    out = []
+    for pid, cnt in counts.items():
+        if cnt < th["SP1"]:
+            continue
+        name, pt = meta[pid]
+        levels = issued_by.get(pid, [])
+        if "SP3" in levels:
+            suggested = None
+        elif "SP2" in levels:
+            suggested = "SP3" if cnt >= th["SP3"] else None
+        elif "SP1" in levels:
+            suggested = "SP2" if cnt >= th["SP2"] else None
+        else:
+            suggested = "SP1"
+        out.append({"person_id": pid, "name": name, "person_type": pt, "late_count": cnt,
+                    "issued_levels": levels, "suggested": suggested})
+    out.sort(key=lambda x: -x["late_count"])
+    return {"thresholds": th, "candidates": out}
+
+
+class WarningIssueIn(BaseModel):
+    person_id: str
+    person_type: str = "employee"
+    month: str
+    level: str
+
+
+@router.post("/admin/warnings/issue")
+async def issue_warning(body: WarningIssueIn, user: dict = Depends(admin_dep)):
+    if body.level not in ("SP1", "SP2", "SP3"):
+        raise HTTPException(status_code=422, detail="Level SP tidak valid")
+    if body.person_type not in ("employee", "teacher"):
+        raise HTTPException(status_code=422, detail="person_type tidak valid")
+    sid = user["school_id"]
+    coll = db.employees if body.person_type == "employee" else db.teachers
+    person = await coll.find_one({"id": body.person_id, "school_id": sid},
+                                 {"_id": 0, "name": 1, "nip": 1, "department": 1, "position": 1})
+    if not person:
+        raise HTTPException(status_code=404, detail="Karyawan tidak ditemukan")
+    if await db.warning_letters.find_one({"school_id": sid, "person_id": body.person_id, "month": body.month, "level": body.level}):
+        raise HTTPException(status_code=409, detail="SP level ini sudah diterbitkan untuk periode tersebut")
+    id_field = "employee_id" if body.person_type == "employee" else "teacher_id"
+    late_count = await db.attendance.count_documents({
+        "school_id": sid, "date": {"$regex": f"^{body.month}"}, "status": "late", "type": "in", id_field: body.person_id})
+    doc = {"id": str(uuid.uuid4()), "school_id": sid, "person_id": body.person_id,
+           "person_type": body.person_type, "name": person["name"],
+           "nip": person.get("nip", ""), "department": person.get("department", ""), "position": person.get("position", ""),
+           "month": body.month, "level": body.level, "late_count": late_count,
+           "issued_by": user.get("name", ""), "created_at": now_iso()}
+    await db.warning_letters.insert_one(doc)
+    doc.pop("_id", None)
+    return doc
+
+
+@router.get("/admin/warnings")
+async def list_warnings(month: str | None = None, user: dict = Depends(admin_dep)):
+    q = {"school_id": user["school_id"]}
+    if month:
+        q["month"] = month
+    return await db.warning_letters.find(q, {"_id": 0}).sort("created_at", -1).to_list(500)
+
+
+@router.get("/admin/warnings/{wid}/pdf")
+async def warning_pdf(wid: str, user: dict = Depends(admin_dep)):
+    wl = await db.warning_letters.find_one({"id": wid, "school_id": user["school_id"]}, {"_id": 0})
+    if not wl:
+        raise HTTPException(status_code=404, detail="Surat tidak ditemukan")
+    school = await db.schools.find_one({"id": user["school_id"]}, {"_id": 0, "name": 1, "address": 1})
+    path = build_warning_letter_pdf(wl, school or {})
+    return FileResponse(path, media_type="application/pdf", filename=f"{wl['level']}-{wl['name']}-{wl['month']}.pdf")
 
 
 # ---------- Foto slide screensaver kiosk (object storage) ----------
@@ -1159,6 +1315,7 @@ class EmployeeIn(BaseModel):
     overtime_rate: int | None = None
     base_salary: int | None = None
     card_uid: str = ""
+    shift_id: str = ""
 
 
 class EmployeePatch(BaseModel):
@@ -1170,6 +1327,7 @@ class EmployeePatch(BaseModel):
     overtime_rate: int | None = None
     base_salary: int | None = None
     card_uid: str | None = None
+    shift_id: str | None = None
 
 
 @router.get("/admin/employees")
@@ -1198,6 +1356,7 @@ async def create_employee(body: EmployeeIn, user: dict = Depends(admin_dep)):
         "id": str(uuid.uuid4()), "school_id": user["school_id"], "user_id": uid,
         "name": body.name, "nip": body.nip, "department": body.department, "position": body.position,
         "overtime_rate": body.overtime_rate, "base_salary": body.base_salary, "card_uid": body.card_uid.strip(),
+        "shift_id": body.shift_id,
         "embedding": None, "photo": None, "active": True, "created_at": now_iso(),
     }
     await db.employees.insert_one(emp)

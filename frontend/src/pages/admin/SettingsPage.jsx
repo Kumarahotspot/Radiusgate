@@ -341,6 +341,46 @@ export default function SettingsPage() {
         <button data-testid="save-settings-btn" className="mt-4 px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-teal-700 hover:bg-teal-800">{t("save")}</button>
       </form>
 
+      <div className="bg-white rounded-2xl border border-slate-200 p-5" data-testid="org-type-card">
+        <p className="font-bold text-slate-800 mb-1">{t("org_type_label")}</p>
+        <div className="flex flex-wrap items-center gap-3 mt-3">
+          <select data-testid="org-type" value={school?.org_type || "school"}
+            onChange={async (e) => {
+              const v = e.target.value;
+              try {
+                await api.put("/admin/settings", { org_type: v });
+                setSchool({ ...school, org_type: v });
+                toast.success(t("updated_ok"));
+              } catch (err) { toast.error(errMsg(err)); }
+            }}
+            className="rounded-xl border border-slate-200 px-3 py-2.5 text-sm bg-white outline-none focus:border-teal-600">
+            <option value="school">{t("org_school")}</option>
+            <option value="company">{t("org_company")}</option>
+          </select>
+          <p className="text-[11px] text-slate-400 max-w-md">{t("org_type_hint")}</p>
+        </div>
+        {school?.org_type === "company" && (
+          <div className="mt-4">
+            <label className="text-xs font-semibold text-slate-500">{t("sp_thresholds")}</label>
+            <div className="mt-1.5 flex flex-wrap items-center gap-3">
+              {["SP1", "SP2", "SP3"].map((lv) => (
+                <div key={lv} className="flex items-center gap-1.5">
+                  <span className="text-xs font-bold text-slate-600">{lv} ≥</span>
+                  <input data-testid={`sp-th-${lv}`} type="number" min={1}
+                    value={(settings.sp_thresholds || {})[lv] ?? { SP1: 3, SP2: 6, SP3: 10 }[lv]}
+                    onChange={(e) => setSettings({ ...settings, sp_thresholds: { SP1: 3, SP2: 6, SP3: 10, ...(settings.sp_thresholds || {}), [lv]: Number(e.target.value) } })}
+                    className="w-20 rounded-xl border border-slate-200 px-2 py-2 text-sm outline-none focus:border-teal-600" />
+                </div>
+              ))}
+              <button type="button" data-testid="sp-th-save" onClick={async () => {
+                try { await api.put("/admin/settings", { sp_thresholds: settings.sp_thresholds }); toast.success(t("updated_ok")); } catch (err) { toast.error(errMsg(err)); }
+              }}
+                className="px-4 py-2 rounded-xl text-xs font-bold text-white bg-teal-700 hover:bg-teal-800">{t("save")}</button>
+            </div>
+          </div>
+        )}
+      </div>
+
       <div className="bg-white rounded-2xl border border-slate-200 p-5" data-testid="master-data-card">
         <p className="font-bold text-slate-800 mb-1">{t("master_data")}</p>
         <p className="text-xs text-slate-400 mb-4">{t("master_hint")}</p>

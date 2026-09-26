@@ -9,7 +9,7 @@ import LangSwitch from "./LangSwitch";
 import {
   LayoutDashboard, School, FileText, Users, GraduationCap, Settings,
   CalendarClock, BarChart3, CreditCard, LogOut, ScanFace, MonitorSmartphone, Bell, Inbox,
-  Briefcase, Timer, Wallet, BookOpen, User, ChevronDown, Menu, X, KeyRound,
+  Briefcase, Timer, Wallet, BookOpen, User, ChevronDown, Menu, X, KeyRound, Clock, AlertTriangle,
 } from "lucide-react";
 
 const menus = {
@@ -89,7 +89,17 @@ export default function Layout() {
       }).catch(() => {});
   }, [user?.role]);
   if (!user) return null;
-  const items = menus[user.role] || [];
+  let items = menus[user.role] || [];
+  if (user.role === "school_admin" && user.org_type === "company") {
+    items = items.filter((m) => !["teachers", "students", "spp"].includes(m.key));
+    items = [
+      ...items.slice(0, 3),
+      { to: "/admin/shifts", icon: Clock, key: "shifts_menu" },
+      { to: "/admin/warnings", icon: AlertTriangle, key: "warnings_menu" },
+      ...items.slice(3),
+    ];
+  }
+  const portalLbl = user.role === "school_admin" && user.org_type === "company" ? t("company_portal") : t(portalKey[user.role]);
   const initials = (user.name || "?").split(" ").map((w) => w[0]).filter(Boolean).slice(0, 2).join("").toUpperCase();
   const pendingMap = { leaves: pendingLeaves, overtime: pendingOvertime, student_status_menu: studentLeaveToday };
   const pendingTotal = pendingLeaves + pendingOvertime + studentLeaveToday;
@@ -121,7 +131,7 @@ export default function Layout() {
             <img src="/logo.png" alt="RadiusGate" className="w-9 h-9 object-contain shrink-0" />
             <div className="min-w-0">
               <p className="font-bold text-slate-800 text-sm leading-tight truncate">{t("app_name")}</p>
-              <p className="text-[11px] text-teal-700 font-medium leading-tight">{t(portalKey[user.role])}</p>
+              <p className="text-[11px] text-teal-700 font-medium leading-tight">{portalLbl}</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -152,7 +162,7 @@ export default function Layout() {
                 <div data-testid="user-menu" className="absolute right-0 mt-2 w-52 bg-white border border-slate-200 rounded-xl shadow-lg py-1.5 z-50">
                   <div className="px-4 py-2">
                     <p data-testid="user-menu-name" className="text-xs font-bold text-slate-800 truncate">{user.name}</p>
-                    <p className="text-[11px] text-slate-500 truncate">{t(portalKey[user.role])}</p>
+                    <p className="text-[11px] text-slate-500 truncate">{portalLbl}</p>
                   </div>
                   {user.role === "parent" && (
                     <button data-testid="user-menu-profile" onClick={() => { setMenuOpen(false); nav("/ortu?tab=profile"); }}

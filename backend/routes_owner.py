@@ -55,6 +55,9 @@ class SchoolIn(BaseModel):
     student_count_manual: int | None = None
     school_type: str = ""
     majors: list[str] = []
+    org_type: str = "school"
+    rate_per_employee: int | None = None
+    employee_count_manual: int | None = None
 
 
 class SchoolPatch(BaseModel):
@@ -67,6 +70,9 @@ class SchoolPatch(BaseModel):
     student_count_manual: int | None = None
     school_type: str | None = None
     majors: list[str] | None = None
+    org_type: str | None = None
+    rate_per_employee: int | None = None
+    employee_count_manual: int | None = None
 
 
 @router.get("/owner/overview")
@@ -92,6 +98,9 @@ async def list_schools(user: dict = Depends(owner_dep)):
         s["student_count_source"] = "manual" if manual else "data"
         s["student_count"] = manual if manual else await db.students.count_documents({"school_id": s["id"], "status": {"$ne": "lulus"}})
         s["teacher_count"] = await db.teachers.count_documents({"school_id": s["id"]})
+        s["employee_count"] = await db.employees.count_documents({"school_id": s["id"]})
+        if s.get("org_type") == "company":
+            s["student_count"] = s.get("employee_count_manual") or s["employee_count"]
         st = await db.settings.find_one({"school_id": s["id"]}, {"_id": 0, "school_type": 1, "major_list": 1}) or {}
         s["school_type"] = st.get("school_type", "")
         s["majors"] = st.get("major_list") or []
@@ -103,15 +112,19 @@ async def create_school(body: SchoolIn, user: dict = Depends(owner_dep)):
     if await db.users.find_one({"email": body.admin_email.lower()}):
         raise HTTPException(status_code=400, detail="Email admin sudah dipakai")
     sid = str(uuid.uuid4())
+    org = body.org_type if body.org_type in ("school", "company") else "school"
     school = {
         "id": sid, "name": body.name, "address": body.address, "phone": body.phone,
         "admin_email": body.admin_email.lower(), "rate_per_student": body.rate_per_student,
-        "student_count_manual": body.student_count_manual,
+        "student_count_manual": body.student_count_manual, "org_type": org,
         "kiosk_token": "KIOSK-" + uuid.uuid4().hex[:8].upper(), "created_at": now_iso(),
     }
+    if org == "company":
+        school["rate_per_employee"] = body.rate_per_employee or 10000
+        school["employee_count_manual"] = body.employee_count_manual
     await db.schools.insert_one(school)
     st_doc = {"school_id": sid, "work_start": "07:00", "work_end": "15:00", "late_tolerance_min": 10, "early_checkin_min": 60, "timezone": "Asia/Jakarta"}
-    if body.school_type:
+    if org == "school" and body.school_type:
         st_doc["school_type"] = body.school_type
     majors = [m.strip() for m in body.majors if m.strip()]
     if majors:
@@ -191,13 +204,20 @@ async def generate_for_period(period: str, send_email: bool) -> dict:
         if await db.invoices.find_one({"school_id": s["id"], "period": period}):
             continue
         seq += 1
-        count = s.get("student_count_manual") or await db.students.count_documents({"school_id": s["id"], "status": {"$ne": "lulus"}})
+        if s.get("org_type") == "company":
+            count = s.get("employee_count_manual") or await db.employees.count_documents({"school_id": s["id"], "active": {"$ne": False}})
+            rate = s.get("rate_per_employee", 10000)
+            unit = "karyawan"
+        else:
+            count = s.get("student_count_manual") or await db.students.count_documents({"school_id": s["id"], "status": {"$ne": "lulus"}})
+            rate = s.get("rate_per_student", 8000)
+            unit = "siswa"
         inv = {
             "id": str(uuid.uuid4()),
             "invoice_no": f"INV-{period}-{seq:03d}",
             "school_id": s["id"], "period": period,
-            "student_count": count, "rate": s.get("rate_per_student", 8000),
-            "amount": count * s.get("rate_per_student", 8000),
+            "student_count": count, "rate": rate, "unit_label": unit,
+            "amount": count * rate,
             "status": "unpaid", "public_token": uuid.uuid4().hex,
             "created_at": now_iso(), "sent_at": None, "paid_at": None,
         }

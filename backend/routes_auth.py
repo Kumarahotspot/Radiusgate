@@ -39,9 +39,10 @@ async def login(body: LoginIn):
     if not user or not verify_password(body.password, user["password_hash"]):
         raise HTTPException(status_code=401, detail="Email atau password salah")
     if user.get("school_id"):
-        school = await db.schools.find_one({"id": user["school_id"]}, {"_id": 0, "trial_ends_at": 1})
+        school = await db.schools.find_one({"id": user["school_id"]}, {"_id": 0, "trial_ends_at": 1, "org_type": 1})
         if school and school.get("trial_ends_at") and school["trial_ends_at"] < now_iso():
             raise HTTPException(status_code=403, detail="trial_expired")
+        user["org_type"] = (school or {}).get("org_type", "school")
     user.pop("password_hash", None)
     user.pop("_id", None)
     return {"token": create_token(user), "user": user}
@@ -49,6 +50,9 @@ async def login(body: LoginIn):
 
 @router.get("/auth/me")
 async def me(user: dict = Depends(get_current_user)):
+    if user.get("school_id"):
+        school = await db.schools.find_one({"id": user["school_id"]}, {"_id": 0, "org_type": 1})
+        user["org_type"] = (school or {}).get("org_type", "school")
     return user
 
 
@@ -141,6 +145,8 @@ class TrialIn(BaseModel):
     student_count: int | None = None
     school_type: str = ""
     majors: list[str] = []
+    org_type: str = "school"
+    employee_count: int | None = None
 
 
 @router.post("/auth/register-trial")
@@ -152,18 +158,25 @@ async def register_trial(body: TrialIn):
         raise HTTPException(status_code=400, detail="email_taken")
     sid = str(uuid.uuid4())
     trial_ends = (datetime.now(timezone.utc) + timedelta(days=TRIAL_DAYS)).isoformat()
-    await db.schools.insert_one({
+    org = body.org_type if body.org_type in ("school", "company") else "school"
+    school_doc = {
         "id": sid, "name": body.school_name, "address": "", "phone": "",
-        "admin_email": body.email.lower(), "rate_per_student": 8000,
-        "student_count_manual": body.student_count,
+        "admin_email": body.email.lower(), "org_type": org,
         "kiosk_token": "KIOSK-" + uuid.uuid4().hex[:8].upper(),
         "trial": True, "trial_ends_at": trial_ends, "created_at": now_iso(),
-    })
+    }
+    if org == "company":
+        school_doc["rate_per_employee"] = 10000
+        school_doc["employee_count_manual"] = body.employee_count
+    else:
+        school_doc["rate_per_student"] = 8000
+        school_doc["student_count_manual"] = body.student_count
+    await db.schools.insert_one(school_doc)
     st_doc = {"school_id": sid, "work_start": "07:00", "work_end": "15:00",
               "late_tolerance_min": 10, "early_checkin_min": 60, "timezone": "Asia/Jakarta"}
-    if body.school_type:
+    if org == "school" and body.school_type:
         st_doc["school_type"] = body.school_type
-    majors = [m.strip() for m in body.majors if m.strip()]
+    majors = [m.strip() for m in body.majors if m.strip()] if org == "school" else []
     if majors:
         st_doc["major_list"] = majors
     await db.settings.insert_one(st_doc)
@@ -175,7 +188,7 @@ async def register_trial(body: TrialIn):
     await db.leads.insert_one({
         "id": str(uuid.uuid4()), "school_name": body.school_name, "contact_person": body.admin_name,
         "email": body.email.lower(), "phone": "", "student_count": body.student_count,
-        "school_type": body.school_type, "majors": majors,
+        "school_type": body.school_type, "majors": majors, "org_type": org,
         "message": "Mendaftar self-service trial", "source": "self_service_trial",
         "status": "new", "school_id": sid, "created_at": now_iso(),
     })

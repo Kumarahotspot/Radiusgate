@@ -126,6 +126,12 @@ async def _record(school, teacher_id, teacher_name, att_type, ts_device, lat, ln
     tz_name = (settings or {}).get("timezone", "Asia/Jakarta")
     date, minutes, hhmm = _localize(ts_device, tz_name)
     ptype = (extra or {}).get("person_type", "teacher")
+    if ptype == "employee" and not manual:
+        emp_shift = await db.employees.find_one({"id": teacher_id, "school_id": sid}, {"_id": 0, "shift_id": 1})
+        if emp_shift and emp_shift.get("shift_id"):
+            shift = await db.shifts.find_one({"id": emp_shift["shift_id"], "school_id": sid}, {"_id": 0, "start": 1, "end": 1})
+            if shift:
+                settings = {**(settings or {}), "work_start": shift["start"], "work_end": shift["end"]}
     dup_field = {"student": "student_id", "employee": "employee_id"}.get(ptype, "teacher_id")
     dup = await db.attendance.find_one({dup_field: teacher_id, "date": date, "type": att_type})
     if dup:

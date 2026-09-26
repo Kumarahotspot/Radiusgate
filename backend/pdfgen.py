@@ -23,6 +23,65 @@ def rupiah(n: int) -> str:
     return f"Rp {int(n):,}".replace(",", ".")
 
 
+def build_warning_letter_pdf(letter: dict, school: dict) -> str:
+    path = os.path.join(INVOICE_DIR, f"sp_{letter['id']}.pdf")
+    c = canvas.Canvas(path, pagesize=A4)
+    w, h = A4
+    logo_path = os.path.join(os.path.dirname(__file__), "assets", "logo.png")
+    if os.path.exists(logo_path):
+        c.drawImage(logo_path, 20 * mm, h - 26 * mm, width=14 * mm, height=14 * mm, mask="auto")
+    c.setFont("Helvetica-Bold", 14)
+    c.drawString(38 * mm, h - 20 * mm, school.get("name", ""))
+    c.setFont("Helvetica", 9)
+    c.setFillColorRGB(0.4, 0.4, 0.4)
+    if school.get("address"):
+        c.drawString(38 * mm, h - 25 * mm, school["address"])
+    c.setFillColorRGB(0, 0, 0)
+    c.setLineWidth(1.2)
+    c.line(20 * mm, h - 30 * mm, w - 20 * mm, h - 30 * mm)
+    c.setFont("Helvetica-Bold", 13)
+    c.drawCentredString(w / 2, h - 44 * mm, f"SURAT PERINGATAN {letter['level']}")
+    c.setFont("Helvetica", 10)
+    c.drawCentredString(w / 2, h - 50 * mm, f"Nomor: {letter['level']}/HRD/{letter['month']}")
+    y = h - 64 * mm
+    lines = [
+        f"Yang bertanda tangan di bawah ini mewakili manajemen {school.get('name', '')}, dengan ini",
+        f"memberikan Surat Peringatan {letter['level']} kepada:",
+        "",
+        f"        Nama             :  {letter['name']}",
+        f"        NIP               :  {letter.get('nip') or '-'}",
+        f"        Departemen  :  {letter.get('department') or '-'}",
+        f"        Jabatan          :  {letter.get('position') or '-'}",
+        "",
+        "Berdasarkan catatan kehadiran digital, yang bersangkutan tercatat terlambat hadir",
+        f"sebanyak {letter['late_count']} kali pada periode {periode_label(letter['month'])}. Hal tersebut",
+        "melanggar peraturan kedisiplinan perusahaan.",
+        "",
+        "Melalui surat ini, yang bersangkutan diperingatkan untuk memperbaiki kedisiplinan",
+        "kehadiran. Apabila pelanggaran serupa terulang, perusahaan akan memberikan",
+        "tindakan lanjutan sesuai peraturan perusahaan yang berlaku.",
+        "",
+        "Demikian surat peringatan ini dibuat untuk diperhatikan dan dipatuhi.",
+    ]
+    c.setFont("Helvetica", 10.5)
+    for ln in lines:
+        c.drawString(20 * mm, y, ln)
+        y -= 6.2 * mm
+    y -= 12 * mm
+    c.setFont("Helvetica", 10.5)
+    c.drawString(30 * mm, y, "Yang bersangkutan,")
+    c.drawString(w - 90 * mm, y, "Hormat kami,")
+    c.drawString(w - 90 * mm, y - 5 * mm, "HRD / Manajemen")
+    c.setFont("Helvetica-Bold", 10.5)
+    c.drawString(30 * mm, y - 32 * mm, f"( {letter['name']} )")
+    c.drawString(w - 90 * mm, y - 32 * mm, f"( {letter.get('issued_by') or 'HRD'} )")
+    c.setFont("Helvetica", 8)
+    c.setFillColorRGB(0.5, 0.5, 0.5)
+    c.drawString(20 * mm, 15 * mm, "Dokumen ini dibuat otomatis oleh RadiusGate berdasarkan data kehadiran digital.")
+    c.save()
+    return path
+
+
 def invoice_pdf_path(inv_id: str) -> str:
     return os.path.join(INVOICE_DIR, f"inv_{inv_id}.pdf")
 
@@ -67,7 +126,8 @@ def build_invoice_pdf(inv: dict, school: dict) -> str:
     c.drawRightString(w - 23 * mm, y - 4 * mm, "Jumlah")
     y -= 18 * mm
     c.setFont("Helvetica", 10)
-    desc = f"Langganan absensi {inv['student_count']} siswa x {rupiah(inv['rate'])} / siswa / bulan"
+    unit = inv.get("unit_label", "siswa")
+    desc = f"Langganan absensi {inv['student_count']} {unit} x {rupiah(inv['rate'])} / {unit} / bulan"
     c.drawString(23 * mm, y, desc)
     c.drawRightString(w - 23 * mm, y, rupiah(inv["amount"]))
     y -= 12 * mm

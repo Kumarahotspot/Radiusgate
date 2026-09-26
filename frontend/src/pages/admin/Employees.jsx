@@ -6,7 +6,7 @@ import CameraCapture from "../../components/CameraCapture";
 import QrModal from "../../components/QrModal";
 import { Plus, ScanFace, Trash2, CheckCircle2, Circle, Pencil, Search, ChevronLeft, ChevronRight, Nfc, QrCode } from "lucide-react";
 
-const EMPTY = { name: "", email: "", password: "", nip: "", department: "", position: "", overtime_rate: "", base_salary: "", card_uid: "" };
+const EMPTY = { name: "", email: "", password: "", nip: "", department: "", position: "", overtime_rate: "", base_salary: "", card_uid: "", shift_id: "" };
 
 export default function Employees() {
   const { t } = useTranslation();
@@ -18,10 +18,15 @@ export default function Employees() {
   const [opts, setOpts] = useState({ departments: [] });
   const [busy, setBusy] = useState(false);
   const [editFor, setEditFor] = useState(null);
+  const [shifts, setShifts] = useState([]);
   const [query, setQuery] = useState("");
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const q = query.trim().toLowerCase();
+  const shiftName = (id) => {
+    const s = shifts.find((x) => x.id === id);
+    return s ? `${s.name} (${s.start}–${s.end})` : <span className="text-slate-300">—</span>;
+  };
   const filtered = employees.filter((e) => !q || [e.name, e.email, e.nip, e.department, e.position].some((f) => (f || "").toLowerCase().includes(q)));
   const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
   const safePage = Math.min(page, totalPages);
@@ -30,6 +35,7 @@ export default function Employees() {
   const load = () => {
     api.get("/admin/employees").then((r) => setEmployees(r.data));
     api.get("/admin/meta/options").then((r) => setOpts(r.data));
+    api.get("/admin/shifts").then((r) => setShifts(r.data));
   };
   useEffect(() => { load(); }, []);
 
@@ -56,6 +62,7 @@ export default function Employees() {
       await api.patch(`/admin/employees/${editFor.id}`, {
         name: editFor.name, nip: editFor.nip, department: editFor.department || "",
         position: editFor.position || "", active: !!editFor.active, card_uid: editFor.card_uid || "",
+        shift_id: editFor.shift_id || "",
         overtime_rate: editFor.overtime_rate === null || editFor.overtime_rate === "" ? null : Number(editFor.overtime_rate),
         base_salary: editFor.base_salary === null || editFor.base_salary === "" ? null : Number(editFor.base_salary),
       });
@@ -98,6 +105,14 @@ export default function Employees() {
           <In label={t("nip")} testid="emp-nip" v={form.nip} set={(v) => setForm({ ...form, nip: v })} />
           <In label={t("card_uid")} testid="emp-card-uid" v={form.card_uid} set={(v) => setForm({ ...form, card_uid: v })} />
           <DeptSelect label={t("department")} testid="emp-department" options={opts.departments || []} value={form.department} onChange={(v) => setForm({ ...form, department: v })} t={t} />
+          <div>
+            <label className="text-xs font-semibold text-slate-500">{t("shifts_menu")}</label>
+            <select data-testid="emp-shift" value={form.shift_id} onChange={(e) => setForm({ ...form, shift_id: e.target.value })}
+              className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm bg-white outline-none focus:border-teal-600">
+              <option value="">—</option>
+              {shifts.map((s) => <option key={s.id} value={s.id}>{s.name} ({s.start}–{s.end})</option>)}
+            </select>
+          </div>
           <In label={t("position")} testid="emp-position" v={form.position} set={(v) => setForm({ ...form, position: v })} />
           <div>
             <In label={t("overtime_rate")} testid="emp-otrate" type="number" v={form.overtime_rate} set={(v) => setForm({ ...form, overtime_rate: v })} />
@@ -135,6 +150,7 @@ export default function Employees() {
                 <th className="px-4 py-3">{t("nip")}</th>
                 <th className="px-4 py-3">{t("department")}</th>
                 <th className="px-4 py-3">{t("position")}</th>
+                <th className="px-4 py-3">{t("shifts_menu")}</th>
                 <th className="px-4 py-3">{t("overtime_rate")}</th>
                 <th className="px-4 py-3">{t("base_salary")}</th>
                 <th className="px-4 py-3">{t("enroll_face")}</th>
@@ -148,6 +164,7 @@ export default function Employees() {
                   <td className="px-4 py-3 font-mono text-xs">{emp.nip}</td>
                   <td className="px-4 py-3">{emp.department || <span className="text-slate-300">—</span>}</td>
                   <td className="px-4 py-3">{emp.position || <span className="text-slate-300">—</span>}</td>
+                  <td className="px-4 py-3 text-slate-600">{shiftName(emp.shift_id)}</td>
                   <td className="px-4 py-3 text-slate-600">{emp.overtime_rate != null ? `Rp ${Number(emp.overtime_rate).toLocaleString("id-ID")}` : <span className="text-slate-300">—</span>}</td>
                   <td className="px-4 py-3 text-slate-600">{emp.base_salary != null ? `Rp ${Number(emp.base_salary).toLocaleString("id-ID")}` : <span className="text-slate-300">—</span>}</td>
                   <td className="px-4 py-3">
@@ -182,7 +199,7 @@ export default function Employees() {
                   </td>
                 </tr>
               ))}
-              {paged.length === 0 && <tr><td colSpan={8} className="px-4 py-8 text-center text-slate-400">{t("no_data")}</td></tr>}
+              {paged.length === 0 && <tr><td colSpan={9} className="px-4 py-8 text-center text-slate-400">{t("no_data")}</td></tr>}
             </tbody>
           </table>
         </div>
@@ -210,6 +227,14 @@ export default function Employees() {
             <In label={t("nip")} testid="edit-emp-nip" v={editFor.nip || ""} set={(v) => setEditFor({ ...editFor, nip: v })} />
             <In label={t("card_uid")} testid="edit-emp-card-uid" v={editFor.card_uid || ""} set={(v) => setEditFor({ ...editFor, card_uid: v })} />
             <DeptSelect label={t("department")} testid="edit-emp-department" options={opts.departments || []} value={editFor.department || ""} onChange={(v) => setEditFor({ ...editFor, department: v })} t={t} />
+            <div>
+              <label className="text-xs font-semibold text-slate-500">{t("shifts_menu")}</label>
+              <select data-testid="edit-emp-shift" value={editFor.shift_id || ""} onChange={(e) => setEditFor({ ...editFor, shift_id: e.target.value })}
+                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm bg-white outline-none focus:border-teal-600">
+                <option value="">—</option>
+                {shifts.map((s) => <option key={s.id} value={s.id}>{s.name} ({s.start}–{s.end})</option>)}
+              </select>
+            </div>
             <In label={t("position")} testid="edit-emp-position" v={editFor.position || ""} set={(v) => setEditFor({ ...editFor, position: v })} />
             <div>
               <In label={t("overtime_rate")} testid="edit-emp-otrate" type="number" v={editFor.overtime_rate} set={(v) => setEditFor({ ...editFor, overtime_rate: v })} />

@@ -8,6 +8,7 @@ import { SCHOOL_TYPES, MAJOR_OPTIONS } from "../schoolTemplates";
 export default function RegisterTrial() {
   const { t } = useTranslation();
   const [form, setForm] = useState({ school_name: "", admin_name: "", email: "", password: "", student_count: "", school_type: "", majors: [], majorOther: "" });
+  const [orgType, setOrgType] = useState(new URLSearchParams(window.location.search).get("type") === "company" ? "company" : "school");
   const [busy, setBusy] = useState(false);
   const [agree, setAgree] = useState(false);
   const [error, setError] = useState(null);
@@ -22,8 +23,9 @@ export default function RegisterTrial() {
       const majors = [...form.majors, ...form.majorOther.split(",").map((s) => s.trim()).filter(Boolean)];
       await api.post("/auth/register-trial", {
         school_name: form.school_name, admin_name: form.admin_name, email: form.email, password: form.password,
-        student_count: form.student_count ? Number(form.student_count) : null,
-        school_type: form.school_type, majors,
+        student_count: orgType === "school" && form.student_count ? Number(form.student_count) : null,
+        school_type: form.school_type, majors, org_type: orgType,
+        employee_count: orgType === "company" && form.student_count ? Number(form.student_count) : null,
       });
       setDone(true);
     } catch (err) { setError(errMsg(err)); } finally { setBusy(false); }
@@ -59,11 +61,20 @@ export default function RegisterTrial() {
             <h2 className="text-white text-2xl font-bold text-center">{t("register_page_title")}</h2>
             <p className="text-slate-400 text-sm text-center mt-2">{t("register_subtitle")}</p>
             <form onSubmit={submit} className="mt-6 space-y-4" data-testid="register-form">
-              <F k="school_name" label={t("school_name")} testid="register-school-name" />
+              <div data-testid="register-org-type" className="grid grid-cols-2 gap-2">
+                {[["school", "org_school"], ["company", "org_company"]].map(([v, k]) => (
+                  <button type="button" key={v} data-testid={`register-org-${v}`} onClick={() => setOrgType(v)}
+                    className={`py-2.5 rounded-xl text-sm font-bold border transition-colors ${orgType === v ? "bg-teal-600 border-teal-500 text-white" : "bg-white/5 border-white/10 text-slate-300 hover:border-teal-500/50"}`}>
+                    {t(k)}
+                  </button>
+                ))}
+              </div>
+              <F k="school_name" label={orgType === "company" ? t("company_name") : t("school_name")} testid="register-school-name" />
               <F k="admin_name" label={t("admin_name")} testid="register-admin-name" />
               <F k="email" label={t("email")} type="email" testid="register-email" />
               <F k="password" label={t("password")} type="password" testid="register-password" />
-              <F k="student_count" label={t("student_count")} type="number" testid="register-student-count" req={false} />
+              <F k="student_count" label={orgType === "company" ? t("employee_count") : t("student_count")} type="number" testid="register-student-count" req={false} />
+              {orgType === "school" && (<>
               <div>
                 <label className="text-xs font-semibold text-slate-400 uppercase tracking-wide">{t("school_type")}</label>
                 <select data-testid="register-school-type" value={form.school_type}
@@ -92,6 +103,7 @@ export default function RegisterTrial() {
                     className="mt-2 w-full rounded-xl bg-white/5 border border-white/10 px-4 py-2.5 text-white text-sm outline-none focus:border-teal-500 transition" />
                 </div>
               )}
+              </>)}
               {error && <p data-testid="register-error" className="text-red-400 text-sm">{error}</p>}
               <label className="flex items-start gap-2.5 text-xs text-slate-300 cursor-pointer">
                 <input type="checkbox" data-testid="register-agree" checked={agree} onChange={(e) => setAgree(e.target.checked)}

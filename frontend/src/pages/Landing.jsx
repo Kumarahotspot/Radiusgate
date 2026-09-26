@@ -5,7 +5,7 @@ import api, { errMsg } from "@/api";
 import {
   ScanFace, MapPin, WifiOff, Tablet, Receipt, Send, Languages, Volume2,
   UserPlus, Camera, FileCheck, MonitorSmartphone, ArrowRight, Check,
-  Wallet, QrCode, BellRing, FileText, MessageCircle, Nfc, Keyboard,
+  Wallet, QrCode, BellRing, FileText, MessageCircle, Nfc, Keyboard, Building2, GraduationCap,
 } from "lucide-react";
 
 const FEATURES = [
@@ -53,6 +53,7 @@ function useInView() {
 
 const WA_MSGS = {
   default: "Halo RadiusGate, saya ingin bertanya tentang program pilot sekolah",
+  solusi: "Halo RadiusGate, saya ingin tahu perbedaan paket Sekolah dan Perusahaan",
   fitur: "Halo RadiusGate, saya ingin tahu lebih detail fitur-fiturnya",
   "cara-kerja": "Halo RadiusGate, saya ingin tahu cara penerapannya di sekolah kami",
   absensi: "Halo RadiusGate, saya ingin tahu tentang absensi siswa",
@@ -97,7 +98,7 @@ export default function Landing() {
 
   const [waMsg, setWaMsg] = useState(WA_MSGS.default);
   useEffect(() => {
-    const ids = ["fitur", "cara-kerja", "absensi", "admin", "pembayaran", "ortu", "harga", "kontak"];
+    const ids = ["solusi", "fitur", "cara-kerja", "absensi", "admin", "pembayaran", "ortu", "harga", "kontak"];
     const io = new IntersectionObserver((entries) => {
       entries.forEach((e) => { if (e.isIntersecting) setWaMsg(WA_MSGS[e.target.id] || WA_MSGS.default); });
     }, { rootMargin: "-40% 0px -40% 0px" });
@@ -145,6 +146,7 @@ export default function Landing() {
           </a>
           <nav className="hidden md:flex items-center gap-6 text-sm font-semibold text-slate-600">
             <a data-testid="nav-link-fitur" href="#fitur" className="hover:text-teal-700 transition-colors">Fitur</a>
+            <a data-testid="nav-link-solusi" href="#solusi" className="hover:text-teal-700 transition-colors">Solusi</a>
             <a data-testid="nav-link-cara-kerja" href="#cara-kerja" className="hover:text-teal-700 transition-colors">Cara Kerja</a>
             <a data-testid="nav-link-absensi" href="#absensi" className="hover:text-teal-700 transition-colors">Absensi</a>
             <a data-testid="nav-link-pembayaran" href="#pembayaran" className="hover:text-teal-700 transition-colors">Pembayaran</a>
@@ -168,7 +170,7 @@ export default function Landing() {
       <section className="max-w-6xl mx-auto px-4 pt-16 pb-20 grid lg:grid-cols-2 gap-12 items-center">
         <div>
           <span className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-teal-700 bg-teal-50 border border-teal-100 rounded-full px-3 py-1.5">
-            Solusi Absensi AI Multi-Tenant untuk Sekolah
+            Solusi Absensi AI Multi-Tenant untuk Sekolah & Perusahaan
           </span>
           <h1 className="mt-5 text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight leading-[1.08]">
             Gerbang Absensi Digital <span className="text-teal-700">Sekolah Masa Kini.</span>
@@ -452,6 +454,42 @@ export default function Landing() {
                 ))}
               </div>
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Dua produk: Sekolah & Perusahaan */}
+      <section id="solusi" data-testid="solutions-section" className="max-w-6xl mx-auto px-4 py-20">
+        <div className="text-center max-w-2xl mx-auto">
+          <span className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-teal-700 bg-teal-50 border border-teal-100 rounded-full px-3 py-1.5">Satu Platform, Dua Solusi</span>
+          <h2 className="mt-5 text-3xl sm:text-4xl font-bold tracking-tight">Pilih Sesuai Organisasi Anda</h2>
+        </div>
+        <div className="mt-10 grid md:grid-cols-2 gap-6">
+          <div data-testid="solution-school" className="bg-white border border-slate-200 rounded-3xl p-7 shadow-sm hover:shadow-xl hover:border-teal-200 transition-all">
+            <span className="w-12 h-12 rounded-2xl bg-teal-700 text-white flex items-center justify-center"><GraduationCap className="w-6 h-6" /></span>
+            <h3 className="mt-4 text-xl font-extrabold">RadiusGate untuk Sekolah</h3>
+            <p className="mt-2 text-sm text-slate-600 leading-relaxed">Absensi siswa & guru, portal orang tua, pembayaran SPP online, dan rekap per mata pelajaran.</p>
+            <ul className="mt-4 space-y-2 text-sm text-slate-700">
+              {["Wajah, RFID, QR & NIS manual", "Portal orang tua + notifikasi WA", "SPP online & kuitansi PDF"].map((x) => (
+                <li key={x} className="flex items-start gap-2"><Check className="w-4 h-4 mt-0.5 text-teal-600 shrink-0" /> {x}</li>
+              ))}
+            </ul>
+            <Link data-testid="solution-school-cta" to="/daftar" className="mt-6 flex items-center justify-center gap-2 w-full bg-teal-700 hover:bg-teal-800 text-white font-bold text-sm py-3 rounded-2xl transition-colors">
+              Daftar Trial Sekolah <ArrowRight className="w-4 h-4" />
+            </Link>
+          </div>
+          <div data-testid="solution-company" className="bg-slate-900 border border-slate-800 rounded-3xl p-7 shadow-sm hover:shadow-xl hover:border-slate-700 transition-all text-white">
+            <span className="w-12 h-12 rounded-2xl bg-emerald-500 text-white flex items-center justify-center"><Building2 className="w-6 h-6" /></span>
+            <h3 className="mt-4 text-xl font-extrabold">RadiusGate untuk Perusahaan</h3>
+            <p className="mt-2 text-sm text-slate-300 leading-relaxed">Absensi karyawan kantor & pabrik: shift kerja, lembur, penggajian, hingga surat peringatan otomatis (SP1–SP3).</p>
+            <ul className="mt-4 space-y-2 text-sm text-slate-200">
+              {["Shift pagi/siang/malam per karyawan", "Lembur & penggajian otomatis", "SP1/SP2/SP3 dari data telat"].map((x) => (
+                <li key={x} className="flex items-start gap-2"><Check className="w-4 h-4 mt-0.5 text-emerald-400 shrink-0" /> {x}</li>
+              ))}
+            </ul>
+            <Link data-testid="solution-company-cta" to="/daftar?type=company" className="mt-6 flex items-center justify-center gap-2 w-full bg-emerald-500 hover:bg-emerald-400 text-white font-bold text-sm py-3 rounded-2xl transition-colors">
+              Daftar Trial Perusahaan <ArrowRight className="w-4 h-4" />
+            </Link>
           </div>
         </div>
       </section>
