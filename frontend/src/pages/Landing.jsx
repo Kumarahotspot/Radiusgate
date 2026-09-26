@@ -286,7 +286,7 @@ export default function Landing() {
           <div className="bg-slate-900 rounded-[2rem] p-6 shadow-2xl">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
-                <img src="/logo-white.png" alt="" className="w-9 h-9 object-contain" />
+                <img src="/logo.png" alt="" className="w-9 h-9 object-contain" />
                 <span className="text-white text-xs font-bold">RadiusGate · Kiosk</span>
               </div>
               <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
@@ -429,7 +429,7 @@ export default function Landing() {
             <div className="absolute -inset-4 sm:-inset-6 bg-gradient-to-br from-slate-200/70 to-emerald-50 rounded-[3rem] -z-10" />
             <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-2xl">
               <div className="flex items-center gap-2.5 pb-4 border-b border-white/10">
-                <img src="/logo-white.png" alt="" className="w-8 h-8 object-contain" />
+                <img src="/logo.png" alt="" className="w-8 h-8 object-contain" />
                 <div>
                   <p className="text-xs font-bold text-white">Absensi Karyawan Hari Ini</p>
                   <p className="text-[10px] text-slate-400">PT Maju Bersama · Shift Pagi</p>
