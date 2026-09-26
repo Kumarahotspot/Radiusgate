@@ -3,7 +3,7 @@ import { initReactI18next } from "react-i18next";
 
 const id = {
   app_name: "RadiusGate",
-  app_tagline: "Gerbang Absensi Digital Sekolah Masa Kini.",
+  app_tagline: "Gerbang Absensi Digital Masa Kini.",
   company_name: "PT. Pusaka Kreasi Mandiri",
   tagline: "Absensi wajah + GPS untuk sekolah modern",
   login: "Masuk",
@@ -600,7 +600,7 @@ const id = {
 
 const en = {
   app_name: "RadiusGate",
-  app_tagline: "The Modern Digital School Attendance Gateway.",
+  app_tagline: "The Modern Digital Attendance Gateway.",
   company_name: "PT. Pusaka Kreasi Mandiri",
   tagline: "Face + GPS attendance for modern schools",
   login: "Sign In",
