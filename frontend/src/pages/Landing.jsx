@@ -875,6 +875,17 @@ export default function Landing() {
 
       {/* FAQ */}
       <section id="faq" data-testid="faq-section" className="max-w-4xl mx-auto px-4 py-20">
+        <script type="application/ld+json" dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "FAQPage",
+            "mainEntity": FAQS.map((f) => ({
+              "@type": "Question",
+              "name": f.q,
+              "acceptedAnswer": { "@type": "Answer", "text": f.a },
+            })),
+          }),
+        }} />
         <div className="text-center">
           <span className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-teal-700 bg-teal-50 border border-teal-100 rounded-full px-3 py-1.5">FAQ</span>
           <h2 className="mt-5 text-3xl sm:text-4xl font-bold tracking-tight">Pertanyaan yang Sering Diajukan</h2>

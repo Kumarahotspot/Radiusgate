@@ -405,4 +405,5 @@
 - `landing-radiusgate.zip` di-rebuild (14.0MB) dan siap diunggah ke Hostinger.
 - Fix tagline footer landing: "Gerbang Absensi Digital Sekolah Masa Kini." → "Gerbang Absensi Digital Masa Kini." (konsisten dual-produk). Zip di-rebuild (15.2MB).
 - **Section FAQ landing** (#faq, 8 pertanyaan sekolah+perusahaan: alat khusus, offline, anti titip absen, shift malam, skema biaya, lembur/payroll, keamanan data multi-tenant, cara mulai). Accordion interaktif (grid-rows animation), nav link "FAQ", WA message khusus. Zip di-rebuild.
+- **Schema.org FAQPage (JSON-LD)** di-inject otomatis dari array FAQS yang sama ke dalam DOM landing — jawaban FAQ berpotensi tampil sebagai rich result di Google Search. Zip di-rebuild (16.4MB).
 - **Fix download landing 500 di VPS**: `frontend/landing-radiusgate.zip` sebelumnya kena `.gitignore` (`**/*.zip`) sehingga tidak pernah sampai ke VPS. Ditambah pengecualian `!frontend/landing-radiusgate.zip` di .gitignore + `git add` agar ikut ter-push saat Save to GitHub.
