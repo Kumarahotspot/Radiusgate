@@ -10,7 +10,8 @@ const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 const Q_KEY = "kiosk_queue";
 const T_KEY = "kiosk_token";
 
-const SAVER_SLIDES = ["/slides/siswa-absen.jpg", "/slides/kiosk.jpg", "/slides/dashboard.jpg"];
+const SAVER_SLIDES_SCHOOL = ["/slides/siswa-absen.jpg", "/slides/kiosk.jpg", "/slides/dashboard.jpg"];
+const SAVER_SLIDES_COMPANY = ["/slides/kantor-absen.jpg", "/slides/pabrik-absen.jpg", "/slides/kantor-dash.jpg"];
 
 const loadQueue = () => JSON.parse(localStorage.getItem(Q_KEY) || "[]");
 const saveQueue = (q) => localStorage.setItem(Q_KEY, JSON.stringify(q));
@@ -264,8 +265,9 @@ export default function Kiosk() {
   const customPhotos = (info?.settings?.saver_photos || []).map(
     (p) => `${process.env.REACT_APP_BACKEND_URL}/api/admin/saver-photos/file/${p}`
   );
+  const defSlides = info?.school?.org_type === "company" ? SAVER_SLIDES_COMPANY : SAVER_SLIDES_SCHOOL;
   const saverSlides = [
-    ...(saverPhotosOn ? (customPhotos.length ? customPhotos : SAVER_SLIDES) : []).map((src) => ({ img: src })),
+    ...(saverPhotosOn ? (customPhotos.length ? customPhotos : defSlides) : []).map((src) => ({ img: src })),
     ...((info?.settings?.saver_notes || [])
       .filter((n) => (n.title || n.body)
         && (!n.valid_from || n.valid_from <= todayStr)
