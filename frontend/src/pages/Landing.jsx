@@ -59,6 +59,7 @@ const WA_MSGS = {
   fitur: "Halo RadiusGate, saya ingin tahu lebih detail fitur-fiturnya",
   "cara-kerja": "Halo RadiusGate, saya ingin tahu cara penerapannya di sekolah kami",
   absensi: "Halo RadiusGate, saya ingin tahu tentang absensi siswa",
+  "absensi-perusahaan": "Halo RadiusGate, saya ingin tahu tentang absensi karyawan untuk perusahaan/pabrik",
   admin: "Halo RadiusGate, saya ingin tahu tentang dashboard admin",
   pembayaran: "Halo RadiusGate, saya ingin tahu tentang pembayaran SPP online",
   ortu: "Halo RadiusGate, saya ingin tahu tentang portal orang tua",
@@ -100,7 +101,7 @@ export default function Landing() {
 
   const [waMsg, setWaMsg] = useState(WA_MSGS.default);
   useEffect(() => {
-    const ids = ["solusi", "fitur", "cara-kerja", "absensi", "admin", "pembayaran", "ortu", "harga", "kontak"];
+    const ids = ["solusi", "fitur", "cara-kerja", "absensi", "absensi-perusahaan", "admin", "pembayaran", "ortu", "harga", "kontak"];
     const io = new IntersectionObserver((entries) => {
       entries.forEach((e) => { if (e.isIntersecting) setWaMsg(WA_MSGS[e.target.id] || WA_MSGS.default); });
     }, { rootMargin: "-40% 0px -40% 0px" });
@@ -339,6 +340,79 @@ export default function Landing() {
                 ))}
               </div>
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Contoh absensi karyawan (perusahaan) */}
+      <section id="absensi-perusahaan" data-testid="absensi-perusahaan-section" className="max-w-6xl mx-auto px-4 py-20">
+        <div className="grid lg:grid-cols-2 gap-12 items-center">
+          <div className="order-2 lg:order-1 relative mx-auto w-full max-w-md">
+            <div className="absolute -inset-4 sm:-inset-6 bg-gradient-to-br from-slate-200/70 to-emerald-50 rounded-[3rem] -z-10" />
+            <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-2xl">
+              <div className="flex items-center gap-2.5 pb-4 border-b border-white/10">
+                <img src="/logo-white.png" alt="" className="w-8 h-8 object-contain" />
+                <div>
+                  <p className="text-xs font-bold text-white">Absensi Karyawan Hari Ini</p>
+                  <p className="text-[10px] text-slate-400">PT Maju Bersama · Shift Pagi</p>
+                </div>
+                <span className="ml-auto flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-400/20">
+                  <Nfc className="w-3 h-3" /> RFID + Shift
+                </span>
+              </div>
+              <div className="py-2 divide-y divide-white/5 text-xs">
+                {[
+                  ["Rina Marlina", "Produksi · Shift Pagi", "06:52", "Hadir", "bg-emerald-500/15 text-emerald-300"],
+                  ["Budi Hartono", "Gudang · Shift Pagi", "07:03", "Hadir", "bg-emerald-500/15 text-emerald-300"],
+                  ["Joko Santoso", "Produksi · Shift Pagi", "07:21", "Telat +21m", "bg-amber-500/15 text-amber-300"],
+                  ["Siti Rahayu", "HRD · Shift Pagi", "17:42", "Lembur +2j", "bg-teal-500/15 text-teal-300"],
+                  ["Agus Wijaya", "Produksi · Shift Malam", "—", "Cuti", "bg-sky-500/15 text-sky-300"],
+                ].map(([nama, dept, jam, st, cls]) => (
+                  <div key={nama} className="flex items-center gap-3 py-2.5">
+                    <span className="w-8 h-8 rounded-full bg-emerald-500/15 text-emerald-300 text-[10px] font-extrabold flex items-center justify-center shrink-0">
+                      {nama.split(" ").map((w) => w[0]).slice(0, 2).join("")}
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <p className="font-bold text-white truncate">{nama}</p>
+                      <p className="text-[10px] text-slate-400">{dept}</p>
+                    </div>
+                    <span className="font-mono text-slate-400">{jam}</span>
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap ${cls}`}>{st}</span>
+                  </div>
+                ))}
+              </div>
+              <div className="pt-3 border-t border-white/10 flex flex-wrap gap-1.5">
+                {[["Hadir", "128", "bg-emerald-500/10 text-emerald-300 border-emerald-400/20"],
+                  ["Telat", "6", "bg-amber-500/10 text-amber-300 border-amber-400/20"],
+                  ["Lembur", "12", "bg-teal-500/10 text-teal-300 border-teal-400/20"],
+                  ["Shift Malam", "20", "bg-sky-500/10 text-sky-300 border-sky-400/20"]].map(([label, val, cls]) => (
+                  <span key={label} className={`text-[10px] font-bold border rounded-full px-2.5 py-1 ${cls}`}>{label} {val}</span>
+                ))}
+              </div>
+            </div>
+          </div>
+          <div className="order-1 lg:order-2">
+            <span className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-emerald-700 bg-emerald-50 border border-emerald-100 rounded-full px-3 py-1.5">
+              Absensi Karyawan Real-Time
+            </span>
+            <h2 className="mt-5 text-3xl sm:text-4xl font-bold tracking-tight">Setiap Karyawan Clock-In, <span className="text-emerald-600">HRD Tahu Detik Itu Juga.</span></h2>
+            <p className="mt-4 text-slate-600 text-sm sm:text-base leading-relaxed max-w-lg">
+              Kantor maupun pabrik: karyawan absen via wajah, kartu RFID, atau QR di kiosk — keterlambatan dihitung
+              dari jam shift masing-masing, lembur dan penggajian terekap otomatis.
+            </p>
+            <ul className="mt-6 space-y-2.5 text-sm text-slate-700">
+              {[
+                "Shift kerja pagi/siang/malam dengan jam berbeda per karyawan",
+                "Lembur otomatis dari jam pulang, langsung masuk rekap penggajian",
+                "SP1/SP2/SP3 otomatis disarankan dari jumlah keterlambatan",
+                "Rekap harian & bulanan per departemen, siap export Excel & PDF",
+              ].map((x) => (
+                <li key={x} className="flex items-start gap-2.5"><Check className="w-4 h-4 mt-0.5 text-emerald-600 shrink-0" /> {x}</li>
+              ))}
+            </ul>
+            <Link data-testid="absensi-company-cta" to="/daftar?type=company" className="mt-7 inline-flex items-center gap-2 bg-slate-900 hover:bg-slate-800 text-white font-bold text-sm px-6 py-3 rounded-2xl transition-colors">
+              Coba untuk Perusahaan <ArrowRight className="w-4 h-4" />
+            </Link>
           </div>
         </div>
       </section>
