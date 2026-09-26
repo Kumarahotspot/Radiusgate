@@ -33,7 +33,9 @@ const STEPS = [
 const SLIDES = [
   { src: "/slides/siswa-absen.jpg", title: "Siswa absen wajah di gerbang sekolah", sub: "Kiosk RadiusGate · verifikasi < 3 detik" },
   { src: "/slides/kiosk.jpg", title: "Kiosk tablet anti titip absen", sub: "Face recognition + liveness + GPS geofence" },
-  { src: "/slides/dashboard.jpg", title: "Admin memantau laporan real-time", sub: "Rekap harian, keterlambatan & SPP satu dasbor" },
+  { src: "/slides/kantor-absen.jpg", title: "Karyawan absen di kiosk lobi kantor", sub: "Wajah, kartu RFID, atau QR — tanpa alat khusus" },
+  { src: "/slides/pabrik-absen.jpg", title: "Clock-in shift pabrik pagi/siang/malam", sub: "Jam shift per karyawan, telat & lembur dihitung otomatis" },
+  { src: "/slides/dashboard.jpg", title: "Admin & HRD memantau laporan real-time", sub: "Rekap harian, keterlambatan, SPP & penggajian satu dasbor" },
 ];
 
 function useInView() {
@@ -173,11 +175,11 @@ export default function Landing() {
             Solusi Absensi AI Multi-Tenant untuk Sekolah & Perusahaan
           </span>
           <h1 className="mt-5 text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight leading-[1.08]">
-            Gerbang Absensi Digital <span className="text-teal-700">Sekolah Masa Kini.</span>
+            Gerbang Absensi Digital <span className="text-teal-700">Masa Kini.</span>
           </h1>
           <p className="mt-5 text-base text-slate-600 leading-relaxed max-w-lg">
-            Presensi siswa & guru berbasis pengenalan wajah ArcFace, liveness anti-spoofing, dan GPS geofence.
-            Lengkap dengan pembayaran uang sekolah online (QRIS, VA, e-wallet) — tanpa alat khusus, cukup HP atau tablet.
+            Presensi siswa, guru & karyawan berbasis pengenalan wajah ArcFace, liveness anti-spoofing, dan GPS geofence.
+            SPP online untuk sekolah, shift & penggajian untuk perusahaan — tanpa alat khusus, cukup HP atau tablet.
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
             <a data-testid="hero-cta-pilot" href="#kontak"
