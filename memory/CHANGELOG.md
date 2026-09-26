@@ -395,3 +395,4 @@
 - Testing agent iterasi 19: backend 100%, frontend 95% — 2 polish UI (judul register dinamis, kartu stat dasbor HRD) difix di hari yang sama.
 - Akun uji baru: PT Maju Bersama (company) — hrd@majubersama.co.id / Hrd12345!.
 - Fix polish iterasi 19: judul halaman daftar dinamis ("Daftar Trial Perusahaan Gratis" saat mode company); kartu statistik AdminDashboard mode company kini menampilkan Telat/Pengajuan/Karyawan Hadir/Total Karyawan (tanpa kartu Guru/Siswa). Regresi sekolah terverifikasi (7 kartu utuh).
+- **Logo baru berwarna** (dari user): diproses otomatis via PIL/numpy — crop bar hitam, split ikon vs teks (deteksi celah terluas), soft-key putih→transparan. Hasil: `logo.png` (ikon berwarna transparan 710px), `logo-white.png` (siluet putih untuk bg gelap), `logo-full.png` (ikon+teks horizontal), `icon-192/512.png` (PWA, bg teal-800), `backend/assets/logo.png` (kop PDF). Zip landing di-rebuild (8MB). Backup logo lama di /tmp/logo_backup.
