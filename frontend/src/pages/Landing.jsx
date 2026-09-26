@@ -908,7 +908,7 @@ export default function Landing() {
             <img src="/logo-white.png" alt="RadiusGate" className="w-11 h-11 object-contain" />
             <div>
               <p className="text-white font-bold text-sm">RadiusGate</p>
-              <p className="text-xs">Gerbang Absensi Digital Sekolah Masa Kini.</p>
+              <p className="text-xs">Gerbang Absensi Digital Masa Kini.</p>
             </div>
           </div>
           <nav className="flex flex-wrap items-center justify-center gap-5 text-xs font-semibold">

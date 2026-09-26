@@ -403,4 +403,5 @@
   - Mode Perusahaan: 3 tier card (Trial 14 Hari Rp 0, Paket Basic UMKM Rp 7.500/karyawan/bln, Paket Pro + Payroll Rp 12.500/karyawan/bln) + Kalkulator slider karyawan interaktif (10-500 karyawan, toggle Basic/Pro).
   - Mode Sekolah: Paket Lengkap Rp 8.000/siswa/bln + kalkulator siswa (50-2500 siswa).
 - `landing-radiusgate.zip` di-rebuild (14.0MB) dan siap diunggah ke Hostinger.
+- Fix tagline footer landing: "Gerbang Absensi Digital Sekolah Masa Kini." → "Gerbang Absensi Digital Masa Kini." (konsisten dual-produk). Zip di-rebuild (15.2MB).
 - **Fix download landing 500 di VPS**: `frontend/landing-radiusgate.zip` sebelumnya kena `.gitignore` (`**/*.zip`) sehingga tidak pernah sampai ke VPS. Ditambah pengecualian `!frontend/landing-radiusgate.zip` di .gitignore + `git add` agar ikut ter-push saat Save to GitHub.
