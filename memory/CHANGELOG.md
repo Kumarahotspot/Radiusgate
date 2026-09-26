@@ -412,4 +412,5 @@
 - Logo footer landing diganti dari `logo-white.png` (siluet putih) ke `logo.png` (ikon berwarna) sesuai permintaan user. Zip di-rebuild (22MB).
 - Logo putih di mockup kiosk hero & kartu mockup absensi perusahaan juga diganti ke versi berwarna — kini seluruh landing konsisten memakai logo berwarna. Zip di-rebuild (23.4MB).
 - **Konten legal diperbarui untuk dual-audiens** (`LegalPage.jsx` /privasi & /syarat): kini mencakup perusahaan (data shift, lembur, penggajian, SP), UU PDP, dan batasan tanggung jawab data kehadiran/penggajian. Route /privasi & /syarat sudah terhubung dari footer landing. Zip di-rebuild (24.5MB).
+- Verifikasi: checkbox persetujuan "Kebijakan Privasi & Syarat dan Ketentuan" di form trial TERNYATA sudah wajib (submit tanpa centang → error agree_required) dan sudah tertaut ke /privasi & /syarat (target _blank). Tidak perlu perubahan kode.
 - **Fix download landing 500 di VPS**: `frontend/landing-radiusgate.zip` sebelumnya kena `.gitignore` (`**/*.zip`) sehingga tidak pernah sampai ke VPS. Ditambah pengecualian `!frontend/landing-radiusgate.zip` di .gitignore + `git add` agar ikut ter-push saat Save to GitHub.
