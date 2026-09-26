@@ -765,7 +765,7 @@ export default function Landing() {
                       ))}
                     </ul>
                   </div>
-                  <Link data-testid="plan-free-cta" to="/daftar?type=company" className="mt-8 flex items-center justify-center gap-1.5 w-full bg-slate-700 hover:bg-slate-600 text-white font-bold text-xs py-3 rounded-xl transition-colors">
+                  <Link data-testid="plan-free-cta" to="/daftar?type=company&plan=trial" className="mt-8 flex items-center justify-center gap-1.5 w-full bg-slate-700 hover:bg-slate-600 text-white font-bold text-xs py-3 rounded-xl transition-colors">
                     Daftar Trial Gratis <ArrowRight className="w-3.5 h-3.5" />
                   </Link>
                 </div>
@@ -793,7 +793,7 @@ export default function Landing() {
                       ))}
                     </ul>
                   </div>
-                  <Link data-testid="plan-basic-cta" to="/daftar?type=company" className="mt-8 flex items-center justify-center gap-1.5 w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs py-3 rounded-xl transition-colors">
+                  <Link data-testid="plan-basic-cta" to="/daftar?type=company&plan=basic" className="mt-8 flex items-center justify-center gap-1.5 w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs py-3 rounded-xl transition-colors">
                     Pilih Paket Basic <ArrowRight className="w-3.5 h-3.5" />
                   </Link>
                 </div>
@@ -824,7 +824,7 @@ export default function Landing() {
                       ))}
                     </ul>
                   </div>
-                  <Link data-testid="plan-pro-cta" to="/daftar?type=company" className="mt-8 flex items-center justify-center gap-1.5 w-full bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold text-xs py-3 rounded-xl transition-colors shadow-lg shadow-emerald-500/25">
+                  <Link data-testid="plan-pro-cta" to="/daftar?type=company&plan=pro" className="mt-8 flex items-center justify-center gap-1.5 w-full bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold text-xs py-3 rounded-xl transition-colors shadow-lg shadow-emerald-500/25">
                     Mulai Trial Paket Pro <ArrowRight className="w-3.5 h-3.5" />
                   </Link>
                 </div>
@@ -870,7 +870,7 @@ export default function Landing() {
                     </span>
                     <span className="text-xs text-slate-400 ml-1">/ bulan</span>
                   </div>
-                  <Link data-testid="calc-emp-cta" to="/daftar?type=company"
+                  <Link data-testid="calc-emp-cta" to={`/daftar?type=company&plan=${empPlan}`}
                     className="flex items-center gap-2 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs px-5 py-3 rounded-xl transition-colors">
                     Daftar Sekarang <ArrowRight className="w-4 h-4" />
                   </Link>
@@ -923,7 +923,7 @@ export default function Landing() {
                   <span className="text-sm font-semibold text-slate-600">Estimasi per bulan</span>
                   <span data-testid="calc-total" className="text-2xl font-extrabold text-teal-800">{rupiah(students * 8000)}</span>
                 </div>
-                <Link data-testid="pricing-school-cta" to="/daftar"
+                <Link data-testid="pricing-school-cta" to="/daftar?plan=sekolah"
                   className="mt-5 flex items-center justify-center gap-2 w-full bg-teal-700 hover:bg-teal-800 text-white font-bold text-sm py-3.5 rounded-2xl transition-colors">
                   Daftar Trial Sekolah Gratis <ArrowRight className="w-4 h-4" />
                 </Link>

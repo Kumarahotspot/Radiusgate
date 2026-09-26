@@ -9,6 +9,7 @@ export default function RegisterTrial() {
   const { t } = useTranslation();
   const [form, setForm] = useState({ school_name: "", admin_name: "", email: "", password: "", student_count: "", school_type: "", majors: [], majorOther: "" });
   const [orgType, setOrgType] = useState(new URLSearchParams(window.location.search).get("type") === "company" ? "company" : "school");
+  const [plan, setPlan] = useState(new URLSearchParams(window.location.search).get("plan") || "trial");
   const [busy, setBusy] = useState(false);
   const [agree, setAgree] = useState(false);
   const [error, setError] = useState(null);
@@ -25,6 +26,7 @@ export default function RegisterTrial() {
         school_name: form.school_name, admin_name: form.admin_name, email: form.email, password: form.password,
         student_count: orgType === "school" && form.student_count ? Number(form.student_count) : null,
         school_type: form.school_type, majors, org_type: orgType,
+        plan: orgType === "company" ? plan : "sekolah",
         employee_count: orgType === "company" && form.student_count ? Number(form.student_count) : null,
       });
       setDone(true);
@@ -69,6 +71,16 @@ export default function RegisterTrial() {
                   </button>
                 ))}
               </div>
+              {orgType === "company" && (
+                <div data-testid="register-plan" className="grid grid-cols-3 gap-2">
+                  {[["trial", "Trial 14 Hari", "Rp 0"], ["basic", "Basic", "Rp 7.500/krywn"], ["pro", "Pro + Payroll", "Rp 12.500/krywn"]].map(([v, l, p]) => (
+                    <button type="button" key={v} data-testid={`register-plan-${v}`} onClick={() => setPlan(v)}
+                      className={`py-2 px-1 rounded-xl text-[11px] font-bold border transition-colors ${plan === v ? "bg-emerald-600 border-emerald-500 text-white" : "bg-white/5 border-white/10 text-slate-300 hover:border-emerald-500/50"}`}>
+                      {l}<span className="block text-[9px] font-semibold opacity-80">{p}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
               <F k="school_name" label={orgType === "company" ? t("company_name") : t("school_name")} testid="register-school-name" />
               <F k="admin_name" label={t("admin_name")} testid="register-admin-name" />
               <F k="email" label={t("email")} type="email" testid="register-email" />

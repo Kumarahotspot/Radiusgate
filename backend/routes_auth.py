@@ -147,6 +147,7 @@ class TrialIn(BaseModel):
     majors: list[str] = []
     org_type: str = "school"
     employee_count: int | None = None
+    plan: str = ""
 
 
 @router.post("/auth/register-trial")
@@ -168,9 +169,11 @@ async def register_trial(body: TrialIn):
     if org == "company":
         school_doc["rate_per_employee"] = 10000
         school_doc["employee_count_manual"] = body.employee_count
+        school_doc["plan"] = body.plan if body.plan in ("trial", "basic", "pro") else "trial"
     else:
         school_doc["rate_per_student"] = 8000
         school_doc["student_count_manual"] = body.student_count
+        school_doc["plan"] = "sekolah"
     await db.schools.insert_one(school_doc)
     st_doc = {"school_id": sid, "work_start": "07:00", "work_end": "15:00",
               "late_tolerance_min": 10, "early_checkin_min": 60, "timezone": "Asia/Jakarta"}
@@ -189,6 +192,7 @@ async def register_trial(body: TrialIn):
         "id": str(uuid.uuid4()), "school_name": body.school_name, "contact_person": body.admin_name,
         "email": body.email.lower(), "phone": "", "student_count": body.student_count,
         "school_type": body.school_type, "majors": majors, "org_type": org,
+        "plan": body.plan if body.plan else ("sekolah" if org == "school" else "trial"),
         "message": "Mendaftar self-service trial", "source": "self_service_trial",
         "status": "new", "school_id": sid, "created_at": now_iso(),
     })
