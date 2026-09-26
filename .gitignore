@@ -91,3 +91,6 @@ credentials.json
 *.key
 .credentials
 frontend/node_modules/.cache/default-development/0.pack
+
+# landing page build untuk Hostinger ikut ter-commit
+!frontend/landing-radiusgate.zip
