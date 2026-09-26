@@ -1,0 +1,32 @@
+{
+  "summary": "Regression + new feature testing for org_type (school/company). Verified: (1) /daftar toggle Sekolah/Perusahaan swaps labels (Nama Sekolah↔Nama Perusahaan, Jumlah Siswa↔Jumlah Karyawan, hides Tipe Sekolah & Jurusan in company mode); /daftar?type=company auto-selects Perusahaan. (2) Company login hrd@majubersama.co.id shows header 'Portal HRD' with menu Dasbor, Karyawan, Lembur, Shift Kerja, Surat Peringatan, Pengaturan, Izin/Cuti, Laporan, Tagihan — no Guru/Siswa/SPP menus. (3) Shifts CRUD works (POST/GET/DELETE Shift Malam 21:00-05:00 verified via API + UI shows Shift Pagi). (4) Employees page shows Karyawan Uji with Shift Pagi. (5) Warnings page (school demo, Sep 2026) shows SP1 Kumara Evan Janottama, PDF downloaded (334769 bytes). (6) Settings (company) has 'Tipe Organisasi' card and SP1/SP2/SP3 thresholds visible. (7) Reports page: 'Tampilkan' selector above table with options [20,50,100,200,500,1000]; shortcut buttons Hari Ini/Minggu Ini/Bulan Ini/Semester Ini change Dari/Sampai (verified: Bulan Ini → 2026-09-01..2026-09-26). (8) School regression: Portal Admin Sekolah header with full menu (Guru, Siswa, Karyawan, Lembur, Pengaturan, Izin/Cuti, Laporan, SPP & Tagihan, Tagihan). (9) Landing page has 'Pilih Sesuai Organisasi Anda' section with 2 cards; 'Daftar Trial Perusahaan' href=/daftar?type=company. (10) Mobile 390px: /admin/shifts and /admin/warnings render without page overflow (tables scroll horizontally within container).",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [
+      {"component": "RegisterTrial", "issue": "Page title stays 'Daftar Trial Sekolah Gratis' even after selecting Perusahaan toggle; should be 'Daftar Trial Perusahaan Gratis' or generic", "selector": "h1 on /daftar", "priority": "LOW"},
+      {"component": "AdminDashboard (company mode)", "issue": "Portal HRD dashboard still shows stat cards 'Total Guru' and 'Total Siswa' (values 0); these should be hidden for org_type=company and replaced with company-appropriate metrics (e.g., Total Karyawan, Lembur Menunggu)", "selector": "stat cards on /admin", "priority": "MEDIUM"}
+    ],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "/admin (Portal HRD)", "issues": ["Stat cards mixing school metrics with company context reduces UX clarity for HRD users"]}
+    ]
+  },
+  "test_report_links": [],
+  "action_items": [
+    "Hide/replace 'Total Guru' and 'Total Siswa' stat cards on AdminDashboard when org_type=company (show Total Karyawan, Karyawan Hadir instead)",
+    "Update RegisterTrial page heading and CTA label dynamically based on selected toggle (Sekolah/Perusahaan)"
+  ],
+  "critical_code_review_comments": [
+    "Layout.jsx correctly filters menu items by org_type and sets portalLbl='Portal HRD' — good.",
+    "routes_admin.py /admin/warnings endpoints properly scoped by school_id, PDF gen works and returns application/pdf.",
+    "AdminDashboard.jsx should conditionally render stat cards based on org_type to avoid confusing HRD users with Guru/Siswa metrics."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "100%", "frontend": "95%"},
+  "test_credentials": "hrd@majubersama.co.id / Hrd12345! (company); admin@nusantara.sch.id / Admin123! (school demo)",
+  "seed_data_creation": "Created + deleted transient shift 'Shift Malam Test' via API to verify CRUD. No persistent test data left.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "All core org_type flows work end-to-end. Only cosmetic issues on RegisterTrial title and AdminDashboard stat cards for company. Backend /admin/shifts, /admin/warnings/{candidates,issue,list,pdf}, /admin/settings and register-trial with org_type all verified. Reports pagination + date shortcuts + MonthYearPicker regression OK.",
+  "rca of the issue": "N/A — no critical bug found. Minor UX polish items only."
+}

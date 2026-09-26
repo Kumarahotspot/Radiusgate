@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import api, { errMsg } from "../../api";
+import { useAuth } from "../../context/AuthContext";
 import { Users, Clock, CalendarClock, GraduationCap, UserCheck, Trash2, BookOpen, Search, ChevronLeft, ChevronRight, ChevronDown, X } from "lucide-react";
 
 const HSIA = [
@@ -28,6 +29,7 @@ function HsiaButtons({ t, current, markBusy, busyKey, onPick, testidPrefix }) {
 
 export default function AdminDashboard() {
   const { t } = useTranslation();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [stats, setStats] = useState(null);
   const [today, setToday] = useState([]);
@@ -95,14 +97,22 @@ export default function AdminDashboard() {
   };
 
   const toggleFlt = (v) => setFlt((cur) => (cur === v ? "" : v));
+  const isCompany = user?.org_type === "company";
   const cards = stats ? [
-    { icon: UserCheck, label: t("present_today"), val: stats.present_today, testid: "stat-present", on: () => toggleFlt("teacher"), active: flt === "teacher" },
-    { icon: BookOpen, label: t("students_present"), val: stats.students_present ?? 0, testid: "stat-students-present", on: () => toggleFlt("student"), active: flt === "student" },
+    ...(isCompany ? [] : [
+      { icon: UserCheck, label: t("present_today"), val: stats.present_today, testid: "stat-present", on: () => toggleFlt("teacher"), active: flt === "teacher" },
+      { icon: BookOpen, label: t("students_present"), val: stats.students_present ?? 0, testid: "stat-students-present", on: () => toggleFlt("student"), active: flt === "student" },
+    ]),
     { icon: Clock, label: t("late_today"), val: stats.late_today, testid: "stat-late", on: () => toggleFlt("late"), active: flt === "late" },
     { icon: CalendarClock, label: t("pending_leaves"), val: stats.pending_leaves, testid: "stat-leaves", on: () => navigate("/admin/leaves") },
-    { icon: Users, label: t("total_teachers"), val: stats.total_teachers, testid: "stat-teachers", on: () => navigate("/admin/teachers") },
-    { icon: GraduationCap, label: t("total_students"), val: stats.total_students, testid: "stat-students", on: () => navigate("/admin/students") },
-    { icon: Users, label: t("employees_present"), val: stats.employees_present ?? 0, testid: "stat-employees", on: () => toggleFlt("employee"), active: flt === "employee" },
+    ...(isCompany ? [
+      { icon: UserCheck, label: t("employees_present"), val: stats.employees_present ?? 0, testid: "stat-employees", on: () => toggleFlt("employee"), active: flt === "employee" },
+      { icon: Users, label: t("total_employees"), val: stats.total_employees ?? 0, testid: "stat-total-employees", on: () => navigate("/admin/employees") },
+    ] : [
+      { icon: Users, label: t("total_teachers"), val: stats.total_teachers, testid: "stat-teachers", on: () => navigate("/admin/teachers") },
+      { icon: GraduationCap, label: t("total_students"), val: stats.total_students, testid: "stat-students", on: () => navigate("/admin/students") },
+      { icon: Users, label: t("employees_present"), val: stats.employees_present ?? 0, testid: "stat-employees", on: () => toggleFlt("employee"), active: flt === "employee" },
+    ]),
   ] : [];
 
   return (

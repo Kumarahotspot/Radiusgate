@@ -384,3 +384,14 @@
 - Revisi atas permintaan user: `PagerBar` dipindah dari bawah ke ATAS tabel (border-t → border-b) di semua tab laporan. Terverifikasi via screenshot per-tab (Harian/Per Mapel/Per Siswa/Per Guru): pager berada di atas tabel, dropdown interaktif, mobile aman.
 - Picker Rekap Bulanan diganti dari `input type="month"` mentah menjadi komponen `MonthYearPicker` (dropdown Bulan nama lengkap + Tahun) di halaman Absen Mapel guru (`TeacherSubjectAtt.jsx`) dan Laporan admin tab Per Mapel (`Reports.jsx`). Teruji: dropdown bulan/tahun muncul, ganti bulan interaktif, mobile tanpa overflow.
 - Shortcut rentang tanggal (komponen `RangeShortcuts` di `Reports.jsx` + key i18n `range_today/week/month/semester` ID+EN): tombol Hari Ini, Minggu Ini (mulai Senin), Bulan Ini, Semester Ini (Jul–Des / Jan–Jun) di semua kartu filter Dari–Sampai halaman Laporan (Harian, Per Mapel, Per Siswa/Guru/Karyawan). Teruji: Bulan Ini → 2026-09-01, Hari Ini → hari ini, Semester → 2026-07-01; mobile aman.
+
+## 2026-09-26 — Mode Perusahaan (org_type)
+- **Tipe organisasi Sekolah/Perusahaan**: field `org_type` di dokumen schools ("school" default). Pilihan saat daftar trial (`?type=company` preselect), bisa diubah admin di Pengaturan (kartu Tipe Organisasi). Login & `/auth/me` menyertakan `org_type`.
+- **Menu & istilah mode Perusahaan** (Layout.jsx): menyembunyikan Guru/Siswa/SPP, menambah Shift Kerja & Surat Peringatan, label portal "Portal HRD".
+- **Shift kerja**: CRUD `/api/admin/shifts`; karyawan punya `shift_id`; kiosk menilai telat/lembur berdasarkan jam shift (`_record` override work_start/end).
+- **SP1/SP2/SP3**: ambang di settings `sp_thresholds` (default 3/6/10). Endpoint `/admin/warnings/candidates|issue|{id}/pdf`. Surat SP PDF formal via `build_warning_letter_pdf`. Halaman Warnings.jsx.
+- **Billing perusahaan**: invoice dari jumlah karyawan × `rate_per_employee` (default Rp 10.000), `unit_label` di invoice+PDF.
+- **Landing**: seksi "Satu Platform, Dua Solusi" + nav "Solusi"; `landing-radiusgate.zip` di-rebuild (6.3MB).
+- Testing agent iterasi 19: backend 100%, frontend 95% — 2 polish UI (judul register dinamis, kartu stat dasbor HRD) difix di hari yang sama.
+- Akun uji baru: PT Maju Bersama (company) — hrd@majubersama.co.id / Hrd12345!.
+- Fix polish iterasi 19: judul halaman daftar dinamis ("Daftar Trial Perusahaan Gratis" saat mode company); kartu statistik AdminDashboard mode company kini menampilkan Telat/Pengajuan/Karyawan Hadir/Total Karyawan (tanpa kartu Guru/Siswa). Regresi sekolah terverifikasi (7 kartu utuh).

@@ -58,7 +58,7 @@ export default function RegisterTrial() {
           </div>
         ) : (
           <>
-            <h2 className="text-white text-2xl font-bold text-center">{t("register_page_title")}</h2>
+            <h2 className="text-white text-2xl font-bold text-center">{orgType === "company" ? t("register_page_title_company") : t("register_page_title")}</h2>
             <p className="text-slate-400 text-sm text-center mt-2">{t("register_subtitle")}</p>
             <form onSubmit={submit} className="mt-6 space-y-4" data-testid="register-form">
               <div data-testid="register-org-type" className="grid grid-cols-2 gap-2">
