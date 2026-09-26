@@ -115,6 +115,25 @@ export default function Landing() {
   const [admRef, admIn] = useInView();
   const [ortuRef, ortuIn] = useInView();
 
+  // deep-link harga: #harga-perusahaan / #harga-sekolah (bisa di-share via WA)
+  useEffect(() => {
+    const apply = () => {
+      const h = window.location.hash;
+      if (h === "#harga-perusahaan" || h === "#harga-sekolah") {
+        setPriceTab(h === "#harga-perusahaan" ? "company" : "school");
+        setTimeout(() => document.getElementById("harga")?.scrollIntoView({ behavior: "smooth" }), 400);
+      }
+    };
+    apply();
+    window.addEventListener("hashchange", apply);
+    return () => window.removeEventListener("hashchange", apply);
+  }, []);
+
+  const pickPriceTab = (v) => {
+    setPriceTab(v);
+    window.history.replaceState(null, "", v === "company" ? "#harga-perusahaan" : "#harga-sekolah");
+  };
+
   const [waMsg, setWaMsg] = useState(WA_MSGS.default);
   useEffect(() => {
     const ids = ["solusi", "fitur", "cara-kerja", "absensi", "absensi-perusahaan", "admin", "pembayaran", "ortu", "harga", "faq", "kontak"];
@@ -715,11 +734,11 @@ export default function Landing() {
 
             {/* Toggle Sekolah / Perusahaan */}
             <div data-testid="pricing-tab-toggle" className="mt-8 inline-flex p-1.5 bg-slate-800 rounded-2xl border border-slate-700">
-              <button type="button" data-testid="pricing-tab-company" onClick={() => setPriceTab("company")}
+              <button type="button" data-testid="pricing-tab-company" onClick={() => pickPriceTab("company")}
                 className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold transition-all ${priceTab === "company" ? "bg-emerald-500 text-white shadow-lg" : "text-slate-400 hover:text-white"}`}>
                 <Building2 className="w-4 h-4" /> Untuk Perusahaan & Pabrik
               </button>
-              <button type="button" data-testid="pricing-tab-school" onClick={() => setPriceTab("school")}
+              <button type="button" data-testid="pricing-tab-school" onClick={() => pickPriceTab("school")}
                 className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold transition-all ${priceTab === "school" ? "bg-teal-600 text-white shadow-lg" : "text-slate-400 hover:text-white"}`}>
                 <GraduationCap className="w-4 h-4" /> Untuk Sekolah
               </button>
