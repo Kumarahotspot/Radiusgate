@@ -5,7 +5,7 @@ import api, { errMsg } from "@/api";
 import {
   ScanFace, MapPin, WifiOff, Tablet, Receipt, Send, Languages, Volume2,
   UserPlus, Camera, FileCheck, MonitorSmartphone, ArrowRight, Check,
-  Wallet, QrCode, BellRing, FileText, MessageCircle, Nfc, Keyboard, Building2, GraduationCap,
+  Wallet, QrCode, BellRing, FileText, MessageCircle, Nfc, Keyboard, Building2, GraduationCap, ChevronDown,
 } from "lucide-react";
 
 const FEATURES = [
@@ -60,12 +60,24 @@ const WA_MSGS = {
   "cara-kerja": "Halo RadiusGate, saya ingin tahu cara penerapannya di sekolah kami",
   absensi: "Halo RadiusGate, saya ingin tahu tentang absensi siswa",
   "absensi-perusahaan": "Halo RadiusGate, saya ingin tahu tentang absensi karyawan untuk perusahaan/pabrik",
+  faq: "Halo RadiusGate, saya punya pertanyaan yang belum terjawab di FAQ",
   admin: "Halo RadiusGate, saya ingin tahu tentang dashboard admin",
   pembayaran: "Halo RadiusGate, saya ingin tahu tentang pembayaran SPP online",
   ortu: "Halo RadiusGate, saya ingin tahu tentang portal orang tua",
   harga: "Halo RadiusGate, saya ingin tanya harga RadiusGate",
   kontak: "Halo RadiusGate, saya ingin mendaftar program pilot sekolah",
 };
+
+const FAQS = [
+  { q: "Apakah harus membeli mesin absensi khusus yang mahal?", a: "Tidak. RadiusGate berjalan di tablet, HP, atau komputer biasa sebagai kiosk. Untuk kartu RFID cukup reader USB standar (sekitar Rp 50 ribu) yang plug & play — tanpa instalasi driver apa pun." },
+  { q: "Bagaimana jika internet di lokasi mati?", a: "Kiosk tetap berfungsi penuh dalam mode offline. Semua absensi tersimpan aman di perangkat dan otomatis tersinkron ke server begitu internet kembali tersambung." },
+  { q: "Apakah benar-benar anti titip absen?", a: "Ya. Verifikasi wajah ArcFace dengan liveness detection menolak foto dan video HP, ditambah GPS geofence yang memastikan orang tersebut benar-benar berada di radius lokasi yang diizinkan." },
+  { q: "Apakah mendukung shift malam untuk pabrik?", a: "Mendukung penuh. Shift pagi, siang, dan malam dapat diatur per karyawan dengan jam berbeda-beda. Keterlambatan dan lembur dihitung otomatis berdasarkan jam shift masing-masing karyawan." },
+  { q: "Bagaimana skema biayanya?", a: "Sekolah: Rp 8.000 per siswa per bulan. Perusahaan: Rp 7.500 (Paket Basic) atau Rp 12.500 (Paket Pro + Payroll) per karyawan per bulan. Semua diawali trial gratis 14 hari tanpa kartu kredit." },
+  { q: "Apakah bisa menghitung lembur dan gaji otomatis?", a: "Bisa, di Paket Pro perusahaan. Lembur dihitung otomatis dari jam pulang, langsung masuk ke rekap penggajian, dan slip gaji PDF dapat dicetak per karyawan setiap bulan." },
+  { q: "Apakah data kami aman dan tidak tercampur organisasi lain?", a: "Sangat aman. Setiap organisasi berdiri sebagai tenant terpisah dengan data yang terisolasi penuh. Tersedia juga opsi self-host di server milik Anda sendiri untuk kontrol data maksimal." },
+  { q: "Bagaimana cara memulai implementasi?", a: "Klik 'Daftar Trial Gratis', isi formulir 1 menit, dan sistem langsung siap dipakai. Tim kami akan membantu onboarding, impor data siswa/karyawan, hingga pairing kiosk pertama Anda." },
+];
 
 const rupiah = (n) => "Rp " + n.toLocaleString("id-ID");
 
@@ -88,6 +100,7 @@ export default function Landing() {
   const [busy, setBusy] = useState(false);
   const [sent, setSent] = useState(false);
   const [slide, setSlide] = useState(0);
+  const [openFaq, setOpenFaq] = useState(0);
 
   useEffect(() => {
     const t = setInterval(() => setSlide((s) => (s + 1) % SLIDES.length), 4500);
@@ -104,7 +117,7 @@ export default function Landing() {
 
   const [waMsg, setWaMsg] = useState(WA_MSGS.default);
   useEffect(() => {
-    const ids = ["solusi", "fitur", "cara-kerja", "absensi", "absensi-perusahaan", "admin", "pembayaran", "ortu", "harga", "kontak"];
+    const ids = ["solusi", "fitur", "cara-kerja", "absensi", "absensi-perusahaan", "admin", "pembayaran", "ortu", "harga", "faq", "kontak"];
     const io = new IntersectionObserver((entries) => {
       entries.forEach((e) => { if (e.isIntersecting) setWaMsg(WA_MSGS[e.target.id] || WA_MSGS.default); });
     }, { rootMargin: "-40% 0px -40% 0px" });
@@ -157,6 +170,7 @@ export default function Landing() {
             <a data-testid="nav-link-absensi" href="#absensi" className="hover:text-teal-700 transition-colors">Absensi</a>
             <a data-testid="nav-link-pembayaran" href="#pembayaran" className="hover:text-teal-700 transition-colors">Pembayaran</a>
             <a data-testid="nav-link-harga" href="#harga" className="hover:text-teal-700 transition-colors">Harga</a>
+            <a data-testid="nav-link-faq" href="#faq" className="hover:text-teal-700 transition-colors">FAQ</a>
             <a data-testid="nav-link-kontak" href="#kontak" className="hover:text-teal-700 transition-colors">Kontak</a>
           </nav>
           <div className="flex items-center gap-2">
@@ -856,6 +870,31 @@ export default function Landing() {
               </div>
             </div>
           )}
+        </div>
+      </section>
+
+      {/* FAQ */}
+      <section id="faq" data-testid="faq-section" className="max-w-4xl mx-auto px-4 py-20">
+        <div className="text-center">
+          <span className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-teal-700 bg-teal-50 border border-teal-100 rounded-full px-3 py-1.5">FAQ</span>
+          <h2 className="mt-5 text-3xl sm:text-4xl font-bold tracking-tight">Pertanyaan yang Sering Diajukan</h2>
+          <p className="mt-3 text-slate-500 text-sm sm:text-base">Masih ragu? Temukan jawabannya di sini, atau hubungi tim kami via WhatsApp.</p>
+        </div>
+        <div className="mt-10 space-y-3">
+          {FAQS.map((f, i) => (
+            <div key={i} data-testid={`faq-item-${i}`} className="bg-white border border-slate-200 rounded-2xl overflow-hidden hover:border-teal-200 transition-colors">
+              <button type="button" data-testid={`faq-q-${i}`} onClick={() => setOpenFaq(openFaq === i ? -1 : i)}
+                className="w-full flex items-center justify-between gap-3 px-5 py-4 text-left">
+                <span className="text-sm font-bold text-slate-800">{f.q}</span>
+                <ChevronDown className={`w-4 h-4 text-teal-600 shrink-0 transition-transform duration-300 ${openFaq === i ? "rotate-180" : ""}`} />
+              </button>
+              <div className={`grid transition-all duration-300 ${openFaq === i ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}`}>
+                <div className="overflow-hidden">
+                  <p data-testid={`faq-a-${i}`} className="px-5 pb-4 text-sm text-slate-600 leading-relaxed">{f.a}</p>
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
       </section>
 

@@ -404,4 +404,5 @@
   - Mode Sekolah: Paket Lengkap Rp 8.000/siswa/bln + kalkulator siswa (50-2500 siswa).
 - `landing-radiusgate.zip` di-rebuild (14.0MB) dan siap diunggah ke Hostinger.
 - Fix tagline footer landing: "Gerbang Absensi Digital Sekolah Masa Kini." → "Gerbang Absensi Digital Masa Kini." (konsisten dual-produk). Zip di-rebuild (15.2MB).
+- **Section FAQ landing** (#faq, 8 pertanyaan sekolah+perusahaan: alat khusus, offline, anti titip absen, shift malam, skema biaya, lembur/payroll, keamanan data multi-tenant, cara mulai). Accordion interaktif (grid-rows animation), nav link "FAQ", WA message khusus. Zip di-rebuild.
 - **Fix download landing 500 di VPS**: `frontend/landing-radiusgate.zip` sebelumnya kena `.gitignore` (`**/*.zip`) sehingga tidak pernah sampai ke VPS. Ditambah pengecualian `!frontend/landing-radiusgate.zip` di .gitignore + `git add` agar ikut ter-push saat Save to GitHub.
