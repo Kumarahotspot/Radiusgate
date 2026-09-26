@@ -128,7 +128,7 @@ export default function Layout() {
                 )}
               </button>
             )}
-            <img src="/logo.png" alt="RadiusGate" className="w-9 h-9 object-contain shrink-0" />
+            <img src={user.logo_path ? `${process.env.REACT_APP_BACKEND_URL}/api/admin/school/logo/file/${user.logo_path}` : "/logo.png"} alt="RadiusGate" className="w-9 h-9 object-contain shrink-0" />
             <div className="min-w-0">
               <p className="font-bold text-slate-800 text-sm leading-tight truncate">{t("app_name")}</p>
               <p className="text-[11px] text-teal-700 font-medium leading-tight">{portalLbl}</p>

@@ -343,6 +343,27 @@ export default function SettingsPage() {
 
       <div className="bg-white rounded-2xl border border-slate-200 p-5" data-testid="org-type-card">
         <p className="font-bold text-slate-800 mb-1">{t("org_type_label")}</p>
+        <div className="flex items-center gap-3 mt-3 pb-3 border-b border-slate-100">
+          <img data-testid="org-logo-preview" alt="logo organisasi"
+            src={school?.logo_path ? `${process.env.REACT_APP_BACKEND_URL}/api/admin/school/logo/file/${school.logo_path}` : "/logo.png"}
+            className="w-12 h-12 object-contain rounded-xl border border-slate-200 bg-white p-1" />
+          <label data-testid="org-logo-upload-btn" className="cursor-pointer px-4 py-2 rounded-xl text-xs font-bold text-white bg-teal-700 hover:bg-teal-800 transition-colors">
+            {t("upload_logo")}
+            <input type="file" accept="image/png,image/jpeg,image/webp" className="hidden" data-testid="org-logo-input"
+              onChange={async (e) => {
+                const f = e.target.files?.[0];
+                if (!f) return;
+                const fd = new FormData();
+                fd.append("file", f);
+                try {
+                  const { data } = await api.post("/admin/school/logo", fd, { headers: { "Content-Type": "multipart/form-data" } });
+                  setSchool({ ...school, logo_path: data.path });
+                  toast.success(t("updated_ok"));
+                } catch (err) { toast.error(errMsg(err)); }
+              }} />
+          </label>
+          <p className="text-[11px] text-slate-400 max-w-xs">{t("upload_logo_hint")}</p>
+        </div>
         <div className="flex flex-wrap items-center gap-3 mt-3">
           <select data-testid="org-type" value={school?.org_type || "school"}
             onChange={async (e) => {

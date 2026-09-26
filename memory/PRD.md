@@ -14,6 +14,7 @@ Aplikasi absensi berbasis Kiosk Web App (browser HP/tablet) + face recognition (
 - **PWA Fullscreen Kiosk**: Kiosk mendukung install "Add to Home screen" (PWA dengan `display: fullscreen`) agar otomatis full page tanpa perlu menyentuh layar.
 - **Auto-Pair Kiosk untuk User Login**: Siapa pun yang sudah login (admin/guru/karyawan) membuka Kiosk tanpa mengetik kode — token kiosk diambil otomatis via `GET /api/auth/kiosk-code`. Input kode manual hanya untuk perangkat yang belum login sama sekali.
 - **Mode Perusahaan (org_type)**: Tenant bisa bertipe "school" atau "company" (dipilih saat daftar / diubah admin di Pengaturan). Mode company: profil perkantoran/pabrik — Karyawan + Departemen + Shift Kerja + Lembur + Penggajian + SP1/SP2/SP3 otomatis dari data telat + tarif langganan per karyawan; modul sekolah (Siswa, Guru, Mapel, SPP, Ortu) disembunyikan; istilah "Portal HRD". Landing page menawarkan 2 produk (Sekolah / Perusahaan) dengan CTA pendaftaran terpisah.
+- **Upload Logo Organisasi**: Admin dapat mengunggah logo sendiri (Pengaturan → kartu Tipe Organisasi, PNG/JPG/WEBP ≤2MB, object storage). Logo tenant tampil di header portal, header kiosk, dan screensaver kiosk; fallback ke logo RadiusGate jika belum diunggah.
 - **Materi Pemasaran & Edukasi**:
   - File Presentasi Penawaran Sekolah (`presentasi-radiusgate.pptx`, 7 slide 16:9).
   - Panduan Pengguna / User Guide lengkap (`panduan-radiusgate.pdf`, 8 halaman A4).

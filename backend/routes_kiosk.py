@@ -57,7 +57,7 @@ async def kiosk_info(request: Request):
     school = await school_by_token(request)
     locations = await db.locations.find({"school_id": school["id"]}, {"_id": 0}).to_list(100)
     settings = await db.settings.find_one({"school_id": school["id"]}, {"_id": 0})
-    return {"school": {"id": school["id"], "name": school["name"], "org_type": school.get("org_type", "school")}, "locations": locations, "settings": settings}
+    return {"school": {"id": school["id"], "name": school["name"], "org_type": school.get("org_type", "school"), "logo_path": school.get("logo_path")}, "locations": locations, "settings": settings}
 
 
 @router.get("/kiosk/teachers")

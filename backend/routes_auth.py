@@ -39,10 +39,11 @@ async def login(body: LoginIn):
     if not user or not verify_password(body.password, user["password_hash"]):
         raise HTTPException(status_code=401, detail="Email atau password salah")
     if user.get("school_id"):
-        school = await db.schools.find_one({"id": user["school_id"]}, {"_id": 0, "trial_ends_at": 1, "org_type": 1})
+        school = await db.schools.find_one({"id": user["school_id"]}, {"_id": 0, "trial_ends_at": 1, "org_type": 1, "logo_path": 1})
         if school and school.get("trial_ends_at") and school["trial_ends_at"] < now_iso():
             raise HTTPException(status_code=403, detail="trial_expired")
         user["org_type"] = (school or {}).get("org_type", "school")
+        user["logo_path"] = (school or {}).get("logo_path")
     user.pop("password_hash", None)
     user.pop("_id", None)
     return {"token": create_token(user), "user": user}
@@ -51,8 +52,9 @@ async def login(body: LoginIn):
 @router.get("/auth/me")
 async def me(user: dict = Depends(get_current_user)):
     if user.get("school_id"):
-        school = await db.schools.find_one({"id": user["school_id"]}, {"_id": 0, "org_type": 1})
+        school = await db.schools.find_one({"id": user["school_id"]}, {"_id": 0, "org_type": 1, "logo_path": 1})
         user["org_type"] = (school or {}).get("org_type", "school")
+        user["logo_path"] = (school or {}).get("logo_path")
     return user
 
 

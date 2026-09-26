@@ -563,7 +563,7 @@ class SettingsIn(BaseModel):
 async def get_settings(user: dict = Depends(admin_dep)):
     st = await db.settings.find_one({"school_id": user["school_id"]}, {"_id": 0})
     locs = await db.locations.find({"school_id": user["school_id"]}, {"_id": 0}).to_list(100)
-    school = await db.schools.find_one({"id": user["school_id"]}, {"_id": 0, "kiosk_token": 1, "name": 1, "org_type": 1})
+    school = await db.schools.find_one({"id": user["school_id"]}, {"_id": 0, "kiosk_token": 1, "name": 1, "org_type": 1, "logo_path": 1})
     return {"settings": st, "locations": locs, "school": school}
 
 
@@ -753,6 +753,29 @@ async def delete_saver_photo(path: str, user: dict = Depends(admin_dep)):
 
 @router.get("/admin/saver-photos/file/{path:path}")
 async def saver_photo_file(path: str):
+    data, ct = await run_in_threadpool(get_object, path)
+    return Response(content=data, media_type=ct)
+
+
+# ---------- Logo organisasi (object storage) ----------
+@router.post("/admin/school/logo")
+async def upload_school_logo(file: UploadFile = File(...), user: dict = Depends(admin_dep)):
+    if file.content_type not in ("image/jpeg", "image/png", "image/webp"):
+        raise HTTPException(status_code=400, detail="Format harus JPG/PNG/WEBP")
+    data = await file.read()
+    if len(data) > 2 * 1024 * 1024:
+        raise HTTPException(status_code=400, detail="Ukuran maksimal 2MB")
+    ext = file.filename.rsplit(".", 1)[-1].lower() if "." in file.filename else "png"
+    path = f"radiusgate/logo/{user['school_id']}.{ext}"
+    res = await run_in_threadpool(put_object, path, data, file.content_type)
+    await db.schools.update_one({"id": user["school_id"]}, {"$set": {"logo_path": res["path"]}})
+    return {"path": res["path"]}
+
+
+@router.get("/admin/school/logo/file/{path:path}")
+async def school_logo_file(path: str):
+    if not path.startswith("radiusgate/logo/"):
+        raise HTTPException(status_code=404, detail="not_found")
     data, ct = await run_in_threadpool(get_object, path)
     return Response(content=data, media_type=ct)
 

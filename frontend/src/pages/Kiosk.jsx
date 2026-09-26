@@ -808,6 +808,9 @@ export default function Kiosk() {
   return (
     <div className="min-h-screen bg-[#0B1320] flex flex-col select-none" data-testid="kiosk-screen">
       <header className="px-5 pt-4 pb-1 text-center">
+        {info.school?.logo_path && (
+          <img src={`${API}/admin/school/logo/file/${info.school.logo_path}`} alt="" data-testid="kiosk-school-logo" className="w-12 h-12 object-contain mx-auto mb-2" />
+        )}
         <p className="text-white font-extrabold truncate" data-testid="kiosk-school-name">{info.school?.name}</p>
         <p className="text-slate-400 text-xs" data-testid="kiosk-clock">
           {now.toLocaleDateString(i18n.language === "en" ? "en-US" : "id-ID", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}
@@ -1010,7 +1013,7 @@ export default function Kiosk() {
           </div>
           <div className="absolute top-0 left-0 right-0 flex items-center justify-between px-6 py-5">
             <div className="flex items-center gap-3">
-              <img src="/logo-white.png" alt="" className="w-10 h-10 object-contain" />
+              <img src={info.school?.logo_path ? `${API}/admin/school/logo/file/${info.school.logo_path}` : "/logo-white.png"} alt="" className="w-10 h-10 object-contain" />
               <div>
                 <p className="text-white font-extrabold text-sm">{info.school?.name}</p>
                 <p className="text-slate-400 text-[11px]">{t("app_name")} · Kiosk</p>
