@@ -1016,7 +1016,7 @@ export default function Landing() {
       <footer className="bg-slate-900 text-slate-400">
         <div className="max-w-6xl mx-auto px-4 py-12 flex flex-col sm:flex-row items-center justify-between gap-6">
           <div className="flex items-center gap-3">
-            <img src="/logo-white.png" alt="RadiusGate" className="w-11 h-11 object-contain" />
+            <img src="/logo.png" alt="RadiusGate" className="w-11 h-11 object-contain" />
             <div>
               <p className="text-white font-bold text-sm">RadiusGate</p>
               <p className="text-xs">Gerbang Absensi Digital Masa Kini.</p>
