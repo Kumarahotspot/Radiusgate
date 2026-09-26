@@ -156,6 +156,48 @@ export default function Landing() {
         @keyframes attRowIn { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
         @media (prefers-reduced-motion: reduce) { .att-anim { opacity: 1; } .att-anim.att-in { animation: none; } }
       `}</style>
+      {/* Structured data: Organization + SoftwareApplication */}
+      <script type="application/ld+json" dangerouslySetInnerHTML={{
+        __html: JSON.stringify({
+          "@context": "https://schema.org",
+          "@graph": [
+            {
+              "@type": "Organization",
+              "name": "PT. Pusaka Kreasi Mandiri",
+              "url": "https://radiusgate.id",
+              "logo": "https://radiusgate.id/logo.png",
+              "email": "admin@radiusgate.id",
+              "address": {
+                "@type": "PostalAddress",
+                "streetAddress": "Telaga Golf Sawangan, Cluster Belanda Blok E10 No. 60-61",
+                "addressLocality": "Sawangan, Depok",
+                "addressRegion": "Jawa Barat",
+                "postalCode": "16551",
+                "addressCountry": "ID",
+              },
+              "contactPoint": {
+                "@type": "ContactPoint",
+                "telephone": "+62-888-8200-999",
+                "contactType": "sales",
+                "availableLanguage": ["Indonesian", "English"],
+              },
+            },
+            {
+              "@type": "SoftwareApplication",
+              "name": "RadiusGate",
+              "url": "https://radiusgate.id",
+              "applicationCategory": "BusinessApplication",
+              "operatingSystem": "Web",
+              "description": "Platform absensi digital berbasis AI face recognition ArcFace, RFID, QR code, dan GPS geofence untuk sekolah dan perusahaan. Termasuk portal orang tua, SPP online, shift kerja, lembur, penggajian, dan surat peringatan otomatis.",
+              "offers": [
+                { "@type": "Offer", "name": "Paket Sekolah", "price": "8000", "priceCurrency": "IDR", "description": "Per siswa per bulan" },
+                { "@type": "Offer", "name": "Paket Basic Perusahaan", "price": "7500", "priceCurrency": "IDR", "description": "Per karyawan per bulan" },
+                { "@type": "Offer", "name": "Paket Pro + Payroll Perusahaan", "price": "12500", "priceCurrency": "IDR", "description": "Per karyawan per bulan" },
+              ],
+            },
+          ],
+        }),
+      }} />
       {/* Navbar */}
       <header className="sticky top-0 z-50 backdrop-blur-md bg-white/80 border-b border-teal-100/60">
         <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between gap-3">
