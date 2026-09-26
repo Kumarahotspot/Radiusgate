@@ -399,4 +399,8 @@
 - **Screensaver kiosk sadar tipe organisasi**: `/kiosk/info` kini menyertakan `org_type`; Kiosk.jsx memilih slide default perusahaan (kantor-absen.jpg, pabrik-absen.jpg, kantor-dash.jpg — digenerate AI) vs sekolah (slide siswa). Foto kustom admin tetap menimpa default seperti sebelumnya.
 - **Hero landing**: slideshow mockup kini 5 slide (2 sekolah + 2 perusahaan + dashboard), caption per-slide; judul hero digeneralisasi ("Gerbang Absensi Digital Masa Kini") & subjudul mencakup siswa/guru/karyawan + SPP/shift/penggajian. Zip landing di-rebuild.
 - **Section mockup "Absensi Karyawan Real-Time"** di landing (#absensi-perusahaan): kartu gelap ala HRD menampilkan daftar karyawan dengan departemen+shift, status Hadir/Telat/Lembur/Cuti, ringkasan chip, dan CTA "Coba untuk Perusahaan" → /daftar?type=company. Layout mirror dari section absensi siswa.
+- **Skema Harga Perusahaan di Landing Page** (#harga): toggle interaktif "🏢 Untuk Perusahaan & Pabrik" vs "🏫 Untuk Sekolah".
+  - Mode Perusahaan: 3 tier card (Trial 14 Hari Rp 0, Paket Basic UMKM Rp 7.500/karyawan/bln, Paket Pro + Payroll Rp 12.500/karyawan/bln) + Kalkulator slider karyawan interaktif (10-500 karyawan, toggle Basic/Pro).
+  - Mode Sekolah: Paket Lengkap Rp 8.000/siswa/bln + kalkulator siswa (50-2500 siswa).
+- `landing-radiusgate.zip` di-rebuild (14.0MB) dan siap diunggah ke Hostinger.
 - **Fix download landing 500 di VPS**: `frontend/landing-radiusgate.zip` sebelumnya kena `.gitignore` (`**/*.zip`) sehingga tidak pernah sampai ke VPS. Ditambah pengecualian `!frontend/landing-radiusgate.zip` di .gitignore + `git add` agar ikut ter-push saat Save to GitHub.

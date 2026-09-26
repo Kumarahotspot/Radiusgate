@@ -81,6 +81,9 @@ function PortalLink({ to, children, ...props }) {
 
 export default function Landing() {
   const [students, setStudents] = useState(300);
+  const [priceTab, setPriceTab] = useState("company");
+  const [employees, setEmployees] = useState(50);
+  const [empPlan, setEmpPlan] = useState("pro");
   const [form, setForm] = useState({ school_name: "", contact_person: "", email: "", phone: "", student_count: "", message: "" });
   const [busy, setBusy] = useState(false);
   const [sent, setSent] = useState(false);
@@ -642,45 +645,217 @@ export default function Landing() {
         </div>
       </section>
 
-      <section id="harga" className="bg-teal-800 text-white">
-        <div ref={priceRef} className="max-w-6xl mx-auto px-4 py-20 grid lg:grid-cols-2 gap-12 items-center">
-          <div className={`att-anim ${priceIn ? "att-in" : ""}`}>
-            <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">Harga Transparan per Siswa</h2>
-            <p className="mt-4 text-teal-100/90 leading-relaxed text-sm sm:text-base">
-              Tanpa biaya alat, tanpa biaya tersembunyi. Sekolah hanya membayar sesuai jumlah siswa aktif per bulan.
-              Program pilot tersedia untuk sekolah pertama di setiap kota.
+      {/* Harga */}
+      <section id="harga" data-testid="pricing-section" className="bg-slate-900 text-white py-20">
+        <div ref={priceRef} className="max-w-6xl mx-auto px-4">
+          <div className="text-center max-w-2xl mx-auto">
+            <span className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-emerald-300 bg-emerald-500/15 border border-emerald-400/20 rounded-full px-3 py-1.5">
+              Harga Transparan Tanpa Biaya Tersembunyi
+            </span>
+            <h2 className="mt-5 text-3xl sm:text-4xl font-bold tracking-tight">Pilih Paket Sesuai Kebutuhan</h2>
+            <p className="mt-3 text-slate-300 text-sm sm:text-base">
+              Tanpa biaya beli mesin absensi mahal. Cukup gunakan tablet/HP yang sudah ada atau reader RFID standar.
             </p>
-            <ul className="mt-6 space-y-2.5 text-sm">
-              {["Semua fitur lengkap (wajah, geofence, offline, laporan)", "Pembayaran SPP online: QRIS, VA & e-wallet", "Unlimited perangkat kiosk", "Invoice & notifikasi otomatis", "Dukungan penuh selama pilot"].map((x) => (
-                <li key={x} className="flex items-start gap-2.5"><Check className="w-4 h-4 mt-0.5 text-emerald-300 shrink-0" /> {x}</li>
-              ))}
-            </ul>
-          </div>
-          <div data-testid="pricing-card" className={`att-anim ${priceIn ? "att-in" : ""} bg-white text-slate-900 rounded-3xl p-7 shadow-2xl`} style={{ animationDelay: "150ms" }}>
-            <p className="text-xs font-bold uppercase tracking-wider text-slate-400">Simulasi Biaya Bulanan</p>
-            <div className="mt-5 flex items-end gap-2">
-              <span className="text-4xl font-extrabold text-teal-700">{rupiah(8000)}</span>
-              <span className="text-sm text-slate-500 mb-1.5">/ siswa / bulan</span>
+
+            {/* Toggle Sekolah / Perusahaan */}
+            <div data-testid="pricing-tab-toggle" className="mt-8 inline-flex p-1.5 bg-slate-800 rounded-2xl border border-slate-700">
+              <button type="button" data-testid="pricing-tab-company" onClick={() => setPriceTab("company")}
+                className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold transition-all ${priceTab === "company" ? "bg-emerald-500 text-white shadow-lg" : "text-slate-400 hover:text-white"}`}>
+                <Building2 className="w-4 h-4" /> Untuk Perusahaan & Pabrik
+              </button>
+              <button type="button" data-testid="pricing-tab-school" onClick={() => setPriceTab("school")}
+                className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold transition-all ${priceTab === "school" ? "bg-teal-600 text-white shadow-lg" : "text-slate-400 hover:text-white"}`}>
+                <GraduationCap className="w-4 h-4" /> Untuk Sekolah
+              </button>
             </div>
-            <div className="mt-6">
-              <div className="flex items-center justify-between text-sm font-semibold">
-                <span>Jumlah siswa</span>
-                <span data-testid="calc-count" className="text-teal-700">{students} siswa</span>
+          </div>
+
+          {/* Pricing Perusahaan */}
+          {priceTab === "company" ? (
+            <div className="mt-12 space-y-10">
+              <div className="grid md:grid-cols-3 gap-6">
+                {/* Free Trial */}
+                <div data-testid="plan-free" className="bg-slate-800/80 border border-slate-700 rounded-3xl p-6 flex flex-col justify-between hover:border-slate-600 transition-colors">
+                  <div>
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 bg-slate-700/60 rounded-full px-2.5 py-1">Uji Coba</span>
+                    <h3 className="mt-4 text-xl font-bold text-white">Trial 14 Hari</h3>
+                    <p className="mt-1 text-xs text-slate-400">Cocok untuk mencoba seluruh fitur sebelum berlangganan.</p>
+                    <div className="mt-5 flex items-baseline gap-1">
+                      <span className="text-3xl font-extrabold text-white">Rp 0</span>
+                      <span className="text-xs text-slate-400">/ 14 hari penuh</span>
+                    </div>
+                    <ul className="mt-6 space-y-2.5 text-xs text-slate-300">
+                      {["Full akses semua fitur Pro", "Hingga 50 karyawan", "Presensi Wajah, RFID & QR", "Tanpa perlu kartu kredit"].map((x) => (
+                        <li key={x} className="flex items-start gap-2"><Check className="w-3.5 h-3.5 mt-0.5 text-emerald-400 shrink-0" /> {x}</li>
+                      ))}
+                    </ul>
+                  </div>
+                  <Link data-testid="plan-free-cta" to="/daftar?type=company" className="mt-8 flex items-center justify-center gap-1.5 w-full bg-slate-700 hover:bg-slate-600 text-white font-bold text-xs py-3 rounded-xl transition-colors">
+                    Daftar Trial Gratis <ArrowRight className="w-3.5 h-3.5" />
+                  </Link>
+                </div>
+
+                {/* Paket Basic */}
+                <div data-testid="plan-basic" className="bg-slate-800/80 border border-slate-700 rounded-3xl p-6 flex flex-col justify-between hover:border-slate-600 transition-colors">
+                  <div>
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-400 bg-emerald-500/15 rounded-full px-2.5 py-1">UMKM / Perkantoran</span>
+                    <h3 className="mt-4 text-xl font-bold text-white">Paket Basic</h3>
+                    <p className="mt-1 text-xs text-slate-400">Absensi akurat anti titip absen untuk kantor & toko.</p>
+                    <div className="mt-5 flex items-baseline gap-1">
+                      <span className="text-3xl font-extrabold text-white">Rp 7.500</span>
+                      <span className="text-xs text-slate-400">/ karyawan / bulan</span>
+                    </div>
+                    <ul className="mt-6 space-y-2.5 text-xs text-slate-300">
+                      {[
+                        "Presensi Wajah ArcFace + Liveness",
+                        "Kartu RFID & QR Code Scanner",
+                        "Geofencing radius kantor (GPS)",
+                        "Manajemen Shift Pagi/Siang/Malam",
+                        "Rekap harian & bulanan (Excel/PDF)",
+                        "Unlimited perangkat Kiosk",
+                      ].map((x) => (
+                        <li key={x} className="flex items-start gap-2"><Check className="w-3.5 h-3.5 mt-0.5 text-emerald-400 shrink-0" /> {x}</li>
+                      ))}
+                    </ul>
+                  </div>
+                  <Link data-testid="plan-basic-cta" to="/daftar?type=company" className="mt-8 flex items-center justify-center gap-1.5 w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs py-3 rounded-xl transition-colors">
+                    Pilih Paket Basic <ArrowRight className="w-3.5 h-3.5" />
+                  </Link>
+                </div>
+
+                {/* Paket Pro */}
+                <div data-testid="plan-pro" className="relative bg-gradient-to-b from-slate-800 to-slate-900 border-2 border-emerald-400 rounded-3xl p-6 flex flex-col justify-between shadow-2xl shadow-emerald-500/10">
+                  <span className="absolute -top-3 right-6 text-[10px] font-extrabold uppercase tracking-wider bg-emerald-400 text-slate-950 rounded-full px-3 py-1 shadow">
+                    Paling Lengkap · Populer
+                  </span>
+                  <div>
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-300 bg-emerald-500/20 rounded-full px-2.5 py-1">Pabrik & Korporat</span>
+                    <h3 className="mt-4 text-xl font-bold text-white">Paket Pro + Payroll</h3>
+                    <p className="mt-1 text-xs text-slate-400">Solusi HR lengkap dari absensi, lembur, sampai SP & slip gaji.</p>
+                    <div className="mt-5 flex items-baseline gap-1">
+                      <span className="text-3xl font-extrabold text-emerald-400">Rp 12.500</span>
+                      <span className="text-xs text-slate-400">/ karyawan / bulan</span>
+                    </div>
+                    <ul className="mt-6 space-y-2.5 text-xs text-slate-200">
+                      {[
+                        "Semua fitur di Paket Basic",
+                        "Hitung Lembur Otomatis dari jam pulang",
+                        "Modul Penggajian / Payroll & Slip Gaji PDF",
+                        "Surat Peringatan Otomatis (SP1, SP2, SP3)",
+                        "Multi-Departemen & Multi-Lokasi Cabang",
+                        "Support Prioritas WhatsApp & Onboarding",
+                      ].map((x) => (
+                        <li key={x} className="flex items-start gap-2"><Check className="w-3.5 h-3.5 mt-0.5 text-emerald-400 shrink-0" /> <strong>{x}</strong></li>
+                      ))}
+                    </ul>
+                  </div>
+                  <Link data-testid="plan-pro-cta" to="/daftar?type=company" className="mt-8 flex items-center justify-center gap-1.5 w-full bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold text-xs py-3 rounded-xl transition-colors shadow-lg shadow-emerald-500/25">
+                    Mulai Trial Paket Pro <ArrowRight className="w-3.5 h-3.5" />
+                  </Link>
+                </div>
               </div>
-              <input data-testid="calc-slider" type="range" min={50} max={2500} step={25} value={students}
-                onChange={(e) => setStudents(Number(e.target.value))}
-                className="mt-2 w-full accent-teal-700" />
+
+              {/* Kalkulator Simulasi Biaya Perusahaan */}
+              <div data-testid="company-calc-card" className="bg-slate-800/90 border border-slate-700 rounded-3xl p-6 sm:p-8 max-w-3xl mx-auto">
+                <div className="flex flex-wrap items-center justify-between gap-4">
+                  <div>
+                    <h4 className="text-lg font-bold text-white">Simulasi Biaya Bulanan Perusahaan</h4>
+                    <p className="text-xs text-slate-400 mt-0.5">Geser jumlah karyawan untuk melihat estimasi investasi.</p>
+                  </div>
+                  <div className="flex bg-slate-900 p-1 rounded-xl border border-slate-700">
+                    <button type="button" data-testid="calc-plan-basic" onClick={() => setEmpPlan("basic")}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${empPlan === "basic" ? "bg-emerald-600 text-white" : "text-slate-400"}`}>
+                      Basic (Rp 7.500)
+                    </button>
+                    <button type="button" data-testid="calc-plan-pro" onClick={() => setEmpPlan("pro")}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${empPlan === "pro" ? "bg-emerald-500 text-slate-950" : "text-slate-400"}`}>
+                      Pro (Rp 12.500)
+                    </button>
+                  </div>
+                </div>
+                <div className="mt-6">
+                  <div className="flex items-center justify-between text-sm font-semibold">
+                    <span className="text-slate-300">Jumlah karyawan aktif</span>
+                    <span data-testid="calc-emp-count" className="text-emerald-400 text-base font-extrabold">{employees} karyawan</span>
+                  </div>
+                  <input data-testid="calc-emp-slider" type="range" min={10} max={500} step={5} value={employees}
+                    onChange={(e) => setEmployees(Number(e.target.value))}
+                    className="mt-2 w-full accent-emerald-500" />
+                  <div className="flex justify-between text-[10px] text-slate-500 font-mono mt-1">
+                    <span>10 karyawan</span>
+                    <span>250 karyawan</span>
+                    <span>500+ karyawan</span>
+                  </div>
+                </div>
+                <div className="mt-6 bg-slate-900 border border-slate-700/80 rounded-2xl p-4 flex flex-wrap items-center justify-between gap-3">
+                  <div>
+                    <span className="text-xs text-slate-400 block">Estimasi Investasi Bulanan ({empPlan === "pro" ? "Paket Pro" : "Paket Basic"})</span>
+                    <span data-testid="calc-emp-total" className="text-2xl sm:text-3xl font-extrabold text-emerald-400">
+                      {rupiah(employees * (empPlan === "pro" ? 12500 : 7500))}
+                    </span>
+                    <span className="text-xs text-slate-400 ml-1">/ bulan</span>
+                  </div>
+                  <Link data-testid="calc-emp-cta" to="/daftar?type=company"
+                    className="flex items-center gap-2 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs px-5 py-3 rounded-xl transition-colors">
+                    Daftar Sekarang <ArrowRight className="w-4 h-4" />
+                  </Link>
+                </div>
+              </div>
             </div>
-            <div className="mt-5 bg-teal-50 border border-teal-100 rounded-2xl p-4 flex items-center justify-between">
-              <span className="text-sm font-semibold text-slate-600">Estimasi per bulan</span>
-              <span data-testid="calc-total" className="text-2xl font-extrabold text-teal-800">{rupiah(students * 8000)}</span>
+          ) : (
+            /* Pricing Sekolah */
+            <div className="mt-12 grid lg:grid-cols-2 gap-12 items-center">
+              <div>
+                <h3 className="text-2xl sm:text-3xl font-bold tracking-tight text-white">Paket Lengkap Sekolah</h3>
+                <p className="mt-3 text-slate-300 leading-relaxed text-sm">
+                  Satu harga terjangkau per siswa per bulan. Semua modul sekolah aktif tanpa biaya tambahan:
+                  absensi wajah, RFID, portal orang tua, sampai penagihan SPP online.
+                </p>
+                <ul className="mt-6 space-y-2.5 text-sm text-slate-200">
+                  {[
+                    "Semua metode presensi: Wajah, RFID, QR & NIS manual",
+                    "Portal Orang Tua untuk pantau absensi & bayar tagihan",
+                    "Pembayaran SPP online (QRIS, VA Bank & E-Wallet)",
+                    "Rekap absensi per mata pelajaran oleh guru mapel",
+                    "Unlimited perangkat kiosk tablet di gerbang",
+                    "Dukungan teknis penuh selama masa pilot",
+                  ].map((x) => (
+                    <li key={x} className="flex items-start gap-2.5"><Check className="w-4 h-4 mt-0.5 text-teal-400 shrink-0" /> {x}</li>
+                  ))}
+                </ul>
+              </div>
+              <div data-testid="pricing-school-card" className="bg-white text-slate-900 rounded-3xl p-7 shadow-2xl">
+                <p className="text-xs font-bold uppercase tracking-wider text-slate-400">Simulasi Biaya Sekolah</p>
+                <div className="mt-5 flex items-end gap-2">
+                  <span className="text-4xl font-extrabold text-teal-700">{rupiah(8000)}</span>
+                  <span className="text-sm text-slate-500 mb-1.5">/ siswa / bulan</span>
+                </div>
+                <div className="mt-6">
+                  <div className="flex items-center justify-between text-sm font-semibold">
+                    <span>Jumlah siswa aktif</span>
+                    <span data-testid="calc-count" className="text-teal-700 font-bold">{students} siswa</span>
+                  </div>
+                  <input data-testid="calc-slider" type="range" min={50} max={2500} step={25} value={students}
+                    onChange={(e) => setStudents(Number(e.target.value))}
+                    className="mt-2 w-full accent-teal-700" />
+                  <div className="flex justify-between text-[10px] text-slate-400 font-mono mt-1">
+                    <span>50 siswa</span>
+                    <span>1.250 siswa</span>
+                    <span>2.500 siswa</span>
+                  </div>
+                </div>
+                <div className="mt-5 bg-teal-50 border border-teal-100 rounded-2xl p-4 flex items-center justify-between">
+                  <span className="text-sm font-semibold text-slate-600">Estimasi per bulan</span>
+                  <span data-testid="calc-total" className="text-2xl font-extrabold text-teal-800">{rupiah(students * 8000)}</span>
+                </div>
+                <Link data-testid="pricing-school-cta" to="/daftar"
+                  className="mt-5 flex items-center justify-center gap-2 w-full bg-teal-700 hover:bg-teal-800 text-white font-bold text-sm py-3.5 rounded-2xl transition-colors">
+                  Daftar Trial Sekolah Gratis <ArrowRight className="w-4 h-4" />
+                </Link>
+                <p className="mt-3 text-center text-[11px] text-slate-400">Yayasan / multi-sekolah? Hubungi kami untuk penawaran khusus.</p>
+              </div>
             </div>
-            <a data-testid="pricing-cta" href="#kontak"
-              className="mt-5 flex items-center justify-center gap-2 w-full bg-teal-700 hover:bg-teal-800 text-white font-bold text-sm py-3.5 rounded-2xl transition-colors">
-              Ajukan Penawaran Sekolah <ArrowRight className="w-4 h-4" />
-            </a>
-            <p className="mt-3 text-center text-[11px] text-slate-400">Yayasan / multi-sekolah? Hubungi kami untuk harga khusus.</p>
-          </div>
+          )}
         </div>
       </section>
 
