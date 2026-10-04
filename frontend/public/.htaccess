@@ -1,8 +1,21 @@
 <IfModule mod_rewrite.c>
 RewriteEngine On
 RewriteBase /
+
+# Force HTTPS & non-www (mencegah conflict IP www vs apex)
+RewriteCond %{HTTPS} off [OR]
+RewriteCond %{HTTP_HOST} ^www\.radiusgate\.id$ [NC]
+RewriteRule ^(.*)$ https://radiusgate.id/$1 [L,R=301]
+
+# React SPA rewrite
 RewriteRule ^index\.html$ - [L]
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
 RewriteRule . /index.html [L]
+</IfModule>
+
+# Security & Cache
+<IfModule mod_headers.c>
+Header set X-Content-Type-Options "nosniff"
+Header set X-Frame-Options "SAMEORIGIN"
 </IfModule>
