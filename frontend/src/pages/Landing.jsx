@@ -5,7 +5,7 @@ import api, { errMsg } from "@/api";
 import {
   ScanFace, MapPin, WifiOff, Tablet, Receipt, Send, Languages, Volume2,
   UserPlus, Camera, FileCheck, MonitorSmartphone, ArrowRight, Check,
-  Wallet, QrCode, BellRing, FileText, MessageCircle, Nfc, Keyboard, Building2, GraduationCap, ChevronDown,
+  Wallet, QrCode, BellRing, FileText, MessageCircle, Nfc, Keyboard, Building2, GraduationCap, ChevronDown, Menu, X,
 } from "lucide-react";
 
 const FEATURES = [
@@ -100,6 +100,7 @@ export default function Landing() {
   const [busy, setBusy] = useState(false);
   const [sent, setSent] = useState(false);
   const [slide, setSlide] = useState(0);
+  const [menuOpen, setMenuOpen] = useState(false);
   const [openFaq, setOpenFaq] = useState(0);
 
   useEffect(() => {
@@ -243,8 +244,29 @@ export default function Landing() {
               className="text-xs font-bold px-4 py-2 rounded-xl bg-teal-700 text-white hover:bg-teal-800 transition-colors">
               Masuk Portal
             </PortalLink>
+            <button type="button" data-testid="nav-hamburger" onClick={() => setMenuOpen(!menuOpen)}
+              className="md:hidden p-2 rounded-xl text-slate-700 hover:bg-slate-100 transition-colors" aria-label="Menu navigasi">
+              {menuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            </button>
           </div>
         </div>
+        {menuOpen && (
+          <nav data-testid="nav-mobile-menu" className="md:hidden border-t border-teal-100/60 bg-white/95 backdrop-blur-md">
+            <div className="max-w-6xl mx-auto px-4 py-3 flex flex-col gap-1 text-sm font-semibold text-slate-700">
+              {[
+                ["fitur", "Fitur"], ["solusi", "Solusi"], ["cara-kerja", "Cara Kerja"], ["absensi", "Absensi"],
+                ["pembayaran", "Pembayaran"], ["harga", "Harga"], ["faq", "FAQ"], ["kontak", "Kontak"],
+              ].map(([id, label]) => (
+                <a key={id} data-testid={`nav-mobile-${id}`} href={`#${id}`} onClick={() => setMenuOpen(false)}
+                  className="px-3 py-2.5 rounded-xl hover:bg-teal-50 hover:text-teal-700 transition-colors">{label}</a>
+              ))}
+              <PortalLink data-testid="nav-mobile-kiosk" to="/kiosk"
+                className="mt-2 flex items-center justify-center gap-1.5 text-xs font-bold px-4 py-3 rounded-xl border border-teal-700 text-teal-700 hover:bg-teal-50 transition-colors">
+                <MonitorSmartphone className="w-4 h-4" /> Mode Kiosk
+              </PortalLink>
+            </div>
+          </nav>
+        )}
       </header>
 
       {/* Hero */}
