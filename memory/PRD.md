@@ -29,8 +29,9 @@ Aplikasi absensi berbasis Kiosk Web App (browser HP/tablet) + face recognition (
 - Backend: FastAPI modular + InsightFace/ArcFace + PyMongo + ReportLab + Python-pptx: routes `auth, owner, admin, teacher, kiosk, employee, parent, spp, billing, cron, public`.
 - DB: MongoDB multi-tenant — semua dokumen bawa `school_id`.
 - Auth: JWT bearer 7 hari, bcrypt. Roles: `owner`, `school_admin`, `teacher`, `employee`, `parent`.
-- Deployment VPS: `docker-compose.yml`, `backend/Dockerfile`, `frontend/Dockerfile`, `install-vps.sh`.
-- Build Hostinger: `landing-radiusgate.zip` selalu di-rebuild setelah setiap perubahan.
+- Deployment VPS (Single Domain): `radiusgate.id`, `www.radiusgate.id`, dan `absensi.radiusgate.id` dilayani langsung dari VPS (103.179.252.28) via Nginx Reverse Proxy + Let's Encrypt SSL Multi-Domain. Docker Compose mengelola MongoDB, FastAPI, dan React SPA dalam 1 stack.
+- Backup Database: `backup-db.sh` menghasilkan backup MongoDB harian terkompresi dengan retensi 14 hari terakhir.
+
 
 ## Endpoint Publik Download
 - `GET /api/public/download/landing-page` — ZIP Frontend Hostinger
