@@ -94,3 +94,7 @@ frontend/node_modules/.cache/default-development/0.pack
 
 # landing page build untuk Hostinger ikut ter-commit
 !frontend/landing-radiusgate.zip
+
+# folder backup database lokal VPS
+backups/
+*.tar.gz
