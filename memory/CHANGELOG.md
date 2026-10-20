@@ -526,3 +526,11 @@
 - Landing.jsx: seksi baru `absensi-pppk-section` setelah seksi perusahaan — aksen amber (nuansa instansi), judul "Setiap Pegawai Absen, Upahnya Terhitung Detik Itu Juga.", 4 bullet (jam fleksibel tanpa telat, upah jam×tarif, batas jam mingguan, laporan PDF berkop), CTA "Coba untuk Instansi" → /daftar?type=pppk, mock card "Absensi Pegawai Hari Ini — Kantor Kecamatan" dengan baris pegawai per Unit Kerja + chip Pegawai Hadir/Total Jam/Estimasi Upah/Izin.
 - Frontend build ulang + landing-radiusgate.zip di-rezip.
 - Terverifikasi screenshot desktop+mobile: seksi tampil rapi, CTA benar, tanpa overflow.
+
+## 2026-10-20 — Video promosi RadiusGate (kombinasi AI + UI asli, 2 orientasi)
+- Permintaan user: video produk untuk diputar di kantor (Android/PC), kombinasi sinematik AI + slideshow UI asli, format 16:9 & 9:16.
+- Klip AI: 4 klip 5 detik via Fal Universal Key model `fal-ai/kling-video/v3/pro/text-to-video` (Veo tidak tersedia di katalog Universal Key) — intro & outro × 2 orientasi (generator: /tmp/gen_video.py, antrean via integration proxy).
+- Kartu judul & frame UI: Pillow (gradient teal + auto-fit font via fit_font) di /tmp/gen_cards.py; frame UI asli ditangkap dengan Playwright lokal (chromium pod) di /tmp/capture_frames.py — screenshot_tool menyimpan file di environment remote, BUKAN pod.
+- Perakitan: /tmp/assemble_video.py — komposisi frame blur-background (Pillow) + zoompan Ken Burns + fade in/out per segmen (ffmpeg) + concat; ffmpeg di-install via apt (5.1.9).
+- Hasil: radiusgate-promo-16x9.mp4 (11MB) & radiusgate-promo-9x16.mp4 (9,8MB), durasi ±50 detik, disimpan di /app/backend/assets/promo/. Endpoint publik baru: GET /api/public/download/promo-video?format=16x9|9x16.
+- Terverifikasi: frame video (kartu, klip AI, UI) diekstrak & divisualkan; semua frame bagus.

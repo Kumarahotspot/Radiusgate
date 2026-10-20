@@ -110,3 +110,9 @@ async def download_backup_database():
 async def download_restore_script():
     return FileResponse("/app/restore-db.sh", media_type="text/x-sh",
                         filename="restore-db.sh")
+
+
+@router.get("/public/download/promo-video")
+async def download_promo_video(format: str = "16x9"):
+    name = "radiusgate-promo-9x16.mp4" if format == "9x16" else "radiusgate-promo-16x9.mp4"
+    return FileResponse(f"/app/backend/assets/promo/{name}", media_type="video/mp4", filename=name)
