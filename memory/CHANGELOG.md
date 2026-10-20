@@ -447,3 +447,9 @@
 - Laporan user (screenshot): halaman Laporan mode PPPK "masih tercampur" — menampilkan tab sekolah (Per Mapel, Per Siswa, Per Guru, Sesi Mapel).
 - Reports.jsx: tambah useAuth + `isPppk` + `hideSchoolTabs` (pppk/company). Tab Per Mapel/Per Siswa/Per Guru/Sesi Mapel disembunyikan untuk company & pppk; tersisa Harian + tab pegawai. Label tab pegawai mode pppk = "Per Pegawai" (key baru `pegawai_att_tab` ID/EN), mode lain tetap "Per Karyawan". Dropdown Tipe di tab Harian: company/pppk hanya "Semua" + Pegawai/Karyawan; sekolah tetap Siswa/Guru.
 - Terverifikasi screenshot: PPPK hanya 2 tab (Harian, Per Pegawai), dropdown Tipe = Semua/Pegawai, tanpa overflow mobile 390; regresi sekolah 6 tab utuh + dropdown Siswa/Guru.
+
+## 2026-10-20 — Kolom NISN → NIP untuk laporan non-sekolah
+- Laporan user (screenshot): kolom "NISN" di Laporan Harian PPPK seharusnya "NIP" dan terisi NIP pegawai (sebelumnya selalu "-").
+- Backend `report_attendance` (routes_admin.py): kini ikut memetakan koleksi teachers & employees — baris guru/pegawai mendapat field `nip` (dan `gender` fallback dari data pegawai bila kosong). `report_export`: label kolom `NISN`/`NIP` dipilih dari org_type sekolah (school→NISN, company/pppk→NIP), nilai memakai `nisn or nip` — berlaku untuk XLSX dan PDF (`build_report_pdf` dapat param `id_label`).
+- Frontend Reports.jsx: header kolom harian "NIP" untuk mode company/pppk, sel menampilkan `r.nisn || r.nip`.
+- Terverifikasi: API mengembalikan nip 199001012020 untuk Budi PPPK, tabel menampilkan kolom NIP terisi, ekspor PDF 200 + render PNG header NIP, mobile 390 tanpa overflow. Regresi sekolah: kolom tetap NISN.

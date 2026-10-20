@@ -308,7 +308,8 @@ def build_invoice_pdf(inv: dict, school: dict) -> str:
     return path
 
 
-def build_report_pdf(path: str, school_name: str, date_from: str, date_to: str, rows: list) -> str:
+def build_report_pdf(path: str, school_name: str, date_from: str, date_to: str, rows: list,
+                     id_label: str = "NISN") -> str:
     c = canvas.Canvas(path, pagesize=A4)
     w, h = A4
     tx = 20 * mm
@@ -322,7 +323,7 @@ def build_report_pdf(path: str, school_name: str, date_from: str, date_to: str, 
     c.drawString(20 * mm, h - 27 * mm, f"Periode: {date_from} s/d {date_to}")
     y = h - 40 * mm
     c.setFont("Helvetica-Bold", 8)
-    headers = ["Tanggal", "Nama", "NISN", "L/P", "Tipe", "Jam", "Status", "Telat (mnt)", "Lembur (mnt)"]
+    headers = ["Tanggal", "Nama", id_label, "L/P", "Tipe", "Jam", "Status", "Telat (mnt)", "Lembur (mnt)"]
     xs = [20, 42, 88, 108, 118, 132, 148, 168, 184]
     for x, hd in zip(xs, headers):
         c.drawString(x * mm, y, hd)
@@ -333,7 +334,7 @@ def build_report_pdf(path: str, school_name: str, date_from: str, date_to: str, 
             c.showPage()
             y = h - 20 * mm
             c.setFont("Helvetica", 8)
-        vals = [r.get("date", ""), r.get("teacher_name", "")[:22], (r.get("nisn", "") or "")[:12],
+        vals = [r.get("date", ""), r.get("teacher_name", "")[:22], (r.get("nisn", "") or r.get("nip", ""))[:12],
                 r.get("gender", "") or "-", r.get("type", ""),
                 r.get("time", ""), r.get("status", ""), str(r.get("late_minutes", 0)), str(r.get("overtime_minutes", 0))]
         for x, v in zip(xs, vals):

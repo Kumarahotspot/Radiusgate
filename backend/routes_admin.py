@@ -1760,12 +1760,22 @@ async def report_attendance(date_from: str, date_to: str, teacher_id: str | None
     rows = await db.attendance.find(q, {"_id": 0, "photo": 0}).sort([("date", 1), ("ts_server", 1)]).to_list(10000)
     students = {s["id"]: s for s in await db.students.find(
         {"school_id": user["school_id"]}, {"_id": 0, "id": 1, "nisn": 1, "gender": 1}).to_list(10000)}
+    staff = {}
+    for coll in ("teachers", "employees"):
+        for p in await db[coll].find({"school_id": user["school_id"]}, {"_id": 0, "id": 1, "nip": 1, "gender": 1}).to_list(10000):
+            staff[p["id"]] = p
     for r in rows:
         r["time"] = r.get("time_local") or r.get("ts_device", r.get("ts_server", ""))[11:16]
         st = students.get(r.get("student_id"))
         if st:
             r["nisn"] = st.get("nisn", "")
             r["gender"] = st.get("gender", "")
+        else:
+            sp = staff.get(r.get("employee_id")) or staff.get(r.get("teacher_id"))
+            if sp:
+                r["nip"] = sp.get("nip", "")
+                if not r.get("gender"):
+                    r["gender"] = sp.get("gender", "")
     return rows
 
 
@@ -1773,9 +1783,11 @@ async def report_attendance(date_from: str, date_to: str, teacher_id: str | None
 async def report_export(format: str, date_from: str, date_to: str, person: str | None = None,
                         user: dict = Depends(admin_dep)):
     rows = await report_attendance(date_from, date_to, None, person, user)
+    org = (await db.schools.find_one({"id": user["school_id"]}, {"_id": 0, "org_type": 1}) or {}).get("org_type", "school")
+    id_label = "NISN" if org == "school" else "NIP"
     if format == "xlsx":
         df = pd.DataFrame([{
-            "Tanggal": r.get("date"), "Nama": r.get("teacher_name"), "NISN": r.get("nisn", ""),
+            "Tanggal": r.get("date"), "Nama": r.get("teacher_name"), id_label: (r.get("nisn") or r.get("nip", "")),
             "L/P": r.get("gender", ""), "Tipe": r.get("type"),
             "Jam": r.get("time"), "Status": r.get("status"), "Telat (mnt)": r.get("late_minutes", 0),
             "Lembur (mnt)": r.get("overtime_minutes", 0), "Offline": "Ya" if r.get("offline") else "Tidak",
@@ -1788,7 +1800,7 @@ async def report_export(format: str, date_from: str, date_to: str, person: str |
             media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
             headers={"Content-Disposition": "attachment; filename=laporan-absensi.xlsx"})
     school = await db.schools.find_one({"id": user["school_id"]}, {"_id": 0, "name": 1})
-    path = build_report_pdf(f"/tmp/report_{user['school_id']}.pdf", school["name"], date_from, date_to, rows)
+    path = build_report_pdf(f"/tmp/report_{user['school_id']}.pdf", school["name"], date_from, date_to, rows, id_label)
     return FileResponse(path, media_type="application/pdf", filename="laporan-absensi.pdf")
 
 
