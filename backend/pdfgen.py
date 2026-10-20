@@ -25,6 +25,17 @@ def rupiah(n: int) -> str:
     return f"Rp {int(n):,}".replace(",", ".")
 
 
+def _logo_reader(logo_bytes: bytes | None):
+    if not logo_bytes:
+        return None
+    try:
+        import io as _io
+        from reportlab.lib.utils import ImageReader
+        return ImageReader(_io.BytesIO(logo_bytes))
+    except Exception:
+        return None
+
+
 def build_warning_letter_pdf(letter: dict, school: dict) -> str:
     path = os.path.join(INVOICE_DIR, f"sp_{letter['id']}.pdf")
     c = canvas.Canvas(path, pagesize=A4)
@@ -84,7 +95,7 @@ def build_warning_letter_pdf(letter: dict, school: dict) -> str:
     return path
 
 
-def build_daftar_hadir_pdf(school: dict, employees: list, matrix: dict, month: str) -> str:
+def build_daftar_hadir_pdf(school: dict, employees: list, matrix: dict, month: str, logo_bytes: bytes | None = None) -> str:
     import calendar as _cal
     year, mon = map(int, month.split("-"))
     ndays = _cal.monthrange(year, mon)[1]
@@ -95,9 +106,12 @@ def build_daftar_hadir_pdf(school: dict, employees: list, matrix: dict, month: s
     cols = [20 * mm, 32 * mm, 58 * mm, 84 * mm, 108 * mm, 132 * mm, 152 * mm]
     headers = ["No", "Tanggal", "Hari", "Jam Masuk", "Jam Pulang", "Jam Kerja", "Paraf"]
     row_h = 6.4 * mm
+    logo = _logo_reader(logo_bytes)
 
     for emp in employees:
         y = h - 18 * mm
+        if logo:
+            c.drawImage(logo, 20 * mm, y - 12 * mm, width=16 * mm, height=16 * mm, mask="auto", preserveAspectRatio=True)
         c.setFont("Helvetica-Bold", 13)
         c.drawCentredString(w / 2, y, (school.get("name") or "").upper())
         c.setFont("Helvetica", 9)
@@ -105,6 +119,8 @@ def build_daftar_hadir_pdf(school: dict, employees: list, matrix: dict, month: s
         if school.get("address"):
             c.drawCentredString(w / 2, y, school["address"])
         y -= 3 * mm
+        if logo:
+            y -= 6 * mm
         c.setLineWidth(1.2)
         c.line(20 * mm, y, w - 20 * mm, y)
         y -= 10 * mm
@@ -171,7 +187,7 @@ def build_daftar_hadir_pdf(school: dict, employees: list, matrix: dict, month: s
     return path
 
 
-def build_pppk_weekly_pdf(school: dict, rows: list, w_start: str, w_end: str) -> str:
+def build_pppk_weekly_pdf(school: dict, rows: list, w_start: str, w_end: str, logo_bytes: bytes | None = None) -> str:
     def _fd(s: str) -> str:
         return datetime.strptime(s, "%Y-%m-%d").strftime("%d/%m/%Y")
 
@@ -181,8 +197,11 @@ def build_pppk_weekly_pdf(school: dict, rows: list, w_start: str, w_end: str) ->
     cols = [20 * mm, 28 * mm, 62 * mm, 88 * mm, 112 * mm, 124 * mm, 148 * mm, 168 * mm]
     headers = ["No", "Nama", "NIP/NIPTT-PW", "Unit Kerja", "Hari", "Jam Kerja", "Tarif/Jam", "Upah"]
     row_h = 6.4 * mm
+    logo = _logo_reader(logo_bytes)
 
     def _kop(y):
+        if logo:
+            c.drawImage(logo, 20 * mm, y - 12 * mm, width=16 * mm, height=16 * mm, mask="auto", preserveAspectRatio=True)
         c.setFont("Helvetica-Bold", 13)
         c.drawCentredString(w / 2, y, (school.get("name") or "").upper())
         y -= 5 * mm
@@ -190,6 +209,8 @@ def build_pppk_weekly_pdf(school: dict, rows: list, w_start: str, w_end: str) ->
         if school.get("address"):
             c.drawCentredString(w / 2, y, school["address"])
         y -= 3 * mm
+        if logo:
+            y -= 6 * mm
         c.setLineWidth(1.2)
         c.line(20 * mm, y, w - 20 * mm, y)
         y -= 10 * mm

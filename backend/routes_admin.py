@@ -830,8 +830,14 @@ async def pppk_daftar_hadir_pdf(month: str, user: dict = Depends(admin_dep)):
     matrix = {}
     for (eid, d), v in per.items():
         matrix.setdefault(eid, {})[d] = {"in": v.get("in") or "", "out": v.get("out") or "", "minutes": _pppk_minutes(v)}
-    school = await db.schools.find_one({"id": sid}, {"_id": 0, "name": 1, "address": 1})
-    path = build_daftar_hadir_pdf(school or {}, employees, matrix, month)
+    school = await db.schools.find_one({"id": sid}, {"_id": 0, "name": 1, "address": 1, "logo_path": 1})
+    logo_bytes = None
+    if (school or {}).get("logo_path"):
+        try:
+            logo_bytes, _ct = await run_in_threadpool(get_object, school["logo_path"])
+        except Exception:
+            logo_bytes = None
+    path = build_daftar_hadir_pdf(school or {}, employees, matrix, month, logo_bytes)
     return FileResponse(path, media_type="application/pdf", filename=f"daftar-hadir-pppk-{month}.pdf")
 
 
@@ -864,8 +870,14 @@ async def pppk_laporan_mingguan_pdf(week_start: str | None = None, user: dict = 
         rows.append({"name": emp["name"], "nip": emp.get("nip") or "-", "department": emp.get("department") or "-",
                      "days": r["days"], "minutes": r["minutes"], "hourly_rate": rate,
                      "pay": int(r["minutes"] / 60 * rate)})
-    school = await db.schools.find_one({"id": sid}, {"_id": 0, "name": 1, "address": 1})
-    path = build_pppk_weekly_pdf(school or {}, rows, w_start, w_end)
+    school = await db.schools.find_one({"id": sid}, {"_id": 0, "name": 1, "address": 1, "logo_path": 1})
+    logo_bytes = None
+    if (school or {}).get("logo_path"):
+        try:
+            logo_bytes, _ct = await run_in_threadpool(get_object, school["logo_path"])
+        except Exception:
+            logo_bytes = None
+    path = build_pppk_weekly_pdf(school or {}, rows, w_start, w_end, logo_bytes)
     return FileResponse(path, media_type="application/pdf", filename=f"laporan-mingguan-pppk-{w_start}.pdf")
 
 

@@ -482,3 +482,9 @@
 
 ## 2026-10-20 — Fix badge L/P terpotong dua baris di tabel Pegawai & Guru
 - Laporan user (screenshot): badge "Laki-laki" di kolom L/P tabel Pegawai terpotong jadi "Laki-" / "laki". Fix: tambah `inline-block whitespace-nowrap` pada badge gender di Employees.jsx dan Teachers.jsx. Terverifikasi screenshot: badge tampil satu baris, mobile 390 tanpa overflow.
+
+## 2026-10-20 — Logo instansi sebagai kop di PDF PPPK
+- Persetujuan user atas saran: PDF PPPK (Laporan Mingguan + Daftar Hadir) kini memakai logo instansi yang diupload admin (Pengaturan → Tipe Organisasi) sebagai kop, di pojok kiri atas di samping nama instansi; tanpa logo → kop teks seperti sebelumnya.
+- pdfgen.py: helper `_logo_reader` (ImageReader dari bytes, mask auto, preserveAspectRatio); `build_pppk_weekly_pdf` & `build_daftar_hadir_pdf` menerima `logo_bytes` opsional, garis kop digeser turun bila ada logo.
+- routes_admin.py: kedua endpoint PPPK PDF mengambil `logo_path` sekolah lalu fetch bytes via `get_object` (run_in_threadpool; gagal → None).
+- Terverifikasi: upload logo uji ke tenant demo → kedua PDF 200 (283KB, logo tertanam) → render PNG menunjukkan kop logo + nama instansi rapi. Logo uji direset ke null setelah verifikasi (demo bersih).
