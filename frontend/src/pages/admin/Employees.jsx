@@ -2,14 +2,17 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import api, { errMsg } from "../../api";
+import { useAuth } from "../../context/AuthContext";
 import CameraCapture from "../../components/CameraCapture";
 import QrModal from "../../components/QrModal";
 import { Plus, ScanFace, Trash2, CheckCircle2, Circle, Pencil, Search, ChevronLeft, ChevronRight, Nfc, QrCode } from "lucide-react";
 
-const EMPTY = { name: "", email: "", password: "", nip: "", department: "", position: "", overtime_rate: "", base_salary: "", card_uid: "", shift_id: "", hourly_rate: "" };
+const EMPTY = { name: "", email: "", password: "", nip: "", gender: "", department: "", position: "", overtime_rate: "", base_salary: "", card_uid: "", shift_id: "", hourly_rate: "" };
 
 export default function Employees() {
   const { t } = useTranslation();
+  const { user } = useAuth();
+  const isPppk = user?.org_type === "pppk";
   const [employees, setEmployees] = useState([]);
   const [showForm, setShowForm] = useState(false);
   const [enrollFor, setEnrollFor] = useState(null);
@@ -61,7 +64,7 @@ export default function Employees() {
     setBusy(true);
     try {
       await api.patch(`/admin/employees/${editFor.id}`, {
-        name: editFor.name, nip: editFor.nip, department: editFor.department || "",
+        name: editFor.name, nip: editFor.nip, gender: editFor.gender || "", department: editFor.department || "",
         position: editFor.position || "", active: !!editFor.active, card_uid: editFor.card_uid || "",
         shift_id: editFor.shift_id || "",
         overtime_rate: editFor.overtime_rate === null || editFor.overtime_rate === "" ? null : Number(editFor.overtime_rate),
@@ -92,10 +95,10 @@ export default function Employees() {
   return (
     <div data-testid="employees-page" className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-bold text-slate-800">{t("employees")}</h2>
+        <h2 className="text-lg font-bold text-slate-800">{isPppk ? t("pegawai_menu") : t("employees")}</h2>
         <button data-testid="add-employee-btn" onClick={() => setShowForm(!showForm)}
           className="flex items-center gap-1.5 bg-teal-700 hover:bg-teal-800 text-white text-xs font-bold px-4 py-2 rounded-xl transition-colors">
-          <Plus className="w-4 h-4" /> {t("add_employee")}
+          <Plus className="w-4 h-4" /> {isPppk ? t("add_pegawai") : t("add_employee")}
         </button>
       </div>
 
@@ -105,6 +108,15 @@ export default function Employees() {
           <In label={t("email")} testid="emp-email" type="email" v={form.email} set={(v) => setForm({ ...form, email: v })} req />
           <In label={t("password")} testid="emp-password" v={form.password} set={(v) => setForm({ ...form, password: v })} req />
           <In label={t("nip")} testid="emp-nip" v={form.nip} set={(v) => setForm({ ...form, nip: v })} />
+          <div>
+            <label className="text-xs font-semibold text-slate-500">{t("gender")}</label>
+            <select data-testid="emp-gender" value={form.gender} onChange={(e) => setForm({ ...form, gender: e.target.value })}
+              className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm bg-white outline-none focus:border-teal-600">
+              <option value="">—</option>
+              <option value="L">{t("gender_l")}</option>
+              <option value="P">{t("gender_p")}</option>
+            </select>
+          </div>
           <In label={t("card_uid")} testid="emp-card-uid" v={form.card_uid} set={(v) => setForm({ ...form, card_uid: v })} />
           <DeptSelect label={t("department")} testid="emp-department" options={opts.departments || []} value={form.department} onChange={(v) => setForm({ ...form, department: v })} t={t} />
           <div>
@@ -152,6 +164,7 @@ export default function Employees() {
               <tr className="text-left text-xs uppercase tracking-wide text-slate-500 border-b bg-slate-50">
                 <th className="px-4 py-3">{t("name")}</th>
                 <th className="px-4 py-3">{t("nip")}</th>
+                <th className="px-4 py-3">{t("gender_short")}</th>
                 <th className="px-4 py-3">{t("department")}</th>
                 <th className="px-4 py-3">{t("position")}</th>
                 <th className="px-4 py-3">{t("shifts_menu")}</th>
@@ -166,6 +179,11 @@ export default function Employees() {
                 <tr key={emp.id} data-testid={`employee-row-${emp.id}`} className="border-b last:border-0 hover:bg-slate-50/60">
                   <td className="px-4 py-3 font-semibold text-slate-800">{emp.name}</td>
                   <td className="px-4 py-3 font-mono text-xs">{emp.nip}</td>
+                  <td className="px-4 py-3">
+                    <span data-testid={`emp-gender-badge-${emp.id}`} className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${emp.gender === "L" ? "bg-sky-50 text-sky-700 border border-sky-200" : emp.gender === "P" ? "bg-pink-50 text-pink-700 border border-pink-200" : "text-slate-400"}`}>
+                      {emp.gender === "L" ? t("gender_l") : emp.gender === "P" ? t("gender_p") : "—"}
+                    </span>
+                  </td>
                   <td className="px-4 py-3">{emp.department || <span className="text-slate-300">—</span>}</td>
                   <td className="px-4 py-3">{emp.position || <span className="text-slate-300">—</span>}</td>
                   <td className="px-4 py-3 text-slate-600">{shiftName(emp.shift_id)}</td>
@@ -203,7 +221,7 @@ export default function Employees() {
                   </td>
                 </tr>
               ))}
-              {paged.length === 0 && <tr><td colSpan={9} className="px-4 py-8 text-center text-slate-400">{t("no_data")}</td></tr>}
+              {paged.length === 0 && <tr><td colSpan={10} className="px-4 py-8 text-center text-slate-400">{t("no_data")}</td></tr>}
             </tbody>
           </table>
         </div>
@@ -226,9 +244,18 @@ export default function Employees() {
       {editFor && (
         <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4" data-testid="edit-employee-modal">
           <form onSubmit={saveEdit} data-testid="edit-employee-form" className="bg-white rounded-2xl w-full max-w-md p-5 grid sm:grid-cols-2 gap-4">
-            <p className="sm:col-span-2 font-bold text-slate-800">{t("edit_employee")}</p>
+            <p className="sm:col-span-2 font-bold text-slate-800">{isPppk ? t("edit_pegawai") : t("edit_employee")}</p>
             <In label={t("name")} testid="edit-emp-name" v={editFor.name} set={(v) => setEditFor({ ...editFor, name: v })} req />
             <In label={t("nip")} testid="edit-emp-nip" v={editFor.nip || ""} set={(v) => setEditFor({ ...editFor, nip: v })} />
+            <div>
+              <label className="text-xs font-semibold text-slate-500">{t("gender")}</label>
+              <select data-testid="edit-emp-gender" value={editFor.gender || ""} onChange={(e) => setEditFor({ ...editFor, gender: e.target.value })}
+                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm bg-white outline-none focus:border-teal-600">
+                <option value="">—</option>
+                <option value="L">{t("gender_l")}</option>
+                <option value="P">{t("gender_p")}</option>
+              </select>
+            </div>
             <In label={t("card_uid")} testid="edit-emp-card-uid" v={editFor.card_uid || ""} set={(v) => setEditFor({ ...editFor, card_uid: v })} />
             <DeptSelect label={t("department")} testid="edit-emp-department" options={opts.departments || []} value={editFor.department || ""} onChange={(v) => setEditFor({ ...editFor, department: v })} t={t} />
             <div>

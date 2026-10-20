@@ -32,6 +32,7 @@ export default function SettingsPage() {
   const [settings, setSettings] = useState({ work_start: "07:00", work_end: "15:00", late_tolerance_min: 10, early_checkin_min: 60, timezone: "Asia/Jakarta", require_checkin: true });
   const [locations, setLocations] = useState([]);
   const [school, setSchool] = useState(null);
+  const orgType = school?.org_type || "school";
   const [loc, setLoc] = useState({ name: "", lat: "", lng: "", radius_m: 50 });
   const [masterClasses, setMasterClasses] = useState([]);
   const [masterSubjects, setMasterSubjects] = useState([]);
@@ -299,6 +300,7 @@ export default function SettingsPage() {
             </select>
           </div>
         </div>
+        {orgType === "school" && (
         <div className="mt-4 max-w-3xl">
           <label className="text-xs font-semibold text-slate-500">{t("student_dismissal")}</label>
           <p className="text-[11px] text-slate-400 mb-2">{t("student_dismissal_hint")}</p>
@@ -313,6 +315,7 @@ export default function SettingsPage() {
             ))}
           </div>
         </div>
+        )}
         <label className="mt-4 flex items-center gap-2 text-sm text-slate-700 max-w-3xl">
           <input data-testid="require-checkin-toggle" type="checkbox" checked={settings.require_checkin !== false}
             onChange={(e) => setSettings({ ...settings, require_checkin: e.target.checked })}
@@ -432,6 +435,7 @@ export default function SettingsPage() {
       <div className="bg-white rounded-2xl border border-slate-200 p-5" data-testid="master-data-card">
         <p className="font-bold text-slate-800 mb-1">{t("master_data")}</p>
         <p className="text-xs text-slate-400 mb-4">{t("master_hint")}</p>
+        {orgType === "school" && (
         <div className="flex flex-wrap items-end gap-3 mb-4">
           <div>
             <label className="text-xs font-semibold text-slate-500">{t("school_type")}</label>
@@ -452,7 +456,9 @@ export default function SettingsPage() {
             </button>
           )}
         </div>
-        <div className={`grid gap-4 ${["SMA", "SMK"].includes(settings.school_type) ? "sm:grid-cols-3" : "sm:grid-cols-2"}`}>
+        )}
+        <div className={orgType === "school" ? `grid gap-4 ${["SMA", "SMK"].includes(settings.school_type) ? "sm:grid-cols-3" : "sm:grid-cols-2"}` : "grid gap-4 max-w-md"}>
+          {orgType === "school" && (<>
           <MasterList title={t("master_classes")} testid="master-class" items={masterClasses}
             onAdd={(v) => addItem("class", v)} onDelete={(v) => deleteItem("class", v)} onRename={(f2, t2) => renameItem("class", f2, t2)} t={t} />
           {["SMA", "SMK"].includes(settings.school_type) && (
@@ -461,6 +467,7 @@ export default function SettingsPage() {
           )}
           <MasterList title={t("master_subjects")} testid="master-subject" items={masterSubjects}
             onAdd={(v) => addItem("subject", v)} onDelete={(v) => deleteItem("subject", v)} onRename={(f2, t2) => renameItem("subject", f2, t2)} t={t} />
+          </>)}
           <MasterList title={t("department_list")} testid="master-department" items={masterDepartments}
             onAdd={(v) => addItem("department", v)} onDelete={(v) => deleteItem("department", v)} onRename={(f2, t2) => renameItem("department", f2, t2)} t={t} />
         </div>

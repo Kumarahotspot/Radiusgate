@@ -1472,6 +1472,7 @@ class EmployeeIn(BaseModel):
     email: EmailStr
     password: str
     nip: str = ""
+    gender: str = ""
     department: str = ""
     position: str = ""
     overtime_rate: int | None = None
@@ -1484,6 +1485,7 @@ class EmployeeIn(BaseModel):
 class EmployeePatch(BaseModel):
     name: str | None = None
     nip: str | None = None
+    gender: str | None = None
     department: str | None = None
     position: str | None = None
     active: bool | None = None
@@ -1518,7 +1520,7 @@ async def create_employee(body: EmployeeIn, user: dict = Depends(admin_dep)):
     })
     emp = {
         "id": str(uuid.uuid4()), "school_id": user["school_id"], "user_id": uid,
-        "name": body.name, "nip": body.nip, "department": body.department, "position": body.position,
+        "name": body.name, "nip": body.nip, "gender": _norm_gender(body.gender), "department": body.department, "position": body.position,
         "overtime_rate": body.overtime_rate, "base_salary": body.base_salary, "card_uid": body.card_uid.strip(),
         "shift_id": body.shift_id,
         "hourly_rate": body.hourly_rate,
@@ -1536,6 +1538,8 @@ async def create_employee(body: EmployeeIn, user: dict = Depends(admin_dep)):
 @router.patch("/admin/employees/{eid}")
 async def update_employee(eid: str, body: EmployeePatch, user: dict = Depends(admin_dep)):
     upd = {k: v for k, v in body.model_dump().items() if v is not None}
+    if "gender" in upd:
+        upd["gender"] = _norm_gender(upd["gender"])
     update = {}
     if upd:
         update["$set"] = upd

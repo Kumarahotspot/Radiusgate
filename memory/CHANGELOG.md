@@ -453,3 +453,11 @@
 - Backend `report_attendance` (routes_admin.py): kini ikut memetakan koleksi teachers & employees — baris guru/pegawai mendapat field `nip` (dan `gender` fallback dari data pegawai bila kosong). `report_export`: label kolom `NISN`/`NIP` dipilih dari org_type sekolah (school→NISN, company/pppk→NIP), nilai memakai `nisn or nip` — berlaku untuk XLSX dan PDF (`build_report_pdf` dapat param `id_label`).
 - Frontend Reports.jsx: header kolom harian "NIP" untuk mode company/pppk, sel menampilkan `r.nisn || r.nip`.
 - Terverifikasi: API mengembalikan nip 199001012020 untuk Budi PPPK, tabel menampilkan kolom NIP terisi, ekspor PDF 200 + render PNG header NIP, mobile 390 tanpa overflow. Regresi sekolah: kolom tetap NISN.
+
+## 2026-10-20 — Jenis kelamin pegawai + Pengaturan PPPK dibersihkan dari bagian sekolah
+- Permintaan user: (1) jenis kelamin wajib ada untuk pegawai; (2) Pengaturan PPPK masih memakai data siswa — "Jam Pulang Siswa per Hari" & Data Master (Tipe Sekolah/Kelas/Mapel) tidak perlu.
+- Backend: `gender` ditambahkan ke EmployeeIn/EmployeePatch (routes_admin.py); create menormalkan via `_norm_gender` ("perempuan"→P, "laki-laki"→L); PATCH menormalkan bila field dikirim. Field mengalir ke laporan harian (kolom L/P kini terisi dari data pegawai).
+- Frontend Employees.jsx: dropdown Jenis Kelamin di form tambah (`emp-gender`) & modal ubah (`edit-emp-gender`), kolom L/P dengan badge (L=biru, P=pink) di tabel, colSpan 10. Judul halaman & tombol sadar mode PPPK: "Pegawai"/"Tambah Pegawai"/"Ubah Pegawai" (key baru add_pegawai/edit_pegawai ID/EN).
+- Frontend SettingsPage.jsx: `orgType` dari school.org_type — blok "Jam Pulang Siswa per Hari" dan bagian Data Master khusus sekolah (Tipe Sekolah, template, Daftar Kelas, Jurusan, Mata Pelajaran) hanya tampil untuk org_type school; company/pppk hanya melihat Daftar Departemen.
+- Data demo: gender Budi PPPK diset L via API.
+- Terverifikasi: curl create/patch gender OK + data uji dihapus; screenshot PPPK Pengaturan (tanpa bagian siswa, Departemen tetap), form & tabel Pegawai (dropdown + badge), Laporan L/P terisi "L"; regresi Pengaturan sekolah utuh; mobile 390 tanpa overflow.
