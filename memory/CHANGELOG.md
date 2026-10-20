@@ -506,3 +506,9 @@
 - Laporan user: poster pairing kiosk "tidak ada menunya" — user mencari di dropdown avatar, padahal tombol sudah ada di Pengaturan (kartu Kode Kiosk, terbukti via screenshot).
 - Layout.jsx: item menu avatar baru `user-menu-poster` (role school_admin, di bawah "Salin Link Kiosk") mengunduh `/admin/kiosk-poster` sebagai blob poster-kiosk.pdf. Sempat build error (adjacent JSX tanpa fragment) — diperbaiki dengan membungkus blok school_admin dalam `<>...</>`.
 - Terverifikasi: screenshot menu avatar berisi 4 item (Salin Link Kiosk, Unduh Poster QR, Ganti Password, Keluar), klik memicu download PDF, mobile 390 tanpa overflow.
+
+## 2026-10-20 — Slideshow screensaver PPPK Kota Depok (3 slide desain khusus)
+- Permintaan user: buatkan slideshow PPPK Kota Depok untuk screensaver kiosk (menggantikan foto logo polos yang diupload manual).
+- Agen membuat 3 slide 1920×1080 via Pillow (gradien teal + logo Kota Depok di kartu putih + tipografi Liberation Sans): (1) SELAMAT DATANG + instruksi absen, (2) JANGAN LUPA ABSEN masuk & pulang, (3) slogan DISIPLIN • MELAYANI • PROFESIONAL + kredit RadiusGate. Masing-masing ±125-145KB JPEG.
+- Foto slide lama dihapus (DELETE /admin/saver-photos), 3 slide baru diunggah via POST /admin/saver-photos ke tenant demo PPPK.
+- Terverifikasi: settings menunjukkan tepat 3 foto slide, render slide bagus, thumbnail termuat di Pengaturan, mobile 390 aman. Generator: /tmp/gen_slides.py (throwaway).
