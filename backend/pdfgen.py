@@ -171,6 +171,80 @@ def build_daftar_hadir_pdf(school: dict, employees: list, matrix: dict, month: s
     return path
 
 
+def build_pppk_weekly_pdf(school: dict, rows: list, w_start: str, w_end: str) -> str:
+    def _fd(s: str) -> str:
+        return datetime.strptime(s, "%Y-%m-%d").strftime("%d/%m/%Y")
+
+    path = os.path.join(INVOICE_DIR, f"laporan_mingguan_pppk_{w_start}.pdf")
+    c = canvas.Canvas(path, pagesize=A4)
+    w, h = A4
+    cols = [20 * mm, 28 * mm, 62 * mm, 88 * mm, 112 * mm, 124 * mm, 148 * mm, 168 * mm]
+    headers = ["No", "Nama", "NIP/NIPTT-PW", "Unit Kerja", "Hari", "Jam Kerja", "Tarif/Jam", "Upah"]
+    row_h = 6.4 * mm
+
+    def _kop(y):
+        c.setFont("Helvetica-Bold", 13)
+        c.drawCentredString(w / 2, y, (school.get("name") or "").upper())
+        y -= 5 * mm
+        c.setFont("Helvetica", 9)
+        if school.get("address"):
+            c.drawCentredString(w / 2, y, school["address"])
+        y -= 3 * mm
+        c.setLineWidth(1.2)
+        c.line(20 * mm, y, w - 20 * mm, y)
+        y -= 10 * mm
+        c.setFont("Helvetica-Bold", 12)
+        c.drawCentredString(w / 2, y, "LAPORAN MINGGUAN PPPK PARUH WAKTU")
+        y -= 6 * mm
+        c.setFont("Helvetica", 10)
+        c.drawCentredString(w / 2, y, f"Periode: {_fd(w_start)} s.d. {_fd(w_end)}")
+        return y - 12 * mm
+
+    def _thead(y):
+        c.setFont("Helvetica-Bold", 8.5)
+        c.rect(20 * mm, y - row_h, w - 40 * mm, row_h)
+        for cx, htxt in zip(cols, headers):
+            c.drawString(cx + 1.5 * mm, y - 4.4 * mm, htxt)
+        for cx in cols[1:]:
+            c.line(cx, y, cx, y - row_h)
+        return y - row_h
+
+    y = _thead(_kop(h - 18 * mm))
+    c.setFont("Helvetica", 8.5)
+    tot_min = tot_pay = 0
+    for i, r in enumerate(rows, 1):
+        if y < 45 * mm:
+            c.showPage()
+            y = _thead(h - 20 * mm)
+            c.setFont("Helvetica", 8.5)
+        jk = f"{r['minutes'] // 60}j {r['minutes'] % 60}m" if r["minutes"] else "-"
+        vals = [str(i), (r["name"] or "")[:24], (r["nip"] or "-")[:18], (r["department"] or "-")[:16],
+                str(r["days"]), jk, rupiah(r["hourly_rate"]) if r["hourly_rate"] else "-", rupiah(r["pay"])]
+        c.rect(20 * mm, y - row_h, w - 40 * mm, row_h)
+        for cx, val in zip(cols, vals):
+            c.drawString(cx + 1.5 * mm, y - 4.4 * mm, str(val))
+        for cx in cols[1:]:
+            c.line(cx, y, cx, y - row_h)
+        y -= row_h
+        tot_min += r["minutes"]
+        tot_pay += r["pay"]
+    c.setFont("Helvetica-Bold", 8.5)
+    c.rect(20 * mm, y - row_h, w - 40 * mm, row_h)
+    c.drawString(28 * mm + 1.5 * mm, y - 4.4 * mm, "TOTAL")
+    c.drawString(112 * mm + 1.5 * mm, y - 4.4 * mm, str(sum(r["days"] for r in rows)))
+    c.drawString(124 * mm + 1.5 * mm, y - 4.4 * mm, f"{tot_min // 60}j {tot_min % 60}m")
+    c.drawString(168 * mm + 1.5 * mm, y - 4.4 * mm, rupiah(tot_pay))
+    for cx in cols[1:]:
+        c.line(cx, y, cx, y - row_h)
+    y -= row_h + 16 * mm
+    c.setFont("Helvetica", 10)
+    c.drawString(w - 90 * mm, y, "Pejabat Penilai Kinerja,")
+    c.setFont("Helvetica-Bold", 10)
+    c.drawString(w - 90 * mm, y - 26 * mm, "( .................................... )")
+    c.save()
+    return path
+
+
 def invoice_pdf_path(inv_id: str) -> str:
     return os.path.join(INVOICE_DIR, f"inv_{inv_id}.pdf")
 

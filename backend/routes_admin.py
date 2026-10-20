@@ -16,7 +16,7 @@ from db import db
 from auth import require_roles, hash_password
 from faceutil import embed, cos_sim, NoFaceError, MATCH_SIM_THRESHOLD
 from starlette.concurrency import run_in_threadpool
-from pdfgen import build_report_pdf, build_kiosk_poster_pdf, build_recap_pdf, build_warning_letter_pdf, build_daftar_hadir_pdf
+from pdfgen import build_report_pdf, build_kiosk_poster_pdf, build_recap_pdf, build_warning_letter_pdf, build_daftar_hadir_pdf, build_pppk_weekly_pdf
 from storage import put_object, get_object
 from notif import normalize_phone, send_whatsapp
 
@@ -833,6 +833,40 @@ async def pppk_daftar_hadir_pdf(month: str, user: dict = Depends(admin_dep)):
     school = await db.schools.find_one({"id": sid}, {"_id": 0, "name": 1, "address": 1})
     path = build_daftar_hadir_pdf(school or {}, employees, matrix, month)
     return FileResponse(path, media_type="application/pdf", filename=f"daftar-hadir-pppk-{month}.pdf")
+
+
+@router.get("/admin/pppk/laporan-mingguan/pdf")
+async def pppk_laporan_mingguan_pdf(week_start: str | None = None, user: dict = Depends(admin_dep)):
+    sid = user["school_id"]
+    if week_start:
+        if not re.match(r"^\d{4}-\d{2}-\d{2}$", week_start):
+            raise HTTPException(status_code=422, detail="Format tanggal tidak valid")
+        d0 = datetime.strptime(week_start, "%Y-%m-%d").date()
+    else:
+        d0 = datetime.strptime(await school_today(sid), "%Y-%m-%d").date()
+    d0 = d0 - timedelta(days=d0.weekday())
+    w_start = d0.isoformat()
+    w_end = (d0 + timedelta(days=6)).isoformat()
+    employees = await db.employees.find({"school_id": sid, "active": {"$ne": False}}, {"_id": 0}).sort("name", 1).to_list(1000)
+    att = await db.attendance.find(
+        {"school_id": sid, "person_type": "employee", "date": {"$gte": w_start, "$lte": w_end}},
+        {"_id": 0, "employee_id": 1, "date": 1, "type": 1, "time_local": 1}).to_list(50000)
+    per = _pppk_collect(att)
+    by_emp = {}
+    for (eid, _d), v in per.items():
+        r = by_emp.setdefault(eid, {"days": 0, "minutes": 0})
+        r["days"] += 1
+        r["minutes"] += _pppk_minutes(v)
+    rows = []
+    for emp in employees:
+        r = by_emp.get(emp["id"], {"days": 0, "minutes": 0})
+        rate = emp.get("hourly_rate") or 0
+        rows.append({"name": emp["name"], "nip": emp.get("nip") or "-", "department": emp.get("department") or "-",
+                     "days": r["days"], "minutes": r["minutes"], "hourly_rate": rate,
+                     "pay": int(r["minutes"] / 60 * rate)})
+    school = await db.schools.find_one({"id": sid}, {"_id": 0, "name": 1, "address": 1})
+    path = build_pppk_weekly_pdf(school or {}, rows, w_start, w_end)
+    return FileResponse(path, media_type="application/pdf", filename=f"laporan-mingguan-pppk-{w_start}.pdf")
 
 
 # ---------- Foto slide screensaver kiosk (object storage) ----------

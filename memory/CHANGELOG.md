@@ -435,3 +435,10 @@
 - Frontend AdminDashboard.jsx: cabang `isPppk` — 5 kartu khusus: Pegawai Hadir (filter tabel), Jam Kerja Minggu Ini, Estimasi Upah Minggu Ini (Rp), Total Pegawai (→ /admin/employees), Pengajuan Menunggu (→ /admin/leaves). Badge tabel "Karyawan" → "Pegawai" di mode PPPK; chip filter employee ikut istilah Pegawai.
 - i18n baru (ID/EN): pegawai_present, total_pegawai, week_hours, week_pay, hours_unit.
 - Terverifikasi: curl stats pppk (week_hours/week_pay OK), screenshot desktop+mobile (5 kartu tampil, badge "Pegawai", tanpa overflow 390px), regresi stats sekolah OK. Catatan: akun demo company (hrd@majubersama.co.id) tidak bisa login karena trial_expired (kondisi lama, bukan regresi).
+
+## 2026-10-20 — Tombol "Unduh Laporan Mingguan (PDF)" di dasbor PPPK
+- Persetujuan user atas saran: dasbor PPPK kini punya tombol unduh laporan mingguan (jam kerja + upah per pegawai) untuk arsip mingguan kantor.
+- Backend: endpoint baru `GET /admin/pppk/laporan-mingguan/pdf?week_start=YYYY-MM-DD` (routes_admin.py) — default minggu berjalan (Senin–Minggu ISO week berdasar school_today), param tanggal mana pun dinormalisasi ke Senin minggunya; validasi format 422. Per pegawai: hari hadir, total menit (via `_pppk_collect`/`_pppk_minutes`), tarif, upah.
+- pdfgen.py: `build_pppk_weekly_pdf` — kop instansi, tabel No/Nama/NIP/Unit/Hari/Jam Kerja/Tarif per Jam/Upah + baris TOTAL + blok ttd "Pejabat Penilai Kinerja", page-break dengan header berulang.
+- Frontend AdminDashboard.jsx: tombol `weekly-report-btn` (ikon Download, hanya mode pppk) mengunduh blob `laporan-mingguan-pppk.pdf`; i18n baru weekly_report_pdf (ID/EN).
+- Terverifikasi: curl (200 %PDF valid, param minggu lalu OK, format ngawur 422), render PNG kedua PDF (layout & hitungan benar: 4j30m × Rp20.000 = Rp90.000), klik tombol di browser memicu download, mobile 390 tanpa overflow.

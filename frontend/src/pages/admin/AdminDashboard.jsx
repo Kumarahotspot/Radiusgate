@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import api, { errMsg } from "../../api";
 import { useAuth } from "../../context/AuthContext";
-import { Users, Clock, CalendarClock, GraduationCap, UserCheck, Trash2, BookOpen, Search, ChevronLeft, ChevronRight, ChevronDown, X, Wallet } from "lucide-react";
+import { Users, Clock, CalendarClock, GraduationCap, UserCheck, Trash2, BookOpen, Search, ChevronLeft, ChevronRight, ChevronDown, X, Wallet, Download } from "lucide-react";
 
 const HSIA = [
   ["present", "present", "bg-emerald-600", "text-emerald-700 border-emerald-200 hover:bg-emerald-50"],
@@ -38,6 +38,7 @@ export default function AdminDashboard() {
   const [pageSize, setPageSize] = useState(10);
   const [expanded, setExpanded] = useState(null);
   const [flt, setFlt] = useState(() => new URLSearchParams(window.location.search).get("f") || "");
+  const [dlWeekBusy, setDlWeekBusy] = useState(false);
   const tableRef = useRef(null);
   const todayStr = new Date().toLocaleDateString("en-CA");
   const [attDate, setAttDate] = useState(todayStr);
@@ -96,6 +97,19 @@ export default function AdminDashboard() {
     } catch (err) { toast.error(errMsg(err)); } finally { setMarkBusy(""); }
   };
 
+  const dlWeekly = async () => {
+    setDlWeekBusy(true);
+    try {
+      const res = await api.get("/admin/pppk/laporan-mingguan/pdf", { responseType: "blob" });
+      const url = URL.createObjectURL(new Blob([res.data], { type: "application/pdf" }));
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "laporan-mingguan-pppk.pdf";
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (err) { toast.error(errMsg(err)); } finally { setDlWeekBusy(false); }
+  };
+
   const toggleFlt = (v) => setFlt((cur) => (cur === v ? "" : v));
   const isCompany = user?.org_type === "company";
   const isPppk = user?.org_type === "pppk";
@@ -134,6 +148,15 @@ export default function AdminDashboard() {
           </button>
         ))}
       </div>
+
+      {isPppk && (
+        <div className="flex justify-end">
+          <button data-testid="weekly-report-btn" onClick={dlWeekly} disabled={dlWeekBusy}
+            className="flex items-center gap-2 bg-teal-700 hover:bg-teal-800 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition-colors disabled:opacity-50">
+            <Download className="w-4 h-4" /> {dlWeekBusy ? t("loading") : t("weekly_report_pdf")}
+          </button>
+        </div>
+      )}
 
       <div ref={tableRef} className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
         <div className="flex flex-wrap items-center justify-between gap-2 px-4 py-3 border-b">
