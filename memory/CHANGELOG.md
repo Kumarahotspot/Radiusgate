@@ -546,3 +546,7 @@
 - Fix kedua: keempat MP4 tanpa faststart (moov di akhir) — di-remux `-movflags +faststart` (moov@36), dan flag ditambahkan ke assemble script.
 - CATATAN UJI: screenshot_tool remote browser = Chromium tanpa codec H.264 → video err 4 di sana, padahal file valid. Verifikasi playback dilakukan via Playwright lokal memakai /usr/bin/google-chrome (codec lengkap): video berputar (readyState 4). Script sumber video disalin ke /app/backend/assets/promo/scripts/ agar persisten.
 - ZIP landing di-rebuild (32MB).
+
+## 2026-10-20 — Klip AI siswa absen dimasukkan ke video promosi
+- Permintaan user: tambahkan video AI siswa sedang absen. Klip baru 5 detik × 2 orientasi via Kling v3 (siswa SMA putih-abu scan wajah di kiosk gerbang sekolah, teman mengantre — terverifikasi visual bagus). Disisipkan ke urutan video tepat setelah kartu "Absen Wajah AI dalam 3 Detik" (/tmp/assemble_video.py SEQ).
+- Kedua versi loop dirakit ulang (dengan faststart bawaan script), varian musik di-mux ulang dari loop baru + faststart, keempat file final diperbarui di /app/backend/assets/promo/. Durasi kini ±57,6 detik (loop) / 57,6 (musik).
