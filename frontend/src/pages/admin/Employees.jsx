@@ -180,7 +180,7 @@ export default function Employees() {
                   <td className="px-4 py-3 font-semibold text-slate-800">{emp.name}</td>
                   <td className="px-4 py-3 font-mono text-xs">{emp.nip}</td>
                   <td className="px-4 py-3">
-                    <span data-testid={`emp-gender-badge-${emp.id}`} className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${emp.gender === "L" ? "bg-sky-50 text-sky-700 border border-sky-200" : emp.gender === "P" ? "bg-pink-50 text-pink-700 border border-pink-200" : "text-slate-400"}`}>
+                    <span data-testid={`emp-gender-badge-${emp.id}`} className={`inline-block whitespace-nowrap text-[11px] font-bold px-2 py-0.5 rounded-full ${emp.gender === "L" ? "bg-sky-50 text-sky-700 border border-sky-200" : emp.gender === "P" ? "bg-pink-50 text-pink-700 border border-pink-200" : "text-slate-400"}`}>
                       {emp.gender === "L" ? t("gender_l") : emp.gender === "P" ? t("gender_p") : "—"}
                     </span>
                   </td>

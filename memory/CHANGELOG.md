@@ -479,3 +479,6 @@
 - Fix bug saat implementasi: proyeksi query summary awalnya tidak menyertakan `employee_id` sehingga `_pppk_collect` men-skip semua baris (hasil nol) — ditambah `"employee_id": 1` dan terverifikasi (4 hari, 13.5 jam, Rp 270.000).
 - Frontend EmployeeHome.jsx: kartu "Rekap Jam & Upah Saya" (`pppk-my-recap`) dengan 4 tile (Hari Hadir, Jam Bulan Ini, Jam Minggu Ini, Estimasi Upah) + MonthYearPicker; header menampilkan Tarif per Jam untuk pppk (bukan tarif lembur); form & tabel pengajuan lembur disembunyikan di mode pppk (fleksibel = tanpa lembur); kolom Lembur di tabel Presensi Saya disembunyikan untuk pppk. i18n baru: my_recap_pppk, hours_month, est_pay_month (ID/EN).
 - Terverifikasi: curl summary OK + 422 format bulan salah; screenshot portal Budi PPPK (kartu terisi nilai asli, tanpa form lembur, mobile 390 aman); regresi portal karyawan sekolah (form lembur tetap ada).
+
+## 2026-10-20 — Fix badge L/P terpotong dua baris di tabel Pegawai & Guru
+- Laporan user (screenshot): badge "Laki-laki" di kolom L/P tabel Pegawai terpotong jadi "Laki-" / "laki". Fix: tambah `inline-block whitespace-nowrap` pada badge gender di Employees.jsx dan Teachers.jsx. Terverifikasi screenshot: badge tampil satu baris, mobile 390 tanpa overflow.
