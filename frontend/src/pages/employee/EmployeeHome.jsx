@@ -2,7 +2,8 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import api, { errMsg } from "../../api";
-import { Clock, Send } from "lucide-react";
+import { Clock, Send, Wallet } from "lucide-react";
+import MonthYearPicker from "../../components/MonthYearPicker";
 
 const rp = (n) => `Rp ${Number(n || 0).toLocaleString("id-ID")}`;
 
@@ -14,6 +15,8 @@ export default function EmployeeHome() {
   const today = new Date().toISOString().slice(0, 10);
   const [form, setForm] = useState({ date: today, minutes: 60, reason: "" });
   const [busy, setBusy] = useState(false);
+  const [sum, setSum] = useState(null);
+  const [month, setMonth] = useState(new Date().toLocaleDateString("en-CA").slice(0, 7));
 
   const load = () => {
     api.get("/employee/me").then((r) => setMe(r.data)).catch(() => {});
@@ -21,6 +24,10 @@ export default function EmployeeHome() {
     api.get("/employee/overtime").then((r) => setReqs(r.data)).catch(() => {});
   };
   useEffect(() => { load(); }, []);
+
+  useEffect(() => {
+    if (me?.org_type === "pppk") api.get("/employee/pppk/summary", { params: { month } }).then((r) => setSum(r.data)).catch(() => {});
+  }, [me?.org_type, month]);
 
   const submit = async (e) => {
     e.preventDefault();
@@ -44,12 +51,40 @@ export default function EmployeeHome() {
             <p className="text-xs text-teal-200">{[me.department, me.position].filter(Boolean).join(" · ") || me.nip}</p>
           </div>
           <div className="text-right">
-            <p className="text-xs uppercase tracking-wide text-teal-200">{t("overtime_rate")}</p>
-            <p data-testid="emp-me-rate" className="font-bold">{rp(me.effective_overtime_rate)}</p>
+            <p className="text-xs uppercase tracking-wide text-teal-200">{me.org_type === "pppk" ? t("hourly_rate") : t("overtime_rate")}</p>
+            <p data-testid="emp-me-rate" className="font-bold">{rp(me.org_type === "pppk" ? me.hourly_rate : me.effective_overtime_rate)}</p>
           </div>
         </div>
       )}
 
+      {me?.org_type === "pppk" && sum && (
+        <div data-testid="pppk-my-recap" className="bg-white rounded-2xl border border-slate-200 p-5">
+          <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+            <p className="font-bold text-slate-800 flex items-center gap-2"><Wallet className="w-4 h-4 text-teal-700" /> {t("my_recap_pppk")}</p>
+            <MonthYearPicker testid="my-recap-month" value={month} onChange={setMonth} allowEmpty={false} />
+          </div>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+            <div data-testid="my-days" className="bg-slate-50 rounded-xl p-3">
+              <p className="text-xl font-extrabold text-slate-800">{sum.days}</p>
+              <p className="text-[11px] text-slate-500 font-medium">{t("days_present")}</p>
+            </div>
+            <div data-testid="my-hours-month" className="bg-slate-50 rounded-xl p-3">
+              <p className="text-xl font-extrabold text-slate-800">{sum.hours} {t("hours_unit")}</p>
+              <p className="text-[11px] text-slate-500 font-medium">{t("hours_month")}</p>
+            </div>
+            <div data-testid="my-hours-week" className="bg-slate-50 rounded-xl p-3">
+              <p className="text-xl font-extrabold text-slate-800">{sum.week_hours} {t("hours_unit")}</p>
+              <p className="text-[11px] text-slate-500 font-medium">{t("week_hours")}</p>
+            </div>
+            <div data-testid="my-pay-month" className="bg-emerald-50 rounded-xl p-3">
+              <p className="text-xl font-extrabold text-emerald-700">{rp(sum.total_pay)}</p>
+              <p className="text-[11px] text-emerald-600 font-medium">{t("est_pay_month")}</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {me?.org_type !== "pppk" && (
       <form onSubmit={submit} data-testid="overtime-form" className="bg-white rounded-2xl border border-slate-200 p-5">
         <p className="font-bold text-slate-800 mb-4 flex items-center gap-2"><Clock className="w-4 h-4 text-teal-700" /> {t("request_overtime")}</p>
         <div className="grid sm:grid-cols-4 gap-4">
@@ -74,7 +109,9 @@ export default function EmployeeHome() {
           <Send className="w-3.5 h-3.5" /> {t("request_overtime")}
         </button>
       </form>
+      )}
 
+      {me?.org_type !== "pppk" && (
       <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
         <p className="px-4 pt-4 font-bold text-slate-800">{t("my_overtime")}</p>
         <div className="overflow-x-auto mt-2">
@@ -101,6 +138,7 @@ export default function EmployeeHome() {
           </table>
         </div>
       </div>
+      )}
 
       <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
         <p className="px-4 pt-4 font-bold text-slate-800">{t("my_attendance")}</p>
@@ -112,7 +150,7 @@ export default function EmployeeHome() {
                 <th className="px-4 py-3">{t("type")}</th>
                 <th className="px-4 py-3">{t("time")}</th>
                 <th className="px-4 py-3">{t("status")}</th>
-                <th className="px-4 py-3">{t("overtime_min")}</th>
+                {me?.org_type !== "pppk" && <th className="px-4 py-3">{t("overtime_min")}</th>}
               </tr>
             </thead>
             <tbody>
@@ -122,10 +160,10 @@ export default function EmployeeHome() {
                   <td className="px-4 py-3">{a.type === "in" ? t("check_in") : t("check_out")}</td>
                   <td className="px-4 py-3 font-mono text-xs">{a.time_local || (a.ts_device || "").slice(11, 16)}</td>
                   <td className="px-4 py-3">{a.status}</td>
-                  <td className="px-4 py-3">{a.overtime_minutes || 0}</td>
+                  {me?.org_type !== "pppk" && <td className="px-4 py-3">{a.overtime_minutes || 0}</td>}
                 </tr>
               ))}
-              {att.length === 0 && <tr><td colSpan={5} className="px-4 py-8 text-center text-slate-400">{t("no_data")}</td></tr>}
+              {att.length === 0 && <tr><td colSpan={me?.org_type === "pppk" ? 4 : 5} className="px-4 py-8 text-center text-slate-400">{t("no_data")}</td></tr>}
             </tbody>
           </table>
         </div>
