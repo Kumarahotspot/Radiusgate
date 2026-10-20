@@ -550,3 +550,8 @@
 ## 2026-10-20 — Klip AI siswa absen dimasukkan ke video promosi
 - Permintaan user: tambahkan video AI siswa sedang absen. Klip baru 5 detik × 2 orientasi via Kling v3 (siswa SMA putih-abu scan wajah di kiosk gerbang sekolah, teman mengantre — terverifikasi visual bagus). Disisipkan ke urutan video tepat setelah kartu "Absen Wajah AI dalam 3 Detik" (/tmp/assemble_video.py SEQ).
 - Kedua versi loop dirakit ulang (dengan faststart bawaan script), varian musik di-mux ulang dari loop baru + faststart, keempat file final diperbarui di /app/backend/assets/promo/. Durasi kini ±57,6 detik (loop) / 57,6 (musik).
+
+## 2026-10-20 — Klip AI tap kartu RFID dimasukkan ke video promosi
+- Permintaan user: 1 klip lagi. Klip baru 5 detik × 2 orientasi via Kling v3 (close-up tangan karyawan tap kartu RFID putih di kiosk tablet — terverifikasi visual bagus). Disisipkan setelah kartu "Kartu RFID & QR Code".
+- Susunan video kini: kartu intro → klip kantor → kartu wajah → klip siswa scan wajah → UI landing → UI dasbor → kartu RFID/QR → klip tap kartu → UI laporan → UI rekap PPPK → kartu 3 segmen → UI portal pegawai → UI seksi PPPK → klip drone kota → kartu outro (loop ke intro). Durasi ±62,6 detik.
+- Kedua versi loop dirakit ulang, varian musik di-mux ulang (afade 60s), keempat file final diperbarui di /app/backend/assets/promo/.
