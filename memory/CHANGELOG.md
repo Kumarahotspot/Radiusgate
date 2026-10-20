@@ -515,3 +515,8 @@
 
 ## 2026-10-20 — Klarifikasi: slideshow hero landing sudah ada & berfungsi
 - User mengira mockup kiosk di hero landing hanya 1 gambar statis. Verifikasi: slideshow 5 slide (siswa/kiosk/kantor/pabrik/dashboard, interval 4,5 detik, crossfade + dots + caption) sudah berjalan di preview — caption berubah setelah 5 detik, kelima gambar termuat. Penyebab di user: situs live radiusgate.id masih build lama. ZIP landing (landing-radiusgate.zip, 29MB) sudah memuat folder slides/. Solusi: git pull + rebuild di VPS.
+
+## 2026-10-20 — Slide ke-6 hero landing: tema instansi/PPPK
+- Persetujuan user atas saran: slideshow hero kini 6 slide — tambahan `/slides/pppk-absen.jpg` (gambar AI: PNS berbatik absen di kiosk tablet lobi kantor pemerintah, 158KB) dengan caption "Absensi PPPK Paruh Waktu di instansi" / sub "Jam fleksibel, upah per jam & laporan resmi otomatis".
+- Landing.jsx: entri SLIDES baru; dots otomatis jadi 6. Frontend di-build ulang dan `landing-radiusgate.zip` di-rezip (30MB, 8 file slides termasuk pppk-absen.jpg).
+- Terverifikasi: slide PPPK muncul via rotasi otomatis dengan caption benar, gambar termuat, mobile 390 aman.

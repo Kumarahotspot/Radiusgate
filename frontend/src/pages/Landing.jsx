@@ -35,6 +35,7 @@ const SLIDES = [
   { src: "/slides/kiosk.jpg", title: "Kiosk tablet anti titip absen", sub: "Face recognition + liveness + GPS geofence" },
   { src: "/slides/kantor-absen.jpg", title: "Karyawan absen di kiosk lobi kantor", sub: "Wajah, kartu RFID, atau QR — tanpa alat khusus" },
   { src: "/slides/pabrik-absen.jpg", title: "Clock-in shift pabrik pagi/siang/malam", sub: "Jam shift per karyawan, telat & lembur dihitung otomatis" },
+  { src: "/slides/pppk-absen.jpg", title: "Absensi PPPK Paruh Waktu di instansi", sub: "Jam fleksibel, upah per jam & laporan resmi otomatis" },
   { src: "/slides/dashboard.jpg", title: "Admin & HRD memantau laporan real-time", sub: "Rekap harian, keterlambatan, SPP & penggajian satu dasbor" },
 ];
 
