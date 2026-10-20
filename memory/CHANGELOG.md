@@ -442,3 +442,8 @@
 - pdfgen.py: `build_pppk_weekly_pdf` — kop instansi, tabel No/Nama/NIP/Unit/Hari/Jam Kerja/Tarif per Jam/Upah + baris TOTAL + blok ttd "Pejabat Penilai Kinerja", page-break dengan header berulang.
 - Frontend AdminDashboard.jsx: tombol `weekly-report-btn` (ikon Download, hanya mode pppk) mengunduh blob `laporan-mingguan-pppk.pdf`; i18n baru weekly_report_pdf (ID/EN).
 - Terverifikasi: curl (200 %PDF valid, param minggu lalu OK, format ngawur 422), render PNG kedua PDF (layout & hitungan benar: 4j30m × Rp20.000 = Rp90.000), klik tombol di browser memicu download, mobile 390 tanpa overflow.
+
+## 2026-10-20 — Tab Laporan sadar tipe organisasi (PPPK/Perusahaan)
+- Laporan user (screenshot): halaman Laporan mode PPPK "masih tercampur" — menampilkan tab sekolah (Per Mapel, Per Siswa, Per Guru, Sesi Mapel).
+- Reports.jsx: tambah useAuth + `isPppk` + `hideSchoolTabs` (pppk/company). Tab Per Mapel/Per Siswa/Per Guru/Sesi Mapel disembunyikan untuk company & pppk; tersisa Harian + tab pegawai. Label tab pegawai mode pppk = "Per Pegawai" (key baru `pegawai_att_tab` ID/EN), mode lain tetap "Per Karyawan". Dropdown Tipe di tab Harian: company/pppk hanya "Semua" + Pegawai/Karyawan; sekolah tetap Siswa/Guru.
+- Terverifikasi screenshot: PPPK hanya 2 tab (Harian, Per Pegawai), dropdown Tipe = Semua/Pegawai, tanpa overflow mobile 390; regresi sekolah 6 tab utuh + dropdown Siswa/Guru.

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import api from "../../api";
+import { useAuth } from "../../context/AuthContext";
 import MonthYearPicker from "../../components/MonthYearPicker";
 import { ChevronLeft, ChevronRight, FileSpreadsheet, FileText } from "lucide-react";
 
@@ -252,6 +253,9 @@ function PersonReport({ t, person, from, to, setFrom, setTo, classes }) {
 
 export default function Reports() {
   const { t } = useTranslation();
+  const { user } = useAuth();
+  const isPppk = user?.org_type === "pppk";
+  const hideSchoolTabs = isPppk || user?.org_type === "company";
   const today = new Date().toLocaleDateString("en-CA");
   const monthAgo = new Date(Date.now() - 29 * 864e5).toLocaleDateString("en-CA");
   const [from, setFrom] = useState(monthAgo);
@@ -324,16 +328,20 @@ export default function Reports() {
       <div className="flex flex-wrap gap-1 bg-white border border-slate-200 rounded-xl p-1 w-fit max-w-full">
         <button data-testid="tab-daily" onClick={() => setTab("daily")}
           className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-colors ${tab === "daily" ? "bg-teal-700 text-white" : "text-slate-600 hover:bg-slate-100"}`}>{t("daily_tab")}</button>
+        {!hideSchoolTabs && (<>
         <button data-testid="tab-subject" onClick={() => setTab("subject")}
           className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-colors ${tab === "subject" ? "bg-teal-700 text-white" : "text-slate-600 hover:bg-slate-100"}`}>{t("subject_att_tab")}</button>
         <button data-testid="tab-students" onClick={() => setTab("students")}
           className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-colors ${tab === "students" ? "bg-teal-700 text-white" : "text-slate-600 hover:bg-slate-100"}`}>{t("student_att_tab")}</button>
         <button data-testid="tab-teachers" onClick={() => setTab("teachers")}
           className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-colors ${tab === "teachers" ? "bg-teal-700 text-white" : "text-slate-600 hover:bg-slate-100"}`}>{t("teacher_att_tab")}</button>
+        </>)}
         <button data-testid="tab-employees" onClick={() => setTab("employees")}
-          className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-colors ${tab === "employees" ? "bg-teal-700 text-white" : "text-slate-600 hover:bg-slate-100"}`}>{t("employee_att_tab")}</button>
+          className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-colors ${tab === "employees" ? "bg-teal-700 text-white" : "text-slate-600 hover:bg-slate-100"}`}>{isPppk ? t("pegawai_att_tab") : t("employee_att_tab")}</button>
+        {!hideSchoolTabs && (
         <button data-testid="tab-sessions" onClick={() => setTab("sessions")}
           className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-colors ${tab === "sessions" ? "bg-teal-700 text-white" : "text-slate-600 hover:bg-slate-100"}`}>{t("sessions_tab")}</button>
+        )}
       </div>
       {tab === "subject" && (
         <div className="bg-white rounded-2xl border border-slate-200 p-4 flex flex-wrap items-end gap-3" data-testid="subject-recap-panel">
@@ -365,8 +373,12 @@ export default function Reports() {
           <select data-testid="report-person" value={person} onChange={(e) => setPerson(e.target.value)}
             className="mt-1 block rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-teal-600 bg-white">
             <option value="">{t("all_people")}</option>
-            <option value="student">{t("students")}</option>
-            <option value="teacher">{t("teachers")}</option>
+            {hideSchoolTabs ? (
+              <option value="employee">{isPppk ? t("pegawai_menu") : t("employees")}</option>
+            ) : (<>
+              <option value="student">{t("students")}</option>
+              <option value="teacher">{t("teachers")}</option>
+            </>)}
           </select>
         </div>
         <div className="flex gap-2 ml-auto">
