@@ -512,3 +512,6 @@
 - Agen membuat 3 slide 1920×1080 via Pillow (gradien teal + logo Kota Depok di kartu putih + tipografi Liberation Sans): (1) SELAMAT DATANG + instruksi absen, (2) JANGAN LUPA ABSEN masuk & pulang, (3) slogan DISIPLIN • MELAYANI • PROFESIONAL + kredit RadiusGate. Masing-masing ±125-145KB JPEG.
 - Foto slide lama dihapus (DELETE /admin/saver-photos), 3 slide baru diunggah via POST /admin/saver-photos ke tenant demo PPPK.
 - Terverifikasi: settings menunjukkan tepat 3 foto slide, render slide bagus, thumbnail termuat di Pengaturan, mobile 390 aman. Generator: /tmp/gen_slides.py (throwaway).
+
+## 2026-10-20 — Klarifikasi: slideshow hero landing sudah ada & berfungsi
+- User mengira mockup kiosk di hero landing hanya 1 gambar statis. Verifikasi: slideshow 5 slide (siswa/kiosk/kantor/pabrik/dashboard, interval 4,5 detik, crossfade + dots + caption) sudah berjalan di preview — caption berubah setelah 5 detik, kelima gambar termuat. Penyebab di user: situs live radiusgate.id masih build lama. ZIP landing (landing-radiusgate.zip, 29MB) sudah memuat folder slides/. Solusi: git pull + rebuild di VPS.
