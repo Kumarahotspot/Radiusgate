@@ -41,4 +41,4 @@ Aplikasi absensi berbasis Kiosk Web App (browser HP/tablet) + face recognition (
 - `GET /api/public/download/panduan` — PDF Panduan Pengguna
 - `GET /api/public/download/panduan-vps` — Markdown Panduan VPS
 - `GET /api/public/download/install-script` — Shell Script Auto-Installer VPS
-- `GET /api/public/download/promo-video?format=16x9|9x16` — Video promosi produk (±50 detik, kombinasi klip sinematik AI Kling v3 + slideshow UI asli; file di backend/assets/promo/)
+- `GET /api/public/download/promo-video?format=16x9|9x16` — Video promosi produk (±50 detik, kombinasi klip sinematik AI Kling v3 + slideshow UI asli; file di backend/assets/promo/). Varian: `16x9-musik` / `9x16-musik` (loop + musik instrumental AI). Versi utama adalah loop mulus (frame awal = frame akhir).

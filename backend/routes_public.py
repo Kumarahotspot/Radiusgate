@@ -114,5 +114,11 @@ async def download_restore_script():
 
 @router.get("/public/download/promo-video")
 async def download_promo_video(format: str = "16x9"):
-    name = "radiusgate-promo-9x16.mp4" if format == "9x16" else "radiusgate-promo-16x9.mp4"
+    files = {
+        "16x9": "radiusgate-promo-16x9.mp4",
+        "9x16": "radiusgate-promo-9x16.mp4",
+        "16x9-musik": "radiusgate-promo-16x9-musik.mp4",
+        "9x16-musik": "radiusgate-promo-9x16-musik.mp4",
+    }
+    name = files.get(format, files["16x9"])
     return FileResponse(f"/app/backend/assets/promo/{name}", media_type="video/mp4", filename=name)

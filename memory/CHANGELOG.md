@@ -534,3 +534,8 @@
 - Perakitan: /tmp/assemble_video.py — komposisi frame blur-background (Pillow) + zoompan Ken Burns + fade in/out per segmen (ffmpeg) + concat; ffmpeg di-install via apt (5.1.9).
 - Hasil: radiusgate-promo-16x9.mp4 (11MB) & radiusgate-promo-9x16.mp4 (9,8MB), durasi ±50 detik, disimpan di /app/backend/assets/promo/. Endpoint publik baru: GET /api/public/download/promo-video?format=16x9|9x16.
 - Terverifikasi: frame video (kartu, klip AI, UI) diekstrak & divisualkan; semua frame bagus.
+
+## 2026-10-20 — Video promosi: versi loop mulus + varian musik instrumental
+- Persetujuan user atas saran: (1) versi loop mulus — kartu intro digandakan di akhir tanpa fade, segmen pertama tanpa fade-in; frame pertama = frame terakhir (terverifikasi identik) sehingga looping di pemutar video tidak terlihat jeda. (2) Varian musik — instrumental corporate ambient 47 detik via Fal `fal-ai/stable-audio` (maks 47 detik; awalnya gagal karena seconds_total=50), di-loop menutupi durasi video dengan volume 55% + afade 2,6 detik di akhir, encode AAC 160k.
+- File akhir di /app/backend/assets/promo/: radiusgate-promo-16x9.mp4 & 9x16.mp4 (loop, tanpa audio — versi utama), radiusgate-promo-16x9-musik.mp4 & 9x16-musik.mp4 (loop + musik).
+- Endpoint GET /api/public/download/promo-video kini menerima format=16x9|9x16|16x9-musik|9x16-musik.
