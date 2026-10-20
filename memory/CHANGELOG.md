@@ -555,3 +555,9 @@
 - Permintaan user: 1 klip lagi. Klip baru 5 detik × 2 orientasi via Kling v3 (close-up tangan karyawan tap kartu RFID putih di kiosk tablet — terverifikasi visual bagus). Disisipkan setelah kartu "Kartu RFID & QR Code".
 - Susunan video kini: kartu intro → klip kantor → kartu wajah → klip siswa scan wajah → UI landing → UI dasbor → kartu RFID/QR → klip tap kartu → UI laporan → UI rekap PPPK → kartu 3 segmen → UI portal pegawai → UI seksi PPPK → klip drone kota → kartu outro (loop ke intro). Durasi ±62,6 detik.
 - Kedua versi loop dirakit ulang, varian musik di-mux ulang (afade 60s), keempat file final diperbarui di /app/backend/assets/promo/.
+
+## 2026-10-20 — FIX PRODUKSI: video 500 di radiusgate.id (path absolut salah untuk container)
+- Laporan user (screenshot): modal "Tonton Video" di situs live terbuka tapi video hitam 0:00. Uji curl ke radiusgate.id: endpoint stream & download menjawab HTTP 500.
+- Akar masalah: endpoint menulis path absolut `/app/backend/assets/promo/...` (layout pod preview), padahal Dockerfile backend memakai `WORKDIR /app` + context ./backend → di container file ada di `/app/assets/promo/`. getsize/FileResponse melempar FileNotFoundError → 500.
+- Fix routes_public.py: `PROMO_DIR = dirname(abspath(__file__))/assets/promo` (berlaku di pod & container), kedua endpoint memakai os.path.join(PROMO_DIR, name) + cek exists → 404 jelas bila file belum ada. File MP4 sudah ter-track di git (commit 82b227c dsb).
+- Terverifikasi preview: stream 200 (16,5MB), Range 206. User wajib Save to GitHub + git pull + rebuild di VPS agar fix & file video sampai ke produksi.

@@ -4,7 +4,7 @@ import uuid
 from datetime import datetime, timezone
 from html import escape
 
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, Request, HTTPException
 from fastapi.responses import FileResponse, StreamingResponse
 from pydantic import BaseModel, EmailStr
 
@@ -116,7 +116,13 @@ async def download_restore_script():
 @router.get("/public/download/promo-video")
 async def download_promo_video(format: str = "16x9"):
     name = _promo_files().get(format, _promo_files()["16x9"])
-    return FileResponse(f"/app/backend/assets/promo/{name}", media_type="video/mp4", filename=name)
+    path = os.path.join(PROMO_DIR, name)
+    if not os.path.exists(path):
+        raise HTTPException(status_code=404, detail="Video tidak ditemukan")
+    return FileResponse(path, media_type="video/mp4", filename=name)
+
+
+PROMO_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "assets", "promo")
 
 
 def _promo_files():
@@ -131,7 +137,9 @@ def _promo_files():
 @router.get("/public/promo-video/stream")
 async def stream_promo_video(request: Request, format: str = "16x9"):
     name = _promo_files().get(format, _promo_files()["16x9"])
-    path = f"/app/backend/assets/promo/{name}"
+    path = os.path.join(PROMO_DIR, name)
+    if not os.path.exists(path):
+        raise HTTPException(status_code=404, detail="Video tidak ditemukan")
     file_size = os.path.getsize(path)
     range_header = request.headers.get("range")
     if range_header:
