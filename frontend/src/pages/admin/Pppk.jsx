@@ -39,7 +39,7 @@ export default function Pppk() {
         <div>
           <h2 className="text-lg font-bold text-slate-800">{t("recap_pppk_title")}</h2>
           <p className="text-xs text-slate-500 mt-0.5 flex items-center gap-1.5">
-            <Clock className="w-3.5 h-3.5" /> {t("max_hours_week")}: {data.max_hours_week} {t("hours") || "jam"}
+            <Clock className="w-3.5 h-3.5" /> {t("max_hours_week")}: {data.max_hours_week} {t("hours_unit")}
           </p>
         </div>
         <div className="flex items-end gap-3">
@@ -73,7 +73,7 @@ export default function Pppk() {
               <tr className="text-left text-xs uppercase tracking-wide text-slate-500 border-b bg-slate-50">
                 <th className="px-4 py-3">{t("name")}</th>
                 <th className="px-4 py-3">{t("nip")}</th>
-                <th className="px-4 py-3">{t("department")}</th>
+                <th className="px-4 py-3">{t("unit_kerja")}</th>
                 <th className="px-4 py-3">{t("days_present")}</th>
                 <th className="px-4 py-3">{t("work_hours")}</th>
                 <th className="px-4 py-3">{t("hourly_rate")}</th>

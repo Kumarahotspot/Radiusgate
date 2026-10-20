@@ -434,7 +434,7 @@ export default function SettingsPage() {
 
       <div className="bg-white rounded-2xl border border-slate-200 p-5" data-testid="master-data-card">
         <p className="font-bold text-slate-800 mb-1">{t("master_data")}</p>
-        <p className="text-xs text-slate-400 mb-4">{t("master_hint")}</p>
+        <p className="text-xs text-slate-400 mb-4">{orgType === "school" ? t("master_hint") : t("master_hint_org")}</p>
         {orgType === "school" && (
         <div className="flex flex-wrap items-end gap-3 mb-4">
           <div>
@@ -468,7 +468,7 @@ export default function SettingsPage() {
           <MasterList title={t("master_subjects")} testid="master-subject" items={masterSubjects}
             onAdd={(v) => addItem("subject", v)} onDelete={(v) => deleteItem("subject", v)} onRename={(f2, t2) => renameItem("subject", f2, t2)} t={t} />
           </>)}
-          <MasterList title={t("department_list")} testid="master-department" items={masterDepartments}
+          <MasterList title={orgType === "pppk" ? t("unit_kerja_list") : t("department_list")} testid="master-department" items={masterDepartments}
             onAdd={(v) => addItem("department", v)} onDelete={(v) => deleteItem("department", v)} onRename={(f2, t2) => renameItem("department", f2, t2)} t={t} />
         </div>
       </div>

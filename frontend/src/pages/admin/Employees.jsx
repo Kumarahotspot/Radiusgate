@@ -118,7 +118,7 @@ export default function Employees() {
             </select>
           </div>
           <In label={t("card_uid")} testid="emp-card-uid" v={form.card_uid} set={(v) => setForm({ ...form, card_uid: v })} />
-          <DeptSelect label={t("department")} testid="emp-department" options={opts.departments || []} value={form.department} onChange={(v) => setForm({ ...form, department: v })} t={t} />
+          <DeptSelect label={isPppk ? t("unit_kerja") : t("department")} testid="emp-department" options={opts.departments || []} value={form.department} onChange={(v) => setForm({ ...form, department: v })} t={t} />
           <div>
             <label className="text-xs font-semibold text-slate-500">{t("shifts_menu")}</label>
             <select data-testid="emp-shift" value={form.shift_id} onChange={(e) => setForm({ ...form, shift_id: e.target.value })}
@@ -145,7 +145,7 @@ export default function Employees() {
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
         <input data-testid="employee-search" value={query} onChange={(e) => { setQuery(e.target.value); setPage(1); }}
-          placeholder={t("search_employees")}
+          placeholder={isPppk ? t("search_pegawai") : t("search_employees")}
           className="w-full rounded-xl border border-slate-200 bg-white pl-9 pr-3 py-2.5 text-sm outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-600/15 transition" />
       </div>
 
@@ -165,7 +165,7 @@ export default function Employees() {
                 <th className="px-4 py-3">{t("name")}</th>
                 <th className="px-4 py-3">{t("nip")}</th>
                 <th className="px-4 py-3">{t("gender_short")}</th>
-                <th className="px-4 py-3">{t("department")}</th>
+                <th className="px-4 py-3">{isPppk ? t("unit_kerja") : t("department")}</th>
                 <th className="px-4 py-3">{t("position")}</th>
                 <th className="px-4 py-3">{t("shifts_menu")}</th>
                 <th className="px-4 py-3">{t("overtime_rate")}</th>
@@ -257,7 +257,7 @@ export default function Employees() {
               </select>
             </div>
             <In label={t("card_uid")} testid="edit-emp-card-uid" v={editFor.card_uid || ""} set={(v) => setEditFor({ ...editFor, card_uid: v })} />
-            <DeptSelect label={t("department")} testid="edit-emp-department" options={opts.departments || []} value={editFor.department || ""} onChange={(v) => setEditFor({ ...editFor, department: v })} t={t} />
+            <DeptSelect label={isPppk ? t("unit_kerja") : t("department")} testid="edit-emp-department" options={opts.departments || []} value={editFor.department || ""} onChange={(v) => setEditFor({ ...editFor, department: v })} t={t} />
             <div>
               <label className="text-xs font-semibold text-slate-500">{t("shifts_menu")}</label>
               <select data-testid="edit-emp-shift" value={editFor.shift_id || ""} onChange={(e) => setEditFor({ ...editFor, shift_id: e.target.value })}

@@ -461,3 +461,8 @@
 - Frontend SettingsPage.jsx: `orgType` dari school.org_type — blok "Jam Pulang Siswa per Hari" dan bagian Data Master khusus sekolah (Tipe Sekolah, template, Daftar Kelas, Jurusan, Mata Pelajaran) hanya tampil untuk org_type school; company/pppk hanya melihat Daftar Departemen.
 - Data demo: gender Budi PPPK diset L via API.
 - Terverifikasi: curl create/patch gender OK + data uji dihapus; screenshot PPPK Pengaturan (tanpa bagian siswa, Departemen tetap), form & tabel Pegawai (dropdown + badge), Laporan L/P terisi "L"; regresi Pengaturan sekolah utuh; mobile 390 tanpa overflow.
+
+## 2026-10-20 — Istilah "Departemen" → "Unit Kerja" di mode PPPK
+- Persetujuan user atas saran: label Departemen diganti "Unit Kerja" (istilah resmi instansi, selaras PDF Daftar Hadir) di: form tambah/ubah Pegawai (DeptSelect label), kolom tabel Pegawai, placeholder pencarian (`search_pegawai`), Data Master di Pengaturan (`unit_kerja_list`), dan tabel rekap Jam Kerja & Upah (Pppk.jsx — halaman khusus PPPK, langsung "Unit Kerja").
+- i18n baru (ID/EN): unit_kerja, unit_kerja_list, search_pegawai. Mode company/sekolah tetap "Departemen".
+- Lanjutan: hint Data Master untuk non-sekolah kini menyebut "data pegawai" (`master_hint_org`), dan fix kosmetik rekap PPPK "35 hours" → "35 jam" (`hours_unit`). Terverifikasi screenshot: Daftar Unit Kerja + hint pegawai tampil, regresi sekolah tetap "Departemen".
