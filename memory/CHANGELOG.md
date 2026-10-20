@@ -539,3 +539,10 @@
 - Persetujuan user atas saran: (1) versi loop mulus — kartu intro digandakan di akhir tanpa fade, segmen pertama tanpa fade-in; frame pertama = frame terakhir (terverifikasi identik) sehingga looping di pemutar video tidak terlihat jeda. (2) Varian musik — instrumental corporate ambient 47 detik via Fal `fal-ai/stable-audio` (maks 47 detik; awalnya gagal karena seconds_total=50), di-loop menutupi durasi video dengan volume 55% + afade 2,6 detik di akhir, encode AAC 160k.
 - File akhir di /app/backend/assets/promo/: radiusgate-promo-16x9.mp4 & 9x16.mp4 (loop, tanpa audio — versi utama), radiusgate-promo-16x9-musik.mp4 & 9x16-musik.mp4 (loop + musik).
 - Endpoint GET /api/public/download/promo-video kini menerima format=16x9|9x16|16x9-musik|9x16-musik.
+
+## 2026-10-20 — Video promosi disematkan di hero landing (modal) + fix streaming
+- Persetujuan user atas saran: tombol "Tonton Video" (`hero-video-btn`) di hero Landing.jsx membuka modal (`video-modal`) berisi video 16:9 (autoPlay muted loop playsInline, tombol Tutup/klik backdrop). Komponen mandiri `VideoPromoButton`.
+- Fix streaming: endpoint download FileResponse tidak mendukung Range (200 penuh) + Content-Disposition attachment → browser tolak playback (MEDIA_ERR 4). Ditambah endpoint baru `GET /api/public/promo-video/stream` dengan dukungan HTTP Range manual (206, Content-Range, Accept-Ranges) untuk inline playback; VIDEO_URL mengarah ke sana. Endpoint /download tetap untuk unduhan (attachment).
+- Fix kedua: keempat MP4 tanpa faststart (moov di akhir) — di-remux `-movflags +faststart` (moov@36), dan flag ditambahkan ke assemble script.
+- CATATAN UJI: screenshot_tool remote browser = Chromium tanpa codec H.264 → video err 4 di sana, padahal file valid. Verifikasi playback dilakukan via Playwright lokal memakai /usr/bin/google-chrome (codec lengkap): video berputar (readyState 4). Script sumber video disalin ke /app/backend/assets/promo/scripts/ agar persisten.
+- ZIP landing di-rebuild (32MB).

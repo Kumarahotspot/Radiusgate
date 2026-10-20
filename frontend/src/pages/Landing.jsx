@@ -5,8 +5,35 @@ import api, { errMsg } from "@/api";
 import {
   ScanFace, MapPin, WifiOff, Tablet, Receipt, Send, Languages, Volume2,
   UserPlus, Camera, FileCheck, MonitorSmartphone, ArrowRight, Check,
-  Wallet, QrCode, BellRing, FileText, MessageCircle, Nfc, Keyboard, Building2, GraduationCap, ChevronDown, Menu, X, Landmark,
+  Wallet, QrCode, BellRing, FileText, MessageCircle, Nfc, Keyboard, Building2, GraduationCap, ChevronDown, Menu, X, Landmark, Play,
 } from "lucide-react";
+
+const VIDEO_URL = `${process.env.REACT_APP_BACKEND_URL}/api/public/promo-video/stream?format=16x9`;
+
+function VideoPromoButton() {
+  const [open, setOpen] = useState(false);
+  return (
+    <>
+      <button data-testid="hero-video-btn" onClick={() => setOpen(true)}
+        className="flex items-center gap-2 bg-white border border-slate-200 hover:border-teal-600 hover:text-teal-700 font-bold text-sm px-6 py-3.5 rounded-2xl transition-colors">
+        <Play className="w-4 h-4" /> Tonton Video
+      </button>
+      {open && (
+        <div data-testid="video-modal" onClick={() => setOpen(false)}
+          className="fixed inset-0 z-[70] bg-slate-900/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="relative w-full max-w-4xl" onClick={(e) => e.stopPropagation()}>
+            <button data-testid="video-modal-close" onClick={() => setOpen(false)}
+              className="absolute -top-11 right-0 text-white/80 hover:text-white text-xs font-bold flex items-center gap-1.5 transition-colors">
+              <X className="w-4 h-4" /> Tutup
+            </button>
+            <video src={VIDEO_URL} controls autoPlay loop muted playsInline
+              className="w-full rounded-2xl shadow-2xl border border-white/10" />
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
 
 const FEATURES = [
   { icon: ScanFace, badge: "Keamanan AI", title: "Face Recognition ArcFace + Liveness", desc: "AI mengenali wajah siswa & guru dalam hitungan detik, dan menolak kecurangan memakai foto/video HP.", wide: true },
@@ -292,6 +319,7 @@ export default function Landing() {
               className="flex items-center gap-2 bg-white border border-slate-200 hover:border-teal-600 hover:text-teal-700 font-bold text-sm px-6 py-3.5 rounded-2xl transition-colors">
               Coba Mode Kiosk
             </PortalLink>
+            <VideoPromoButton />
           </div>
           <div className="mt-10 grid grid-cols-2 sm:grid-cols-4 gap-4">
             {[["AI ArcFace", "Pengenalan Wajah"], ["< 3 Detik", "Proses Presensi"], ["100%", "Bisa Offline"], ["Rp 0", "Biaya Alat Khusus"]].map(([v, l]) => (

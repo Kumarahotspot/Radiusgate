@@ -1,10 +1,11 @@
 import logging
+import os
 import uuid
 from datetime import datetime, timezone
 from html import escape
 
-from fastapi import APIRouter
-from fastapi.responses import FileResponse
+from fastapi import APIRouter, Request
+from fastapi.responses import FileResponse, StreamingResponse
 from pydantic import BaseModel, EmailStr
 
 from db import db
@@ -114,11 +115,45 @@ async def download_restore_script():
 
 @router.get("/public/download/promo-video")
 async def download_promo_video(format: str = "16x9"):
-    files = {
+    name = _promo_files().get(format, _promo_files()["16x9"])
+    return FileResponse(f"/app/backend/assets/promo/{name}", media_type="video/mp4", filename=name)
+
+
+def _promo_files():
+    return {
         "16x9": "radiusgate-promo-16x9.mp4",
         "9x16": "radiusgate-promo-9x16.mp4",
         "16x9-musik": "radiusgate-promo-16x9-musik.mp4",
         "9x16-musik": "radiusgate-promo-9x16-musik.mp4",
     }
-    name = files.get(format, files["16x9"])
-    return FileResponse(f"/app/backend/assets/promo/{name}", media_type="video/mp4", filename=name)
+
+
+@router.get("/public/promo-video/stream")
+async def stream_promo_video(request: Request, format: str = "16x9"):
+    name = _promo_files().get(format, _promo_files()["16x9"])
+    path = f"/app/backend/assets/promo/{name}"
+    file_size = os.path.getsize(path)
+    range_header = request.headers.get("range")
+    if range_header:
+        start_s, _, end_s = range_header.replace("bytes=", "").partition("-")
+        start = int(start_s or 0)
+        end = min(int(end_s) if end_s else file_size - 1, file_size - 1)
+        length = end - start + 1
+
+        def gen():
+            with open(path, "rb") as f:
+                f.seek(start)
+                remaining = length
+                while remaining > 0:
+                    chunk = f.read(min(65536, remaining))
+                    if not chunk:
+                        break
+                    remaining -= len(chunk)
+                    yield chunk
+
+        return StreamingResponse(gen(), status_code=206, media_type="video/mp4", headers={
+            "Content-Range": f"bytes {start}-{end}/{file_size}",
+            "Accept-Ranges": "bytes",
+            "Content-Length": str(length),
+        })
+    return FileResponse(path, media_type="video/mp4", headers={"Accept-Ranges": "bytes"})
