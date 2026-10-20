@@ -5,7 +5,7 @@ import os
 import re
 import uuid
 import zipfile
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from zoneinfo import ZoneInfo
 import pandas as pd
 from fastapi import APIRouter, HTTPException, Depends, UploadFile, File
@@ -196,6 +196,24 @@ async def stats(user: dict = Depends(admin_dep)):
         "total": len(students_pc), "with_phone": tot_phone, "with_complete": tot_complete,
         "per_class": sorted(per_class.values(), key=lambda x: x["class"]),
     }
+    week_hours = 0.0
+    week_pay = 0
+    school_doc = await db.schools.find_one({"id": sid}, {"_id": 0, "org_type": 1})
+    if (school_doc or {}).get("org_type") == "pppk":
+        d0 = datetime.strptime(today, "%Y-%m-%d").date()
+        w_start = (d0 - timedelta(days=d0.weekday())).isoformat()
+        w_end = (d0 + timedelta(days=6 - d0.weekday())).isoformat()
+        week_att = await db.attendance.find(
+            {"school_id": sid, "person_type": "employee", "date": {"$gte": w_start, "$lte": w_end}},
+            {"_id": 0, "employee_id": 1, "date": 1, "type": 1, "time_local": 1}).to_list(50000)
+        rates = {e["id"]: (e.get("hourly_rate") or 0) for e in await db.employees.find(
+            {"school_id": sid, "active": {"$ne": False}}, {"_id": 0, "id": 1, "hourly_rate": 1}).to_list(1000)}
+        wmins = 0
+        for (eid, _d), v in _pppk_collect(week_att).items():
+            m = _pppk_minutes(v)
+            wmins += m
+            week_pay += int(m / 60 * rates.get(eid, 0))
+        week_hours = round(wmins / 60, 1)
     return {
         "present_today": len({a["teacher_id"] for a in today_att if a.get("person_type", "teacher") == "teacher"}),
         "students_present": len({a.get("student_id") for a in today_att
@@ -208,6 +226,8 @@ async def stats(user: dict = Depends(admin_dep)):
         "total_employees": await db.employees.count_documents({"school_id": sid, "active": True}),
         "pending_overtime": await db.overtime_requests.count_documents({"school_id": sid, "status": "pending"}),
         "parent_data": parent_data,
+        "week_hours": week_hours,
+        "week_pay": week_pay,
     }
 
 

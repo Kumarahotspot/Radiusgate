@@ -428,3 +428,10 @@
 - Footer login: teks "· SaaS Multi-Tenant · v1 Pilot" dihapus sesuai permintaan user (tersisa "RadiusGate oleh PT. Pusaka Kreasi Mandiri").
 - **Upload Logo Organisasi**: `POST /api/admin/school/logo` (JPG/PNG/WEBP ≤2MB → object storage `radiusgate/logo/{school_id}`) + serve `GET /api/admin/school/logo/file/{path}` (guard prefix). `logo_path` mengalir ke login, `/auth/me`, `/kiosk/info`, dan `/admin/settings`. UI: kartu Tipe Organisasi di Pengaturan punya preview + tombol "Unggah Logo". Logo tenant tampil di header portal (Layout) & header kiosk + screensaver (fallback logo default jika belum upload).
 - **Fix download landing 500 di VPS**: `frontend/landing-radiusgate.zip` sebelumnya kena `.gitignore` (`**/*.zip`) sehingga tidak pernah sampai ke VPS. Ditambah pengecualian `!frontend/landing-radiusgate.zip` di .gitignore + `git add` agar ikut ter-push saat Save to GitHub.
+
+## 2026-10-20 — Dasbor khusus mode PPPK (kartu statistik instansi)
+- Laporan user (screenshot): dasbor PPPK masih menampilkan kartu sekolah (Siswa Hadir, Total Guru, Total Siswa).
+- Backend `GET /admin/stats` (routes_admin.py): untuk tenant org_type=pppk kini menghitung `week_hours` (total jam kerja ISO week berjalan) dan `week_pay` (Σ menit/60 × hourly_rate) memakai helper `_pppk_collect`/`_pppk_minutes` yang sudah ada; tenant school/company tidak terpengaruh (tetap 0).
+- Frontend AdminDashboard.jsx: cabang `isPppk` — 5 kartu khusus: Pegawai Hadir (filter tabel), Jam Kerja Minggu Ini, Estimasi Upah Minggu Ini (Rp), Total Pegawai (→ /admin/employees), Pengajuan Menunggu (→ /admin/leaves). Badge tabel "Karyawan" → "Pegawai" di mode PPPK; chip filter employee ikut istilah Pegawai.
+- i18n baru (ID/EN): pegawai_present, total_pegawai, week_hours, week_pay, hours_unit.
+- Terverifikasi: curl stats pppk (week_hours/week_pay OK), screenshot desktop+mobile (5 kartu tampil, badge "Pegawai", tanpa overflow 390px), regresi stats sekolah OK. Catatan: akun demo company (hrd@majubersama.co.id) tidak bisa login karena trial_expired (kondisi lama, bukan regresi).

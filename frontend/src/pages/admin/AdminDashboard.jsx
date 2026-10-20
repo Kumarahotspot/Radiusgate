@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import api, { errMsg } from "../../api";
 import { useAuth } from "../../context/AuthContext";
-import { Users, Clock, CalendarClock, GraduationCap, UserCheck, Trash2, BookOpen, Search, ChevronLeft, ChevronRight, ChevronDown, X } from "lucide-react";
+import { Users, Clock, CalendarClock, GraduationCap, UserCheck, Trash2, BookOpen, Search, ChevronLeft, ChevronRight, ChevronDown, X, Wallet } from "lucide-react";
 
 const HSIA = [
   ["present", "present", "bg-emerald-600", "text-emerald-700 border-emerald-200 hover:bg-emerald-50"],
@@ -98,7 +98,14 @@ export default function AdminDashboard() {
 
   const toggleFlt = (v) => setFlt((cur) => (cur === v ? "" : v));
   const isCompany = user?.org_type === "company";
-  const cards = stats ? [
+  const isPppk = user?.org_type === "pppk";
+  const cards = stats ? (isPppk ? [
+    { icon: UserCheck, label: t("pegawai_present"), val: stats.employees_present ?? 0, testid: "stat-pegawai-present", on: () => toggleFlt("employee"), active: flt === "employee" },
+    { icon: Clock, label: t("week_hours"), val: `${stats.week_hours ?? 0} ${t("hours_unit")}`, testid: "stat-week-hours", on: () => navigate("/admin/pppk") },
+    { icon: Wallet, label: t("week_pay"), val: `Rp ${Number(stats.week_pay || 0).toLocaleString("id-ID")}`, testid: "stat-week-pay", on: () => navigate("/admin/pppk") },
+    { icon: Users, label: t("total_pegawai"), val: stats.total_employees ?? 0, testid: "stat-total-pegawai", on: () => navigate("/admin/employees") },
+    { icon: CalendarClock, label: t("pending_leaves"), val: stats.pending_leaves, testid: "stat-leaves", on: () => navigate("/admin/leaves") },
+  ] : [
     ...(isCompany ? [] : [
       { icon: UserCheck, label: t("present_today"), val: stats.present_today, testid: "stat-present", on: () => toggleFlt("teacher"), active: flt === "teacher" },
       { icon: BookOpen, label: t("students_present"), val: stats.students_present ?? 0, testid: "stat-students-present", on: () => toggleFlt("student"), active: flt === "student" },
@@ -113,7 +120,7 @@ export default function AdminDashboard() {
       { icon: GraduationCap, label: t("total_students"), val: stats.total_students, testid: "stat-students", on: () => navigate("/admin/students") },
       { icon: Users, label: t("employees_present"), val: stats.employees_present ?? 0, testid: "stat-employees", on: () => toggleFlt("employee"), active: flt === "employee" },
     ]),
-  ] : [];
+  ]) : [];
 
   return (
     <div data-testid="admin-dashboard" className="space-y-6">
@@ -134,7 +141,7 @@ export default function AdminDashboard() {
           {flt && (
             <button data-testid="clear-filter" onClick={() => setFlt("")}
               className="flex items-center gap-1 text-[11px] font-bold text-teal-700 bg-teal-50 hover:bg-teal-100 px-2.5 py-1 rounded-full transition-colors">
-              {{ teacher: t("present_today"), student: t("students_present"), late: t("late_today"), employee: t("employees_present") }[flt]}
+              {{ teacher: t("present_today"), student: t("students_present"), late: t("late_today"), employee: isPppk ? t("pegawai_present") : t("employees_present") }[flt]}
               <X className="w-3 h-3" />
             </button>
           )}
@@ -185,7 +192,7 @@ export default function AdminDashboard() {
                       <td className="px-4 py-2.5 font-semibold text-slate-800">
                         {g.name}
                         {g.person_type === "student" && <span className="ml-1.5 text-[10px] font-bold text-sky-600 bg-sky-50 px-1.5 py-0.5 rounded-full">{t("mode_student")}{g.cls ? ` · ${g.cls}` : ""}</span>}
-                        {g.person_type === "employee" && <span className="ml-1.5 text-[10px] font-bold text-violet-600 bg-violet-50 px-1.5 py-0.5 rounded-full">{t("employees")}</span>}
+                        {g.person_type === "employee" && <span className="ml-1.5 text-[10px] font-bold text-violet-600 bg-violet-50 px-1.5 py-0.5 rounded-full">{isPppk ? t("pegawai_menu") : t("employees")}</span>}
                       </td>
                       <td className="px-4 py-2.5">
                         {inR ? (

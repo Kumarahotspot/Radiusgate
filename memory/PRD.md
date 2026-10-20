@@ -13,7 +13,9 @@ Aplikasi absensi berbasis Kiosk Web App (browser HP/tablet) + face recognition (
   4. **NIS / NIP Manual**: keypad angka besar di layar kiosk (readOnly input, anti keyboard HP menutup), bunyi klik Web Audio + tombol menyala, foto profil konfirmasi.
 - **PWA Fullscreen Kiosk**: Kiosk mendukung install "Add to Home screen" (PWA dengan `display: fullscreen`) agar otomatis full page tanpa perlu menyentuh layar.
 - **Auto-Pair Kiosk untuk User Login**: Siapa pun yang sudah login (admin/guru/karyawan) membuka Kiosk tanpa mengetik kode — token kiosk diambil otomatis via `GET /api/auth/kiosk-code`. Input kode manual hanya untuk perangkat yang belum login sama sekali.
-- **Mode Perusahaan (org_type)**: Tenant bisa bertipe "school" atau "company" (dipilih saat daftar / diubah admin di Pengaturan). Mode company: profil perkantoran/pabrik — Karyawan + Departemen + Shift Kerja + Lembur + Penggajian + SP1/SP2/SP3 otomatis dari data telat + tarif langganan per karyawan; modul sekolah (Siswa, Guru, Mapel, SPP, Ortu) disembunyikan; istilah "Portal HRD". Landing page menawarkan 2 produk (Sekolah / Perusahaan) dengan CTA pendaftaran terpisah.
+- **Tiga Tipe Organisasi (org_type)**: `school` (default), `company`, dan `pppk` (instansi pemerintah / PPPK Paruh Waktu). Dipilih saat daftar / diubah admin di Pengaturan.
+  - **Company**: Karyawan + Departemen + Shift Kerja + Lembur + Penggajian + SP1/SP2/SP3 otomatis dari data telat + tarif per karyawan; modul sekolah disembunyikan; istilah "Portal HRD".
+  - **PPPK Paruh Waktu**: jam fleksibel (tanpa konsep telat — pegawai bebas absen kapan saja), `hourly_rate` per pegawai, upah = total jam kerja × tarif, batas `max_hours_week` (default 35), rekap jam & upah (`/admin/pppk/recap`), PDF Daftar Hadir format instansi (`/admin/pppk/daftar-hadir/pdf`). Dasbor PPPK khusus: kartu Pegawai Hadir, Jam Kerja Minggu Ini, Estimasi Upah Minggu Ini, Total Pegawai, Pengajuan Menunggu (stats menambah `week_hours` & `week_pay`). Menu: Dasbor, Pegawai, Jam Kerja & Upah, Pengaturan, Izin/Cuti, Laporan, Tagihan.
 - **Upload Logo Organisasi**: Admin dapat mengunggah logo sendiri (Pengaturan → kartu Tipe Organisasi, PNG/JPG/WEBP ≤2MB, object storage). Logo tenant tampil di header portal, header kiosk, dan screensaver kiosk; fallback ke logo RadiusGate jika belum diunggah.
 - **Materi Pemasaran & Edukasi**:
   - File Presentasi Penawaran Sekolah (`presentasi-radiusgate.pptx`, 7 slide 16:9).
@@ -29,9 +31,9 @@ Aplikasi absensi berbasis Kiosk Web App (browser HP/tablet) + face recognition (
 - Backend: FastAPI modular + InsightFace/ArcFace + PyMongo + ReportLab + Python-pptx: routes `auth, owner, admin, teacher, kiosk, employee, parent, spp, billing, cron, public`.
 - DB: MongoDB multi-tenant — semua dokumen bawa `school_id`.
 - Auth: JWT bearer 7 hari, bcrypt. Roles: `owner`, `school_admin`, `teacher`, `employee`, `parent`.
-- Deployment VPS (Single Domain): `radiusgate.id`, `www.radiusgate.id`, dan `absensi.radiusgate.id` dilayani langsung dari VPS (103.179.252.28) via Nginx Reverse Proxy + Let's Encrypt SSL Multi-Domain. Docker Compose mengelola MongoDB, FastAPI, dan React SPA dalam 1 stack.
+- Deployment VPS (Single Domain): `radiusgate.id`, `www.radiusgate.id`, dan `absensi.radiusgate.id` dilayani langsung dari VPS (103.179.252.28) via Nginx Reverse Proxy + Let's Encrypt SSL Multi-Domain. Docker Compose mengelola MongoDB, FastAPI, dan React SPA dalam 1 stack. Update produksi: `git pull && sudo docker compose up -d --build` di VPS.
 - Backup Database: `backup-db.sh` menghasilkan backup MongoDB harian terkompresi dengan retensi 14 hari terakhir.
-
+- Catatan: akun demo company (PT Maju Bersama) saat ini tidak bisa login karena `trial_expired` (trial 14 hari sejak 2026-09-26) — perpanjang via portal Owner bila perlu demo.
 
 ## Endpoint Publik Download
 - `GET /api/public/download/landing-page` — ZIP Frontend Hostinger
