@@ -10,6 +10,8 @@ from pydantic import BaseModel
 from auth import require_roles
 from db import db
 from pdfgen import build_report_pdf
+from starlette.concurrency import run_in_threadpool
+from storage import get_logo_bytes
 from routes_kiosk import _record
 
 router = APIRouter(tags=["teacher"])
@@ -148,8 +150,9 @@ async def teacher_report_export(format: str, date_from: str, date_to: str, class
             buf,
             media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
             headers={"Content-Disposition": "attachment; filename=laporan-siswa.xlsx"})
-    school = await db.schools.find_one({"id": user["school_id"]}, {"_id": 0, "name": 1})
-    path = build_report_pdf(f"/tmp/report_teacher_{user['school_id']}.pdf", school["name"], date_from, date_to, rows)
+    school = await db.schools.find_one({"id": user["school_id"]}, {"_id": 0, "name": 1, "logo_path": 1})
+    logo_bytes = await run_in_threadpool(get_logo_bytes, school.get("logo_path"))
+    path = build_report_pdf(f"/tmp/report_teacher_{user['school_id']}.pdf", school["name"], date_from, date_to, rows, logo_bytes=logo_bytes)
     return FileResponse(path, media_type="application/pdf", filename="laporan-siswa.pdf")
 
 

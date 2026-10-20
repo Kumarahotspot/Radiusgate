@@ -17,7 +17,7 @@ from auth import require_roles, hash_password
 from faceutil import embed, cos_sim, NoFaceError, MATCH_SIM_THRESHOLD
 from starlette.concurrency import run_in_threadpool
 from pdfgen import build_report_pdf, build_kiosk_poster_pdf, build_recap_pdf, build_warning_letter_pdf, build_daftar_hadir_pdf, build_pppk_weekly_pdf
-from storage import put_object, get_object
+from storage import put_object, get_object, get_logo_bytes
 from notif import normalize_phone, send_whatsapp
 
 router = APIRouter(tags=["admin"])
@@ -747,8 +747,9 @@ async def warning_pdf(wid: str, user: dict = Depends(admin_dep)):
     wl = await db.warning_letters.find_one({"id": wid, "school_id": user["school_id"]}, {"_id": 0})
     if not wl:
         raise HTTPException(status_code=404, detail="Surat tidak ditemukan")
-    school = await db.schools.find_one({"id": user["school_id"]}, {"_id": 0, "name": 1, "address": 1})
-    path = build_warning_letter_pdf(wl, school or {})
+    school = await db.schools.find_one({"id": user["school_id"]}, {"_id": 0, "name": 1, "address": 1, "logo_path": 1})
+    logo_bytes = await run_in_threadpool(get_logo_bytes, (school or {}).get("logo_path"))
+    path = build_warning_letter_pdf(wl, school or {}, logo_bytes)
     return FileResponse(path, media_type="application/pdf", filename=f"{wl['level']}-{wl['name']}-{wl['month']}.pdf")
 
 
@@ -937,7 +938,8 @@ async def kiosk_poster(user: dict = Depends(admin_dep)):
     if not school or not school.get("kiosk_token"):
         raise HTTPException(status_code=404, detail="Sekolah tidak ditemukan")
     pair_url = f"{os.environ.get('FRONTEND_URL', '')}/kiosk?pair={school['kiosk_token']}"
-    path = await run_in_threadpool(build_kiosk_poster_pdf, school, pair_url)
+    logo_bytes = await run_in_threadpool(get_logo_bytes, school.get("logo_path"))
+    path = await run_in_threadpool(build_kiosk_poster_pdf, school, pair_url, logo_bytes)
     return FileResponse(path, media_type="application/pdf", filename=f"poster-kiosk-{school['kiosk_token']}.pdf")
 
 
@@ -1817,8 +1819,9 @@ async def report_export(format: str, date_from: str, date_to: str, person: str |
             buf,
             media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
             headers={"Content-Disposition": "attachment; filename=laporan-absensi.xlsx"})
-    school = await db.schools.find_one({"id": user["school_id"]}, {"_id": 0, "name": 1})
-    path = build_report_pdf(f"/tmp/report_{user['school_id']}.pdf", school["name"], date_from, date_to, rows, id_label)
+    school = await db.schools.find_one({"id": user["school_id"]}, {"_id": 0, "name": 1, "logo_path": 1})
+    logo_bytes = await run_in_threadpool(get_logo_bytes, school.get("logo_path"))
+    path = build_report_pdf(f"/tmp/report_{user['school_id']}.pdf", school["name"], date_from, date_to, rows, id_label, logo_bytes)
     return FileResponse(path, media_type="application/pdf", filename="laporan-absensi.pdf")
 
 
@@ -1897,7 +1900,8 @@ async def report_people_recap(person: str, date_from: str, date_to: str, class_n
 async def report_people_export(person: str, format: str, kind: str, date_from: str, date_to: str,
                                class_name: str | None = None, user: dict = Depends(admin_dep)):
     rows, persons, cfg = await _people_report_rows(user["school_id"], person, date_from, date_to, class_name)
-    school = await db.schools.find_one({"id": user["school_id"]}, {"_id": 0, "name": 1})
+    school = await db.schools.find_one({"id": user["school_id"]}, {"_id": 0, "name": 1, "logo_path": 1})
+    logo_bytes = await run_in_threadpool(get_logo_bytes, school.get("logo_path"))
     xlsx_mime = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     if kind == "recap":
         data = _people_recap(rows, persons, cfg)
@@ -1914,7 +1918,7 @@ async def report_people_export(person: str, format: str, kind: str, date_from: s
                 buf, media_type=xlsx_mime,
                 headers={"Content-Disposition": f"attachment; filename=rekap-kehadiran-{cfg['slug']}.xlsx"})
         path = build_recap_pdf(f"/tmp/recap_{person}_{user['school_id']}.pdf", school["name"],
-                               date_from, date_to, data, class_name, cfg["label"], cfg["grp_label"])
+                               date_from, date_to, data, class_name, cfg["label"], cfg["grp_label"], logo_bytes)
         return FileResponse(path, media_type="application/pdf",
                             filename=f"rekap-kehadiran-{cfg['slug']}.pdf")
     pmap = {p["id"]: p for p in persons}
@@ -1936,5 +1940,5 @@ async def report_people_export(person: str, format: str, kind: str, date_from: s
         return StreamingResponse(
             buf, media_type=xlsx_mime,
             headers={"Content-Disposition": f"attachment; filename=laporan-{cfg['slug']}.xlsx"})
-    path = build_report_pdf(f"/tmp/report_{person}_{user['school_id']}.pdf", school["name"], date_from, date_to, rows)
+    path = build_report_pdf(f"/tmp/report_{person}_{user['school_id']}.pdf", school["name"], date_from, date_to, rows, logo_bytes=logo_bytes)
     return FileResponse(path, media_type="application/pdf", filename=f"laporan-{cfg['slug']}.pdf")

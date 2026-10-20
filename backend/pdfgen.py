@@ -36,12 +36,12 @@ def _logo_reader(logo_bytes: bytes | None):
         return None
 
 
-def build_warning_letter_pdf(letter: dict, school: dict) -> str:
+def build_warning_letter_pdf(letter: dict, school: dict, logo_bytes: bytes | None = None) -> str:
     path = os.path.join(INVOICE_DIR, f"sp_{letter['id']}.pdf")
     c = canvas.Canvas(path, pagesize=A4)
     w, h = A4
-    logo_path = os.path.join(os.path.dirname(__file__), "assets", "logo.png")
-    if os.path.exists(logo_path):
+    logo_path = _logo_reader(logo_bytes) or os.path.join(os.path.dirname(__file__), "assets", "logo.png")
+    if not isinstance(logo_path, str) or os.path.exists(logo_path):
         c.drawImage(logo_path, 20 * mm, h - 26 * mm, width=14 * mm, height=14 * mm, mask="auto")
     c.setFont("Helvetica-Bold", 14)
     c.drawString(38 * mm, h - 20 * mm, school.get("name", ""))
@@ -270,7 +270,7 @@ def invoice_pdf_path(inv_id: str) -> str:
     return os.path.join(INVOICE_DIR, f"inv_{inv_id}.pdf")
 
 
-def build_invoice_pdf(inv: dict, school: dict) -> str:
+def build_invoice_pdf(inv: dict, school: dict, logo_bytes: bytes | None = None) -> str:
     path = invoice_pdf_path(inv["id"])
     c = canvas.Canvas(path, pagesize=A4)
     w, h = A4
@@ -330,12 +330,12 @@ def build_invoice_pdf(inv: dict, school: dict) -> str:
 
 
 def build_report_pdf(path: str, school_name: str, date_from: str, date_to: str, rows: list,
-                     id_label: str = "NISN") -> str:
+                     id_label: str = "NISN", logo_bytes: bytes | None = None) -> str:
     c = canvas.Canvas(path, pagesize=A4)
     w, h = A4
     tx = 20 * mm
-    logo_path = os.path.join(os.path.dirname(__file__), "assets", "logo.png")
-    if os.path.exists(logo_path):
+    logo_path = _logo_reader(logo_bytes) or os.path.join(os.path.dirname(__file__), "assets", "logo.png")
+    if not isinstance(logo_path, str) or os.path.exists(logo_path):
         c.drawImage(logo_path, 20 * mm, h - 27 * mm, width=14 * mm, height=14 * mm, mask="auto")
         tx = 37 * mm
     c.setFont("Helvetica-Bold", 14)
@@ -367,12 +367,12 @@ def build_report_pdf(path: str, school_name: str, date_from: str, date_to: str, 
 
 def build_recap_pdf(path: str, school_name: str, date_from: str, date_to: str, rows: list,
                     class_name: str | None = None, person_label: str = "Siswa",
-                    grp_label: str = "Kelas") -> str:
+                    grp_label: str = "Kelas", logo_bytes: bytes | None = None) -> str:
     c = canvas.Canvas(path, pagesize=A4)
     w, h = A4
     tx = 20 * mm
-    logo_path = os.path.join(os.path.dirname(__file__), "assets", "logo.png")
-    if os.path.exists(logo_path):
+    logo_path = _logo_reader(logo_bytes) or os.path.join(os.path.dirname(__file__), "assets", "logo.png")
+    if not isinstance(logo_path, str) or os.path.exists(logo_path):
         c.drawImage(logo_path, 20 * mm, h - 27 * mm, width=14 * mm, height=14 * mm, mask="auto")
         tx = 37 * mm
     c.setFont("Helvetica-Bold", 14)
@@ -405,7 +405,7 @@ def build_recap_pdf(path: str, school_name: str, date_from: str, date_to: str, r
     return path
 
 
-def build_kiosk_poster_pdf(school: dict, pair_url: str) -> str:
+def build_kiosk_poster_pdf(school: dict, pair_url: str, logo_bytes: bytes | None = None) -> str:
     import qrcode
     token = school.get("kiosk_token", "")
     path = os.path.join(INVOICE_DIR, f"kiosk_poster_{token}.pdf")
@@ -417,8 +417,8 @@ def build_kiosk_poster_pdf(school: dict, pair_url: str) -> str:
     teal = (0.059, 0.463, 0.431)
     c.setFillColorRGB(*teal)
     c.rect(0, h - 40 * mm, w, 40 * mm, stroke=0, fill=1)
-    logo_path = os.path.join(os.path.dirname(__file__), "assets", "logo.png")
-    if os.path.exists(logo_path):
+    logo_path = _logo_reader(logo_bytes) or os.path.join(os.path.dirname(__file__), "assets", "logo.png")
+    if not isinstance(logo_path, str) or os.path.exists(logo_path):
         c.setFillColorRGB(1, 1, 1)
         c.roundRect(w / 2 - 12 * mm, h - 30 * mm, 24 * mm, 24 * mm, 4 * mm, stroke=0, fill=1)
         c.drawImage(logo_path, w / 2 - 10 * mm, h - 28 * mm, width=20 * mm, height=20 * mm, mask="auto")
@@ -475,7 +475,7 @@ def terbilang(n: int) -> str:
     return str(n)
 
 
-def _spp_kop(c, school_name: str, title: str):
+def _spp_kop(c, school_name: str, title: str, logo_bytes: bytes | None = None):
     w, h = A4
     c.setFillColorRGB(0.059, 0.463, 0.431)
     c.rect(0, h - 28 * mm, w, 28 * mm, stroke=0, fill=1)
@@ -508,10 +508,10 @@ def _signature(c, y: float, label: str = "Petugas / Bendahara"):
     c.drawString(w - 90 * mm, y - 32 * mm, "( Nama jelas & tanda tangan )")
 
 
-def build_spp_receipt_pdf(path: str, school_name: str, bill: dict, pay: dict) -> str:
+def build_spp_receipt_pdf(path: str, school_name: str, bill: dict, pay: dict, logo_bytes: bytes | None = None) -> str:
     c = canvas.Canvas(path, pagesize=A4)
     w, h = A4
-    y = _spp_kop(c, school_name, "KUITANSI PEMBAYARAN")
+    y = _spp_kop(c, school_name, "KUITANSI PEMBAYARAN", logo_bytes)
     c.setFillColorRGB(0.1, 0.1, 0.1)
     c.setFont("Helvetica-Bold", 10)
     c.drawRightString(w - 20 * mm, y + 8 * mm, f"No: {pay.get('reference', '-')}")
@@ -551,10 +551,10 @@ def build_spp_receipt_pdf(path: str, school_name: str, bill: dict, pay: dict) ->
     return path
 
 
-def build_spp_invoice_pdf(path: str, school_name: str, bill: dict) -> str:
+def build_spp_invoice_pdf(path: str, school_name: str, bill: dict, logo_bytes: bytes | None = None) -> str:
     c = canvas.Canvas(path, pagesize=A4)
     w, h = A4
-    y = _spp_kop(c, school_name, "INVOICE TAGIHAN")
+    y = _spp_kop(c, school_name, "INVOICE TAGIHAN", logo_bytes)
     status_label = {"paid": "LUNAS", "partial": "CICILAN", "unpaid": "BELUM LUNAS"}.get(bill.get("status"), "BELUM LUNAS")
     c.setFillColorRGB(0.1, 0.1, 0.1)
     c.setFont("Helvetica", 10)
@@ -597,11 +597,11 @@ def build_spp_invoice_pdf(path: str, school_name: str, bill: dict) -> str:
     return path
 
 
-def build_spp_bills_pdf(path: str, school_name: str, bills: list) -> str:
+def build_spp_bills_pdf(path: str, school_name: str, bills: list, logo_bytes: bytes | None = None) -> str:
     c = canvas.Canvas(path, pagesize=A4)
     w, h = A4
     first = bills[0]
-    y = _spp_kop(c, school_name, "REKAP TAGIHAN SISWA")
+    y = _spp_kop(c, school_name, "REKAP TAGIHAN SISWA", logo_bytes)
     c.setFillColorRGB(0.1, 0.1, 0.1)
     c.setFont("Helvetica-Bold", 11)
     c.drawString(20 * mm, y, f"{first.get('student_name', '')}")

@@ -45,3 +45,13 @@ def get_object(path: str) -> tuple[bytes, str]:
         resp = requests.get(f"{STORAGE_URL}/objects/{path}", headers={"X-Storage-Key": storage_key}, timeout=60)
     resp.raise_for_status()
     return resp.content, resp.headers.get("Content-Type", "application/octet-stream")
+
+
+def get_logo_bytes(path: str | None) -> bytes | None:
+    if not path:
+        return None
+    try:
+        data, _ = get_object(path)
+        return data
+    except Exception:
+        return None

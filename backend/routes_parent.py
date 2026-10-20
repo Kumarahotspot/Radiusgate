@@ -8,6 +8,8 @@ from pydantic import BaseModel
 from auth import require_roles
 from db import db
 from pdfgen import build_spp_receipt_pdf
+from starlette.concurrency import run_in_threadpool
+from storage import get_logo_bytes
 from routes_admin import school_today
 from routes_kiosk import _record
 from routes_spp import _receipt_notify
@@ -148,12 +150,13 @@ async def child_payment_receipt(pid: str, user: dict = Depends(parent_dep)):
     if not pay:
         raise HTTPException(status_code=404, detail="Pembayaran tidak ditemukan")
     bill = await db.bills.find_one({"id": pay["bill_id"]}, {"_id": 0})
-    school = await db.schools.find_one({"id": user["school_id"]}, {"_id": 0, "name": 1})
+    school = await db.schools.find_one({"id": user["school_id"]}, {"_id": 0, "name": 1, "logo_path": 1})
     if bill:
         bill["status"] = "paid" if bill.get("paid_amount", 0) >= bill["amount"] else (
             "partial" if bill.get("paid_amount", 0) > 0 else "unpaid")
         bill["remaining"] = max(0, bill["amount"] - bill.get("paid_amount", 0))
+    logo_bytes = await run_in_threadpool(get_logo_bytes, (school or {}).get("logo_path"))
     path = build_spp_receipt_pdf(f"/tmp/kuitansi_parent_{pid}.pdf", (school or {}).get("name", ""),
-                                 bill or {}, pay)
+                                 bill or {}, pay, logo_bytes)
     return FileResponse(path, media_type="application/pdf",
                         filename=f"kuitansi-{pay.get('reference', pid)}.pdf")

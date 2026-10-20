@@ -16,6 +16,8 @@ from db import db
 from emailer import send_email
 from notif import send_whatsapp
 from pdfgen import build_spp_bills_pdf, build_spp_invoice_pdf, build_spp_receipt_pdf
+from starlette.concurrency import run_in_threadpool
+from storage import get_logo_bytes
 
 router = APIRouter(tags=["spp"])
 admin_dep = require_roles("school_admin")
@@ -339,9 +341,10 @@ async def payment_receipt_pdf(pid: str, user: dict = Depends(admin_dep)):
     if not pay:
         raise HTTPException(status_code=404, detail="Pembayaran tidak ditemukan")
     bill = await db.bills.find_one({"id": pay["bill_id"]}, {"_id": 0})
-    school = await db.schools.find_one({"id": user["school_id"]}, {"_id": 0, "name": 1})
+    school = await db.schools.find_one({"id": user["school_id"]}, {"_id": 0, "name": 1, "logo_path": 1})
+    logo_bytes = await run_in_threadpool(get_logo_bytes, school.get("logo_path"))
     path = build_spp_receipt_pdf(f"/tmp/kuitansi_{pid}.pdf", school["name"],
-                                 with_status(bill) if bill else {}, pay)
+                                 with_status(bill) if bill else {}, pay, logo_bytes)
     return FileResponse(path, media_type="application/pdf",
                         filename=f"kuitansi-{pay.get('reference', pid)}.pdf")
 
@@ -351,8 +354,9 @@ async def bill_invoice_pdf(bid: str, user: dict = Depends(admin_dep)):
     bill = await db.bills.find_one({"id": bid, "school_id": user["school_id"]}, {"_id": 0})
     if not bill:
         raise HTTPException(status_code=404, detail="Tagihan tidak ditemukan")
-    school = await db.schools.find_one({"id": user["school_id"]}, {"_id": 0, "name": 1})
-    path = build_spp_invoice_pdf(f"/tmp/invoice_spp_{bid}.pdf", school["name"], with_status(bill))
+    school = await db.schools.find_one({"id": user["school_id"]}, {"_id": 0, "name": 1, "logo_path": 1})
+    logo_bytes = await run_in_threadpool(get_logo_bytes, school.get("logo_path"))
+    path = build_spp_invoice_pdf(f"/tmp/invoice_spp_{bid}.pdf", school["name"], with_status(bill), logo_bytes)
     return FileResponse(path, media_type="application/pdf", filename=f"tagihan-{bid[:8]}.pdf")
 
 
@@ -364,7 +368,8 @@ async def student_bills_pdf(sid: str, month: str | None = None, user: dict = Dep
     bills = [with_status(b) for b in await db.bills.find(q, {"_id": 0}).sort("due_date", 1).to_list(1000)]
     if not bills:
         raise HTTPException(status_code=404, detail="Tidak ada tagihan untuk siswa ini")
-    school = await db.schools.find_one({"id": user["school_id"]}, {"_id": 0, "name": 1})
-    path = build_spp_bills_pdf(f"/tmp/rekap_tagihan_{sid}.pdf", school["name"], bills)
+    school = await db.schools.find_one({"id": user["school_id"]}, {"_id": 0, "name": 1, "logo_path": 1})
+    logo_bytes = await run_in_threadpool(get_logo_bytes, school.get("logo_path"))
+    path = build_spp_bills_pdf(f"/tmp/rekap_tagihan_{sid}.pdf", school["name"], bills, logo_bytes)
     nis = bills[0].get("nis") or sid[:8]
     return FileResponse(path, media_type="application/pdf", filename=f"rekap-tagihan-{nis}.pdf")

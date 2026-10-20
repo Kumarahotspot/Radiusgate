@@ -8,6 +8,8 @@ from fastapi.responses import FileResponse
 from db import db
 from auth import require_roles
 from pdfgen import build_invoice_pdf, invoice_pdf_path
+from starlette.concurrency import run_in_threadpool
+from storage import get_logo_bytes
 
 router = APIRouter(tags=["billing"])
 admin_dep = require_roles("school_admin")
@@ -40,7 +42,8 @@ async def public_invoice_pdf(token: str):
     school = await db.schools.find_one({"id": inv["school_id"]}, {"_id": 0})
     path = invoice_pdf_path(inv["id"])
     if not os.path.exists(path):
-        path = build_invoice_pdf(inv, school)
+        logo_bytes = await run_in_threadpool(get_logo_bytes, (school or {}).get("logo_path"))
+        path = build_invoice_pdf(inv, school, logo_bytes)
     return FileResponse(path, media_type="application/pdf", filename=f"{inv['invoice_no']}.pdf")
 
 

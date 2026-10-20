@@ -488,3 +488,10 @@
 - pdfgen.py: helper `_logo_reader` (ImageReader dari bytes, mask auto, preserveAspectRatio); `build_pppk_weekly_pdf` & `build_daftar_hadir_pdf` menerima `logo_bytes` opsional, garis kop digeser turun bila ada logo.
 - routes_admin.py: kedua endpoint PPPK PDF mengambil `logo_path` sekolah lalu fetch bytes via `get_object` (run_in_threadpool; gagal → None).
 - Terverifikasi: upload logo uji ke tenant demo → kedua PDF 200 (283KB, logo tertanam) → render PNG menunjukkan kop logo + nama instansi rapi. Logo uji direset ke null setelah verifikasi (demo bersih).
+
+## 2026-10-20 — Generalisasi kop logo tenant ke SEMUA PDF
+- Persetujuan user: pola kop logo diterapkan ke semua dokumen: surat SP, poster QR kiosk, laporan absensi harian (admin & guru), rekap per orang, invoice SaaS, dan 3 dokumen SPP (kuitansi/invoice/rekap tagihan).
+- storage.py: helper `get_logo_bytes(path)` (fetch object storage, gagal → None). pdfgen.py: semua builder menerima `logo_bytes` opsional; blok logo statis diganti `_logo_reader(logo_bytes) or assets/logo.png` (replace_all, 6 titik) — logo tenant dipakai bila ada, fallback logo RadiusGate. `_spp_kop` ikut meneruskan logo_bytes.
+- routes_admin/billing/parent/spp/teacher: semua pemanggil fetch logo tenant (run_in_threadpool) dan meneruskan; proyeksi query school ditambah `logo_path`.
+- CATATAN INSIDEN: reset logo uji pada tenant demo PPPK kemungkinan menghapus upload logo Kota Depok milik user (balapan waktu — user upload saat agen membersihkan data uji). logo_path kini null; user diminta upload ulang.
+- Terverifikasi: semua file backend kompil OK; laporan umum & poster kiosk PPPK 200 dengan fallback logo RadiusGate; kop logo tenant sudah terbukti pada uji sebelumnya (weekly + daftar hadir).
