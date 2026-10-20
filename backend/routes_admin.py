@@ -1401,6 +1401,7 @@ async def decide_leave(lid: str, body: DecisionIn, user: dict = Depends(admin_de
 
 class LeaveAdminIn(BaseModel):
     teacher_id: str
+    person_type: str = "teacher"
     type: str  # izin | sakit | cuti
     date_from: str
     date_to: str
@@ -1411,12 +1412,13 @@ class LeaveAdminIn(BaseModel):
 async def create_leave_admin(body: LeaveAdminIn, user: dict = Depends(admin_dep)):
     if body.type not in ("izin", "sakit", "cuti"):
         raise HTTPException(status_code=400, detail="Tipe tidak valid")
-    t = await db.teachers.find_one({"id": body.teacher_id, "school_id": user["school_id"]}, {"_id": 0, "name": 1})
-    if not t:
-        raise HTTPException(status_code=404, detail="Guru tidak ditemukan")
+    coll = db.employees if body.person_type == "employee" else db.teachers
+    p = await coll.find_one({"id": body.teacher_id, "school_id": user["school_id"]}, {"_id": 0, "name": 1})
+    if not p:
+        raise HTTPException(status_code=404, detail="Pegawai tidak ditemukan" if body.person_type == "employee" else "Guru tidak ditemukan")
     doc = {
         "id": str(uuid.uuid4()), "school_id": user["school_id"], "teacher_id": body.teacher_id,
-        "teacher_name": t["name"], "type": body.type, "date_from": body.date_from,
+        "person_type": body.person_type, "teacher_name": p["name"], "type": body.type, "date_from": body.date_from,
         "date_to": body.date_to, "reason": body.reason, "status": "approved",
         "decided_by": user["id"], "decided_at": now_iso(), "created_at": now_iso(),
     }

@@ -21,7 +21,7 @@ export default function Billing() {
             <div className="flex-1 min-w-[200px]">
               <p className="font-mono text-xs text-slate-500">{i.invoice_no} · {periodLabel(i.period, i18n.language)}</p>
               <p className="font-extrabold text-slate-800 text-xl mt-1">{rupiah(i.amount)}</p>
-              <p className="text-xs text-slate-500">{i.student_count} {t("students").toLowerCase()} × {rupiah(i.rate)}</p>
+              <p className="text-xs text-slate-500">{i.student_count} {i.unit_label || t("students").toLowerCase()} × {rupiah(i.rate)}</p>
               {i.paid_at && <p className="text-xs text-emerald-600 mt-1">{t("paid_at")}: {i.paid_at.slice(0, 10)}</p>}
             </div>
             <span data-testid={`billing-status-${i.invoice_no}`} className={`text-xs font-bold px-3 py-1.5 rounded-full ${i.status === "paid" ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"}`}>

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import api, { errMsg } from "../../api";
+import { useAuth } from "../../context/AuthContext";
 import { Check, X, Plus, Pencil, Trash2 } from "lucide-react";
 
 const EMPTY = { teacher_id: "", type: "izin", date_from: "", date_to: "", reason: "" };
@@ -9,6 +10,9 @@ const TYPES = ["izin", "sakit", "cuti"];
 
 export default function Leaves() {
   const { t } = useTranslation();
+  const { user } = useAuth();
+  const isPppk = user?.org_type === "pppk";
+  const useEmployees = isPppk || user?.org_type === "company";
   const [leaves, setLeaves] = useState([]);
   const [teachers, setTeachers] = useState([]);
   const [showForm, setShowForm] = useState(false);
@@ -18,7 +22,7 @@ export default function Leaves() {
 
   const load = () => {
     api.get("/admin/leaves").then((r) => setLeaves(r.data));
-    api.get("/admin/teachers").then((r) => setTeachers(r.data));
+    api.get(useEmployees ? "/admin/employees" : "/admin/teachers").then((r) => setTeachers(r.data));
   };
   useEffect(() => { load(); }, []);
 
@@ -34,7 +38,7 @@ export default function Leaves() {
     e.preventDefault();
     setBusy(true);
     try {
-      await api.post("/admin/leaves", form);
+      await api.post("/admin/leaves", { ...form, person_type: useEmployees ? "employee" : "teacher" });
       toast.success(t("save"));
       setShowForm(false);
       setForm(EMPTY);
@@ -81,7 +85,7 @@ export default function Leaves() {
       {showForm && (
         <form onSubmit={add} data-testid="leave-form" className="bg-white rounded-2xl border border-slate-200 p-4 flex flex-wrap items-end gap-3">
           <div className="min-w-[180px]">
-            <label className="text-xs font-semibold text-slate-500">{t("teachers")}</label>
+            <label className="text-xs font-semibold text-slate-500">{isPppk ? t("pegawai_menu") : useEmployees ? t("employees") : t("teachers")}</label>
             <select data-testid="leave-teacher" required value={form.teacher_id} onChange={(e) => setForm({ ...form, teacher_id: e.target.value })} className={fieldCls}>
               <option value="">—</option>
               {teachers.map((tc) => <option key={tc.id} value={tc.id}>{tc.name}</option>)}

@@ -466,3 +466,9 @@
 - Persetujuan user atas saran: label Departemen diganti "Unit Kerja" (istilah resmi instansi, selaras PDF Daftar Hadir) di: form tambah/ubah Pegawai (DeptSelect label), kolom tabel Pegawai, placeholder pencarian (`search_pegawai`), Data Master di Pengaturan (`unit_kerja_list`), dan tabel rekap Jam Kerja & Upah (Pppk.jsx — halaman khusus PPPK, langsung "Unit Kerja").
 - i18n baru (ID/EN): unit_kerja, unit_kerja_list, search_pegawai. Mode company/sekolah tetap "Departemen".
 - Lanjutan: hint Data Master untuk non-sekolah kini menyebut "data pegawai" (`master_hint_org`), dan fix kosmetik rekap PPPK "35 hours" → "35 jam" (`hours_unit`). Terverifikasi screenshot: Daftar Unit Kerja + hint pegawai tampil, regresi sekolah tetap "Departemen".
+
+## 2026-10-20 — Audit halaman Izin/Cuti & Tagihan untuk mode PPPK/Perusahaan
+- Persetujuan user atas saran audit dua halaman terakhir yang masih bernuansa sekolah.
+- **Izin/Cuti (Leaves.jsx + routes_admin.py)**: form tambah izin admin kini sadar org_type — school tetap memilih dari daftar Guru; company/pppk memilih dari daftar pegawai dengan label "Pegawai" (pppk) / "Karyawan" (company). Backend `LeaveAdminIn` menerima `person_type` (default "teacher"); `create_leave_admin` mencari di koleksi employees bila person_type=employee dan menyimpan `person_type` di dokumen. Izin mandiri guru (routes_teacher) tidak terpengaruh.
+- **Tagihan (Billing.jsx)**: baris ringkasan invoice memakai `unit_label` dari dokumen invoice ("pegawai"/"karyawan"/"siswa" — sudah diisi generator invoice owner per org_type), fallback "siswa" untuk invoice lama tanpa field.
+- Terverifikasi: curl — izin pegawai PPPK tercatat (person_type employee, nama Budi PPPK) & regresi izin guru sekolah default teacher (keduanya dihapus setelah uji); screenshot — form izin berlabel Pegawai berisi Budi PPPK, Tagihan menampilkan "1 pegawai × Rp 10.000" (invoice uji INV-TEST-PPPK dihapus setelahnya), mobile 390 tanpa overflow.
