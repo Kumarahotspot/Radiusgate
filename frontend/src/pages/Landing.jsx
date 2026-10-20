@@ -518,6 +518,79 @@ export default function Landing() {
         </div>
       </section>
 
+      {/* Contoh absensi PPPK (instansi pemerintah) */}
+      <section id="absensi-pppk" data-testid="absensi-pppk-section" className="bg-white border-y border-slate-100">
+        <div className="max-w-6xl mx-auto px-4 py-20 grid lg:grid-cols-2 gap-12 items-center">
+          <div>
+            <span className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-amber-700 bg-amber-50 border border-amber-100 rounded-full px-3 py-1.5">
+              Absensi PPPK Paruh Waktu Real-Time
+            </span>
+            <h2 className="mt-5 text-3xl sm:text-4xl font-bold tracking-tight">Setiap Pegawai Absen, <span className="text-amber-600">Upahnya Terhitung Detik Itu Juga.</span></h2>
+            <p className="mt-4 text-slate-600 text-sm sm:text-base leading-relaxed max-w-lg">
+              Kantor pemerintah & instansi: pegawai PPPK paruh waktu absen via wajah, kartu RFID, atau QR di kiosk —
+              tanpa konsep telat, total jam kerja langsung dikalikan tarif per jam masing-masing pegawai.
+            </p>
+            <ul className="mt-6 space-y-2.5 text-sm text-slate-700">
+              {[
+                "Jam kerja fleksibel — bebas absen kapan saja, tanpa status telat",
+                "Upah otomatis: total jam kerja × tarif per jam tiap pegawai",
+                "Batas maksimal jam per minggu sesuai aturan instansi",
+                "Laporan mingguan & daftar hadir PDF berkop resmi instansi",
+              ].map((x) => (
+                <li key={x} className="flex items-start gap-2.5"><Check className="w-4 h-4 mt-0.5 text-amber-600 shrink-0" /> {x}</li>
+              ))}
+            </ul>
+            <Link data-testid="absensi-pppk-cta" to="/daftar?type=pppk" className="mt-7 inline-flex items-center gap-2 bg-amber-500 hover:bg-amber-600 text-white font-bold text-sm px-6 py-3 rounded-2xl transition-colors">
+              Coba untuk Instansi <ArrowRight className="w-4 h-4" />
+            </Link>
+          </div>
+          <div className="relative mx-auto w-full max-w-md">
+            <div className="absolute -inset-4 sm:-inset-6 bg-gradient-to-br from-amber-100/70 to-teal-50 rounded-[3rem] -z-10" />
+            <div data-testid="absensi-pppk-mock-card" className="bg-white border border-slate-200 rounded-3xl p-6 shadow-2xl">
+              <div className="flex items-center gap-2.5 pb-4 border-b border-slate-100">
+                <img src="/logo.png" alt="" className="w-8 h-8 object-contain" />
+                <div>
+                  <p className="text-xs font-bold text-slate-800">Absensi Pegawai Hari Ini</p>
+                  <p className="text-[10px] text-slate-400">Kantor Kecamatan · Senin, 20/10/2026</p>
+                </div>
+                <span className="ml-auto flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-100">
+                  <ScanFace className="w-3 h-3" /> Fleksibel
+                </span>
+              </div>
+              <div className="py-2 divide-y divide-slate-100 text-xs">
+                {[
+                  ["Budi Santoso", "Unit Pelayanan", "08:15", "4j 30m", "bg-amber-100 text-amber-700"],
+                  ["Siti Aminah", "Unit Keuangan", "09:02", "3j 15m", "bg-amber-100 text-amber-700"],
+                  ["Dewi Anggraini", "Unit Umum", "10:45", "Bekerja", "bg-emerald-100 text-emerald-700"],
+                  ["Rudi Hartono", "Unit Pelayanan", "13:20", "Bekerja", "bg-emerald-100 text-emerald-700"],
+                  ["Maya Putri", "Unit Keuangan", "—", "Izin", "bg-sky-100 text-sky-700"],
+                ].map(([nama, unit, jam, st, cls]) => (
+                  <div key={nama} className="flex items-center gap-3 py-2.5">
+                    <span className="w-8 h-8 rounded-full bg-amber-500/10 text-amber-700 text-[10px] font-extrabold flex items-center justify-center shrink-0">
+                      {nama.split(" ").map((w) => w[0]).slice(0, 2).join("")}
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <p className="font-bold text-slate-800 truncate">{nama}</p>
+                      <p className="text-[10px] text-slate-400">{unit}</p>
+                    </div>
+                    <span className="font-mono text-slate-500">{jam}</span>
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap ${cls}`}>{st}</span>
+                  </div>
+                ))}
+              </div>
+              <div className="pt-3 border-t border-slate-100 flex flex-wrap gap-1.5">
+                {[["Pegawai Hadir", "24", "bg-emerald-50 text-emerald-700 border-emerald-100"],
+                  ["Total Jam Hari Ini", "96j", "bg-amber-50 text-amber-700 border-amber-100"],
+                  ["Estimasi Upah", "Rp 1,9jt", "bg-teal-50 text-teal-700 border-teal-100"],
+                  ["Izin", "2", "bg-sky-50 text-sky-700 border-sky-100"]].map(([label, val, cls]) => (
+                  <span key={label} className={`text-[10px] font-bold border rounded-full px-2.5 py-1 ${cls}`}>{label} {val}</span>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Dashboard admin */}
       <section id="admin" data-testid="admin-section" className="max-w-6xl mx-auto px-4 py-20">
         <div ref={admRef} className="grid lg:grid-cols-2 gap-12 items-center">

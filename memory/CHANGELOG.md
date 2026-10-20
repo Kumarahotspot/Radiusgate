@@ -520,3 +520,9 @@
 - Persetujuan user atas saran: slideshow hero kini 6 slide — tambahan `/slides/pppk-absen.jpg` (gambar AI: PNS berbatik absen di kiosk tablet lobi kantor pemerintah, 158KB) dengan caption "Absensi PPPK Paruh Waktu di instansi" / sub "Jam fleksibel, upah per jam & laporan resmi otomatis".
 - Landing.jsx: entri SLIDES baru; dots otomatis jadi 6. Frontend di-build ulang dan `landing-radiusgate.zip` di-rezip (30MB, 8 file slides termasuk pppk-absen.jpg).
 - Terverifikasi: slide PPPK muncul via rotasi otomatis dengan caption benar, gambar termuat, mobile 390 aman.
+
+## 2026-10-20 — Seksi "Absensi PPPK" ketiga di landing page
+- Permintaan user (screenshot melingkari seksi Absensi Siswa & Karyawan): tambahkan seksi serupa untuk PPPK.
+- Landing.jsx: seksi baru `absensi-pppk-section` setelah seksi perusahaan — aksen amber (nuansa instansi), judul "Setiap Pegawai Absen, Upahnya Terhitung Detik Itu Juga.", 4 bullet (jam fleksibel tanpa telat, upah jam×tarif, batas jam mingguan, laporan PDF berkop), CTA "Coba untuk Instansi" → /daftar?type=pppk, mock card "Absensi Pegawai Hari Ini — Kantor Kecamatan" dengan baris pegawai per Unit Kerja + chip Pegawai Hadir/Total Jam/Estimasi Upah/Izin.
+- Frontend build ulang + landing-radiusgate.zip di-rezip.
+- Terverifikasi screenshot desktop+mobile: seksi tampil rapi, CTA benar, tanpa overflow.
