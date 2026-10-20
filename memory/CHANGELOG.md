@@ -501,3 +501,8 @@
 - Backend: endpoint baru `DELETE /admin/school/logo` (set logo_path null).
 - Frontend SettingsPage.jsx: tombol "Hapus Logo" (`org-logo-delete-btn`, merah, hanya tampil bila ada logo) di samping tombol Unggah Logo; pratinjau logo aktif sudah ada sebelumnya. i18n baru: delete_logo (ID/EN).
 - Terverifikasi: PDF mingguan PPPK 200 dengan logo Kota Depok tertanam (44,5KB vs 2,3KB tanpa logo) + render PNG kop berlogo; DELETE → logo_path null → re-upload pulih; screenshot Pengaturan menampilkan logo di header portal + kartu Tipe Organisasi + tombol Hapus Logo; mobile 390 aman.
+
+## 2026-10-20 — Tombol "Unduh Poster QR" ditambahkan ke menu avatar
+- Laporan user: poster pairing kiosk "tidak ada menunya" — user mencari di dropdown avatar, padahal tombol sudah ada di Pengaturan (kartu Kode Kiosk, terbukti via screenshot).
+- Layout.jsx: item menu avatar baru `user-menu-poster` (role school_admin, di bawah "Salin Link Kiosk") mengunduh `/admin/kiosk-poster` sebagai blob poster-kiosk.pdf. Sempat build error (adjacent JSX tanpa fragment) — diperbaiki dengan membungkus blok school_admin dalam `<>...</>`.
+- Terverifikasi: screenshot menu avatar berisi 4 item (Salin Link Kiosk, Unduh Poster QR, Ganti Password, Keluar), klik memicu download PDF, mobile 390 tanpa overflow.

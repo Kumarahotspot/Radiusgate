@@ -9,7 +9,7 @@ import LangSwitch from "./LangSwitch";
 import {
   LayoutDashboard, School, FileText, Users, GraduationCap, Settings,
   CalendarClock, BarChart3, CreditCard, LogOut, ScanFace, MonitorSmartphone, Bell, Inbox,
-  Briefcase, Timer, Wallet, BookOpen, User, ChevronDown, Menu, X, KeyRound, Clock, AlertTriangle,
+  Briefcase, Timer, Wallet, BookOpen, User, ChevronDown, Menu, X, KeyRound, Clock, AlertTriangle, QrCode,
 } from "lucide-react";
 
 const menus = {
@@ -181,7 +181,7 @@ export default function Layout() {
                       <User className="w-4 h-4" /> {t("profile")}
                     </button>
                   )}
-                  {user.role === "school_admin" && (
+                  {user.role === "school_admin" && (<>
                     <button data-testid="user-menu-kiosk-link" onClick={async () => {
                       setMenuOpen(false);
                       try {
@@ -194,7 +194,22 @@ export default function Layout() {
                       className="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-teal-700 transition-colors">
                       <MonitorSmartphone className="w-4 h-4" /> {t("kiosk_copy_link")}
                     </button>
-                  )}
+                    <button data-testid="user-menu-poster" onClick={async () => {
+                      setMenuOpen(false);
+                      try {
+                        const res = await api.get("/admin/kiosk-poster", { responseType: "blob" });
+                        const url = URL.createObjectURL(new Blob([res.data], { type: "application/pdf" }));
+                        const a = document.createElement("a");
+                        a.href = url;
+                        a.download = "poster-kiosk.pdf";
+                        a.click();
+                        URL.revokeObjectURL(url);
+                      } catch { toast.error(t("failed")); }
+                    }}
+                      className="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-teal-700 transition-colors">
+                      <QrCode className="w-4 h-4" /> {t("kiosk_poster")}
+                    </button>
+                  </>)}
                   <button data-testid="user-menu-password" onClick={() => { setMenuOpen(false); setPwOpen(true); }}
                     className="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-teal-700 transition-colors">
                     <KeyRound className="w-4 h-4" /> {t("change_password")}
