@@ -90,16 +90,27 @@ export default function Layout() {
   }, [user?.role]);
   if (!user) return null;
   let items = menus[user.role] || [];
-  if (user.role === "school_admin" && user.org_type === "company") {
+  if (user.role === "school_admin" && (user.org_type === "company" || user.org_type === "pppk")) {
     items = items.filter((m) => !["teachers", "students", "spp"].includes(m.key));
-    items = [
-      ...items.slice(0, 3),
-      { to: "/admin/shifts", icon: Clock, key: "shifts_menu" },
-      { to: "/admin/warnings", icon: AlertTriangle, key: "warnings_menu" },
-      ...items.slice(3),
-    ];
+    if (user.org_type === "company") {
+      items = [
+        ...items.slice(0, 3),
+        { to: "/admin/shifts", icon: Clock, key: "shifts_menu" },
+        { to: "/admin/warnings", icon: AlertTriangle, key: "warnings_menu" },
+        ...items.slice(3),
+      ];
+    } else {
+      items = items.filter((m) => m.key !== "overtime");
+      items = [
+        ...items.slice(0, 2),
+        { to: "/admin/pppk", icon: Clock, key: "pppk_menu" },
+        ...items.slice(2),
+      ].map((m) => m.key === "employees" ? { ...m, key: "pegawai_menu" } : m);
+    }
   }
-  const portalLbl = user.role === "school_admin" && user.org_type === "company" ? t("company_portal") : t(portalKey[user.role]);
+  const portalLbl = user.role === "school_admin" && user.org_type === "company" ? t("company_portal")
+    : user.role === "school_admin" && user.org_type === "pppk" ? t("pppk_portal")
+    : t(portalKey[user.role]);
   const initials = (user.name || "?").split(" ").map((w) => w[0]).filter(Boolean).slice(0, 2).join("").toUpperCase();
   const pendingMap = { leaves: pendingLeaves, overtime: pendingOvertime, student_status_menu: studentLeaveToday };
   const pendingTotal = pendingLeaves + pendingOvertime + studentLeaveToday;

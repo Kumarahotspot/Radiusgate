@@ -175,7 +175,8 @@ async def _record(school, teacher_id, teacher_name, att_type, ts_device, lat, ln
         else:
             status = "ok"
     att_status = (extra or {}).get("att_status", "present")
-    if att_type == "in" and settings and not manual:
+    flexible = bool((settings or {}).get("flexible_hours"))
+    if att_type == "in" and settings and not manual and not flexible:
         ws_h, ws_m = map(int, settings.get("work_start", "07:00").split(":"))
         earliest = ws_h * 60 + ws_m - int(settings.get("early_checkin_min", 60))
         if minutes < earliest:
@@ -188,6 +189,8 @@ async def _record(school, teacher_id, teacher_name, att_type, ts_device, lat, ln
             if we_h * 60 + we_m > ws_h * 60 + ws_m and minutes > we_h * 60 + we_m:
                 raise HTTPException(status_code=422, detail=f"past_work_end:{settings.get('work_end', '15:00')}")
     late, overtime = _late_overtime(settings, att_type, minutes)
+    if flexible:
+        late, overtime = 0, 0
     if att_status in ("sakit", "izin"):
         late, overtime = 0, 0
     if att_type == "in" and status == "ok" and late > 0:

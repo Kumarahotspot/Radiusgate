@@ -204,10 +204,10 @@ async def generate_for_period(period: str, send_email: bool) -> dict:
         if await db.invoices.find_one({"school_id": s["id"], "period": period}):
             continue
         seq += 1
-        if s.get("org_type") == "company":
+        if s.get("org_type") in ("company", "pppk"):
             count = s.get("employee_count_manual") or await db.employees.count_documents({"school_id": s["id"], "active": {"$ne": False}})
             rate = s.get("rate_per_employee", 10000)
-            unit = "karyawan"
+            unit = "pegawai" if s.get("org_type") == "pppk" else "karyawan"
         else:
             count = s.get("student_count_manual") or await db.students.count_documents({"school_id": s["id"], "status": {"$ne": "lulus"}})
             rate = s.get("rate_per_student", 8000)

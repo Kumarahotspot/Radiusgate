@@ -377,9 +377,36 @@ export default function SettingsPage() {
             className="rounded-xl border border-slate-200 px-3 py-2.5 text-sm bg-white outline-none focus:border-teal-600">
             <option value="school">{t("org_school")}</option>
             <option value="company">{t("org_company")}</option>
+            <option value="pppk">{t("org_pppk")}</option>
           </select>
           <p className="text-[11px] text-slate-400 max-w-md">{t("org_type_hint")}</p>
         </div>
+        {school?.org_type === "pppk" && (
+          <div className="mt-4 space-y-3">
+            <label className="flex items-center gap-2 text-sm text-slate-700 cursor-pointer">
+              <input type="checkbox" data-testid="pppk-flexible" checked={settings.flexible_hours !== false}
+                onChange={async (e) => {
+                  try {
+                    await api.put("/admin/settings", { flexible_hours: e.target.checked });
+                    setSettings({ ...settings, flexible_hours: e.target.checked });
+                    toast.success(t("updated_ok"));
+                  } catch (err) { toast.error(errMsg(err)); }
+                }}
+                className="w-4 h-4 accent-teal-700" />
+              {t("pppk_flexible")}
+            </label>
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-xs font-bold text-slate-600">{t("max_hours_week")}</span>
+              <input data-testid="pppk-max-hours" type="number" min={1} value={settings.max_hours_week ?? 35}
+                onChange={(e) => setSettings({ ...settings, max_hours_week: Number(e.target.value) })}
+                className="w-20 rounded-xl border border-slate-200 px-2 py-2 text-sm outline-none focus:border-teal-600" />
+              <button type="button" data-testid="pppk-max-save" onClick={async () => {
+                try { await api.put("/admin/settings", { max_hours_week: settings.max_hours_week ?? 35 }); toast.success(t("updated_ok")); } catch (err) { toast.error(errMsg(err)); }
+              }}
+                className="px-4 py-2 rounded-xl text-xs font-bold text-white bg-teal-700 hover:bg-teal-800">{t("save")}</button>
+            </div>
+          </div>
+        )}
         {school?.org_type === "company" && (
           <div className="mt-4">
             <label className="text-xs font-semibold text-slate-500">{t("sp_thresholds")}</label>

@@ -161,17 +161,17 @@ async def register_trial(body: TrialIn):
         raise HTTPException(status_code=400, detail="email_taken")
     sid = str(uuid.uuid4())
     trial_ends = (datetime.now(timezone.utc) + timedelta(days=TRIAL_DAYS)).isoformat()
-    org = body.org_type if body.org_type in ("school", "company") else "school"
+    org = body.org_type if body.org_type in ("school", "company", "pppk") else "school"
     school_doc = {
         "id": sid, "name": body.school_name, "address": "", "phone": "",
         "admin_email": body.email.lower(), "org_type": org,
         "kiosk_token": "KIOSK-" + uuid.uuid4().hex[:8].upper(),
         "trial": True, "trial_ends_at": trial_ends, "created_at": now_iso(),
     }
-    if org == "company":
+    if org in ("company", "pppk"):
         school_doc["rate_per_employee"] = 10000
         school_doc["employee_count_manual"] = body.employee_count
-        school_doc["plan"] = body.plan if body.plan in ("trial", "basic", "pro") else "trial"
+        school_doc["plan"] = "pppk" if org == "pppk" else (body.plan if body.plan in ("trial", "basic", "pro") else "trial")
     else:
         school_doc["rate_per_student"] = 8000
         school_doc["student_count_manual"] = body.student_count
@@ -179,6 +179,9 @@ async def register_trial(body: TrialIn):
     await db.schools.insert_one(school_doc)
     st_doc = {"school_id": sid, "work_start": "07:00", "work_end": "15:00",
               "late_tolerance_min": 10, "early_checkin_min": 60, "timezone": "Asia/Jakarta"}
+    if org == "pppk":
+        st_doc["flexible_hours"] = True
+        st_doc["max_hours_week"] = 35
     if org == "school" and body.school_type:
         st_doc["school_type"] = body.school_type
     majors = [m.strip() for m in body.majors if m.strip()] if org == "school" else []

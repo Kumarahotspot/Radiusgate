@@ -5,7 +5,7 @@ import api, { errMsg } from "@/api";
 import {
   ScanFace, MapPin, WifiOff, Tablet, Receipt, Send, Languages, Volume2,
   UserPlus, Camera, FileCheck, MonitorSmartphone, ArrowRight, Check,
-  Wallet, QrCode, BellRing, FileText, MessageCircle, Nfc, Keyboard, Building2, GraduationCap, ChevronDown, Menu, X,
+  Wallet, QrCode, BellRing, FileText, MessageCircle, Nfc, Keyboard, Building2, GraduationCap, ChevronDown, Menu, X, Landmark,
 } from "lucide-react";
 
 const FEATURES = [
@@ -640,7 +640,7 @@ export default function Landing() {
           <span className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-teal-700 bg-teal-50 border border-teal-100 rounded-full px-3 py-1.5">Satu Platform, Dua Solusi</span>
           <h2 className="mt-5 text-3xl sm:text-4xl font-bold tracking-tight">Pilih Sesuai Organisasi Anda</h2>
         </div>
-        <div className="mt-10 grid md:grid-cols-2 gap-6">
+        <div className="mt-10 grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           <div data-testid="solution-school" className="bg-white border border-slate-200 rounded-3xl p-7 shadow-sm hover:shadow-xl hover:border-teal-200 transition-all">
             <span className="w-12 h-12 rounded-2xl bg-teal-700 text-white flex items-center justify-center"><GraduationCap className="w-6 h-6" /></span>
             <h3 className="mt-4 text-xl font-extrabold">RadiusGate untuk Sekolah</h3>
@@ -665,6 +665,19 @@ export default function Landing() {
             </ul>
             <Link data-testid="solution-company-cta" to="/daftar?type=company" className="mt-6 flex items-center justify-center gap-2 w-full bg-emerald-500 hover:bg-emerald-400 text-white font-bold text-sm py-3 rounded-2xl transition-colors">
               Daftar Trial Perusahaan <ArrowRight className="w-4 h-4" />
+            </Link>
+          </div>
+          <div data-testid="solution-pppk" className="bg-white border border-slate-200 rounded-3xl p-7 shadow-sm hover:shadow-xl hover:border-amber-300 transition-all">
+            <span className="w-12 h-12 rounded-2xl bg-amber-600 text-white flex items-center justify-center"><Landmark className="w-6 h-6" /></span>
+            <h3 className="mt-4 text-xl font-extrabold">RadiusGate untuk Instansi / PPPK</h3>
+            <p className="mt-2 text-sm text-slate-600 leading-relaxed">Presensi PPPK paruh waktu: jadwal fleksibel, jam kerja riil terhitung otomatis, upah per jam langsung terekap.</p>
+            <ul className="mt-4 space-y-2 text-sm text-slate-700">
+              {["Jam kerja riil masuk–pulang per bulan", "Upah = jam kerja × tarif per pegawai", "Daftar Hadir PDF resmi siap cetak"].map((x) => (
+                <li key={x} className="flex items-start gap-2"><Check className="w-4 h-4 mt-0.5 text-amber-600 shrink-0" /> {x}</li>
+              ))}
+            </ul>
+            <Link data-testid="solution-pppk-cta" to="/daftar?type=pppk" className="mt-6 flex items-center justify-center gap-2 w-full bg-amber-600 hover:bg-amber-700 text-white font-bold text-sm py-3 rounded-2xl transition-colors">
+              Daftar Trial Instansi <ArrowRight className="w-4 h-4" />
             </Link>
           </div>
         </div>

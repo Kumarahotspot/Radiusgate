@@ -6,7 +6,7 @@ import CameraCapture from "../../components/CameraCapture";
 import QrModal from "../../components/QrModal";
 import { Plus, ScanFace, Trash2, CheckCircle2, Circle, Pencil, Search, ChevronLeft, ChevronRight, Nfc, QrCode } from "lucide-react";
 
-const EMPTY = { name: "", email: "", password: "", nip: "", department: "", position: "", overtime_rate: "", base_salary: "", card_uid: "", shift_id: "" };
+const EMPTY = { name: "", email: "", password: "", nip: "", department: "", position: "", overtime_rate: "", base_salary: "", card_uid: "", shift_id: "", hourly_rate: "" };
 
 export default function Employees() {
   const { t } = useTranslation();
@@ -46,6 +46,7 @@ export default function Employees() {
       await api.post("/admin/employees", {
         ...form,
         overtime_rate: form.overtime_rate === "" ? null : Number(form.overtime_rate),
+        hourly_rate: form.hourly_rate === "" ? null : Number(form.hourly_rate),
         base_salary: form.base_salary === "" ? null : Number(form.base_salary),
       });
       toast.success(t("save"));
@@ -64,6 +65,7 @@ export default function Employees() {
         position: editFor.position || "", active: !!editFor.active, card_uid: editFor.card_uid || "",
         shift_id: editFor.shift_id || "",
         overtime_rate: editFor.overtime_rate === null || editFor.overtime_rate === "" ? null : Number(editFor.overtime_rate),
+        hourly_rate: editFor.hourly_rate === null || editFor.hourly_rate === undefined || editFor.hourly_rate === "" ? null : Number(editFor.hourly_rate),
         base_salary: editFor.base_salary === null || editFor.base_salary === "" ? null : Number(editFor.base_salary),
       });
       toast.success(t("save"));
@@ -117,6 +119,8 @@ export default function Employees() {
           <div>
             <In label={t("overtime_rate")} testid="emp-otrate" type="number" v={form.overtime_rate} set={(v) => setForm({ ...form, overtime_rate: v })} />
             <p className="mt-1 text-[11px] text-slate-400">{t("overtime_rate_hint")}</p>
+            <In label={t("hourly_rate")} testid="emp-hourly-rate" type="number" v={form.hourly_rate} set={(v) => setForm({ ...form, hourly_rate: v })} />
+            <p className="mt-1 text-[11px] text-slate-400">{t("hourly_rate_hint")}</p>
           </div>
           <In label={t("base_salary")} testid="emp-salary" type="number" v={form.base_salary} set={(v) => setForm({ ...form, base_salary: v })} />
           <div className="flex items-end gap-2">

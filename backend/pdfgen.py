@@ -1,5 +1,7 @@
 import os
+from datetime import datetime
 from reportlab.lib.pagesizes import A4
+from reportlab.lib.pagesizes import landscape
 from reportlab.lib.units import mm
 from reportlab.pdfgen import canvas
 
@@ -78,6 +80,93 @@ def build_warning_letter_pdf(letter: dict, school: dict) -> str:
     c.setFont("Helvetica", 8)
     c.setFillColorRGB(0.5, 0.5, 0.5)
     c.drawString(20 * mm, 15 * mm, "Dokumen ini dibuat otomatis oleh RadiusGate berdasarkan data kehadiran digital.")
+    c.save()
+    return path
+
+
+def build_daftar_hadir_pdf(school: dict, employees: list, matrix: dict, month: str) -> str:
+    import calendar as _cal
+    year, mon = map(int, month.split("-"))
+    ndays = _cal.monthrange(year, mon)[1]
+    path = os.path.join(INVOICE_DIR, f"daftar_hadir_pppk_{month}.pdf")
+    _hari = ["Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu", "Minggu"]
+    c = canvas.Canvas(path, pagesize=A4)
+    w, h = A4
+    cols = [20 * mm, 32 * mm, 58 * mm, 84 * mm, 108 * mm, 132 * mm, 152 * mm]
+    headers = ["No", "Tanggal", "Hari", "Jam Masuk", "Jam Pulang", "Jam Kerja", "Paraf"]
+    row_h = 6.4 * mm
+
+    for emp in employees:
+        y = h - 18 * mm
+        c.setFont("Helvetica-Bold", 13)
+        c.drawCentredString(w / 2, y, (school.get("name") or "").upper())
+        c.setFont("Helvetica", 9)
+        y -= 5 * mm
+        if school.get("address"):
+            c.drawCentredString(w / 2, y, school["address"])
+        y -= 3 * mm
+        c.setLineWidth(1.2)
+        c.line(20 * mm, y, w - 20 * mm, y)
+        y -= 10 * mm
+        c.setFont("Helvetica-Bold", 12)
+        c.drawCentredString(w / 2, y, "DAFTAR HADIR PPPK PARUH WAKTU")
+        c.setFont("Helvetica", 10)
+        y -= 6 * mm
+        c.drawCentredString(w / 2, y, f"Periode: {periode_label(month)}")
+        y -= 12 * mm
+        for label, val in [("Nama", emp.get("name", "")), ("NIP/NIPTT-PW", emp.get("nip") or "-"),
+                           ("Unit Kerja", emp.get("department") or "-"), ("Jabatan", emp.get("position") or "-")]:
+            c.drawString(20 * mm, y, f"{label:<14}:  {val}")
+            y -= 6 * mm
+        y -= 3 * mm
+
+        def _thead():
+            c.setFont("Helvetica-Bold", 8.5)
+            c.rect(20 * mm, y - row_h, w - 40 * mm, row_h)
+            for cx, htxt in zip(cols, headers):
+                c.drawString(cx + 1.5 * mm, y - 4.4 * mm, htxt)
+            for cx in cols[1:]:
+                c.line(cx, y, cx, y - row_h)
+
+        _thead()
+        y -= row_h
+        emat = matrix.get(emp["id"], {})
+        total_min = 0
+        no = 0
+        c.setFont("Helvetica", 8.5)
+        for dnum in range(1, ndays + 1):
+            dstr = f"{year}-{mon:02d}-{dnum:02d}"
+            rec = emat.get(dstr)
+            if not rec:
+                continue
+            if y < 50 * mm:
+                c.showPage()
+                y = h - 25 * mm
+                _thead()
+                y -= row_h
+                c.setFont("Helvetica", 8.5)
+            no += 1
+            hari = _hari[datetime(year, mon, dnum).weekday()]
+            jk = f"{rec['minutes'] // 60}j {rec['minutes'] % 60}m" if rec["minutes"] else "-"
+            total_min += rec["minutes"]
+            row = [str(no), f"{dnum:02d}/{mon:02d}/{year}", hari, rec.get("in") or "-", rec.get("out") or "-", jk, ""]
+            c.rect(20 * mm, y - row_h, w - 40 * mm, row_h)
+            for cx, val in zip(cols, row):
+                c.drawString(cx + 1.5 * mm, y - 4.4 * mm, str(val))
+            for cx in cols[1:]:
+                c.line(cx, y, cx, y - row_h)
+            y -= row_h
+        y -= 8 * mm
+        c.setFont("Helvetica-Bold", 10)
+        c.drawString(20 * mm, y, f"Total Jam Kerja: {total_min // 60} jam {total_min % 60} menit")
+        y -= 18 * mm
+        c.setFont("Helvetica", 10)
+        c.drawString(20 * mm, y, "Pegawai yang bersangkutan,")
+        c.drawString(w - 90 * mm, y, "Pejabat Penilai Kinerja,")
+        c.setFont("Helvetica-Bold", 10)
+        c.drawString(20 * mm, y - 26 * mm, f"( {emp.get('name', '')} )")
+        c.drawString(w - 90 * mm, y - 26 * mm, "( .................................... )")
+        c.showPage()
     c.save()
     return path
 

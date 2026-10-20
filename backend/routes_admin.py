@@ -16,7 +16,7 @@ from db import db
 from auth import require_roles, hash_password
 from faceutil import embed, cos_sim, NoFaceError, MATCH_SIM_THRESHOLD
 from starlette.concurrency import run_in_threadpool
-from pdfgen import build_report_pdf, build_kiosk_poster_pdf, build_recap_pdf, build_warning_letter_pdf
+from pdfgen import build_report_pdf, build_kiosk_poster_pdf, build_recap_pdf, build_warning_letter_pdf, build_daftar_hadir_pdf
 from storage import put_object, get_object
 from notif import normalize_phone, send_whatsapp
 
@@ -557,6 +557,8 @@ class SettingsIn(BaseModel):
     student_dismissal: dict | None = None
     org_type: str | None = None
     sp_thresholds: dict | None = None
+    flexible_hours: bool | None = None
+    max_hours_week: int | None = None
 
 
 @router.get("/admin/settings")
@@ -572,7 +574,7 @@ async def put_settings(body: SettingsIn, user: dict = Depends(admin_dep)):
     upd = {k: v for k, v in body.model_dump().items() if v is not None}
     org = upd.pop("org_type", None)
     if org is not None:
-        if org not in ("school", "company"):
+        if org not in ("school", "company", "pppk"):
             raise HTTPException(status_code=422, detail="org_type tidak valid")
         await db.schools.update_one({"id": user["school_id"]}, {"$set": {"org_type": org}})
     if not upd and org is None:
@@ -728,6 +730,89 @@ async def warning_pdf(wid: str, user: dict = Depends(admin_dep)):
     school = await db.schools.find_one({"id": user["school_id"]}, {"_id": 0, "name": 1, "address": 1})
     path = build_warning_letter_pdf(wl, school or {})
     return FileResponse(path, media_type="application/pdf", filename=f"{wl['level']}-{wl['name']}-{wl['month']}.pdf")
+
+
+# ---------- PPPK Paruh Waktu: jam kerja riil & upah per jam ----------
+def _pppk_collect(att_rows: list) -> dict:
+    per = {}
+    for a in att_rows:
+        key = (a.get("employee_id"), a.get("date"))
+        if not key[0] or not key[1]:
+            continue
+        e = per.setdefault(key, {"in": None, "out": None})
+        t = a.get("time_local") or ""
+        if a.get("type") == "in":
+            e["in"] = t if e["in"] is None else min(e["in"], t)
+        elif a.get("type") == "out":
+            e["out"] = t if e["out"] is None else max(e["out"], t)
+    return per
+
+
+def _pppk_minutes(v: dict) -> int:
+    if not v.get("in") or not v.get("out"):
+        return 0
+    try:
+        ih, im = map(int, v["in"].split(":"))
+        oh, om = map(int, v["out"].split(":"))
+        start, end = ih * 60 + im, oh * 60 + om
+        if end < start:
+            end += 24 * 60
+        return max(0, end - start)
+    except Exception:
+        return 0
+
+
+@router.get("/admin/pppk/recap")
+async def pppk_recap(month: str, user: dict = Depends(admin_dep)):
+    sid = user["school_id"]
+    settings = await db.settings.find_one({"school_id": sid}, {"_id": 0})
+    max_week = int((settings or {}).get("max_hours_week", 35))
+    employees = await db.employees.find({"school_id": sid, "active": {"$ne": False}}, {"_id": 0}).sort("name", 1).to_list(1000)
+    att = await db.attendance.find(
+        {"school_id": sid, "date": {"$regex": f"^{month}"}, "person_type": "employee"},
+        {"_id": 0, "employee_id": 1, "date": 1, "type": 1, "time_local": 1}).to_list(50000)
+    per = _pppk_collect(att)
+    by_emp = {}
+    for (eid, d), v in per.items():
+        row = by_emp.setdefault(eid, {"days": 0, "minutes": 0, "weeks": {}})
+        mins = _pppk_minutes(v)
+        row["days"] += 1
+        row["minutes"] += mins
+        try:
+            wk = datetime.strptime(d, "%Y-%m-%d").isocalendar()[1]
+            row["weeks"][wk] = row["weeks"].get(wk, 0) + mins
+        except Exception:
+            pass
+    out = []
+    for emp in employees:
+        r = by_emp.get(emp["id"], {"days": 0, "minutes": 0, "weeks": {}})
+        hours = round(r["minutes"] / 60, 2)
+        rate = emp.get("hourly_rate") or 0
+        over = sorted([w for w, m in r["weeks"].items() if m > max_week * 60])
+        out.append({
+            "id": emp["id"], "name": emp["name"], "nip": emp.get("nip", ""),
+            "department": emp.get("department", ""), "position": emp.get("position", ""),
+            "days": r["days"], "hours": hours, "hourly_rate": rate,
+            "total_pay": int(hours * rate), "over_weeks": over,
+        })
+    out.sort(key=lambda x: -x["hours"])
+    return {"month": month, "max_hours_week": max_week, "employees": out}
+
+
+@router.get("/admin/pppk/daftar-hadir/pdf")
+async def pppk_daftar_hadir_pdf(month: str, user: dict = Depends(admin_dep)):
+    sid = user["school_id"]
+    employees = await db.employees.find({"school_id": sid, "active": {"$ne": False}}, {"_id": 0}).sort("name", 1).to_list(1000)
+    att = await db.attendance.find(
+        {"school_id": sid, "date": {"$regex": f"^{month}"}, "person_type": "employee"},
+        {"_id": 0, "employee_id": 1, "date": 1, "type": 1, "time_local": 1}).to_list(50000)
+    per = _pppk_collect(att)
+    matrix = {}
+    for (eid, d), v in per.items():
+        matrix.setdefault(eid, {})[d] = {"in": v.get("in") or "", "out": v.get("out") or "", "minutes": _pppk_minutes(v)}
+    school = await db.schools.find_one({"id": sid}, {"_id": 0, "name": 1, "address": 1})
+    path = build_daftar_hadir_pdf(school or {}, employees, matrix, month)
+    return FileResponse(path, media_type="application/pdf", filename=f"daftar-hadir-pppk-{month}.pdf")
 
 
 # ---------- Foto slide screensaver kiosk (object storage) ----------
@@ -1339,6 +1424,7 @@ class EmployeeIn(BaseModel):
     base_salary: int | None = None
     card_uid: str = ""
     shift_id: str = ""
+    hourly_rate: int | None = None
 
 
 class EmployeePatch(BaseModel):
@@ -1351,6 +1437,7 @@ class EmployeePatch(BaseModel):
     base_salary: int | None = None
     card_uid: str | None = None
     shift_id: str | None = None
+    hourly_rate: int | None = None
 
 
 @router.get("/admin/employees")
@@ -1380,6 +1467,7 @@ async def create_employee(body: EmployeeIn, user: dict = Depends(admin_dep)):
         "name": body.name, "nip": body.nip, "department": body.department, "position": body.position,
         "overtime_rate": body.overtime_rate, "base_salary": body.base_salary, "card_uid": body.card_uid.strip(),
         "shift_id": body.shift_id,
+        "hourly_rate": body.hourly_rate,
         "embedding": None, "photo": None, "active": True, "created_at": now_iso(),
     }
     await db.employees.insert_one(emp)

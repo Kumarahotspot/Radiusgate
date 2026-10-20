@@ -8,7 +8,7 @@ import { SCHOOL_TYPES, MAJOR_OPTIONS } from "../schoolTemplates";
 export default function RegisterTrial() {
   const { t } = useTranslation();
   const [form, setForm] = useState({ school_name: "", admin_name: "", email: "", password: "", student_count: "", school_type: "", majors: [], majorOther: "" });
-  const [orgType, setOrgType] = useState(new URLSearchParams(window.location.search).get("type") === "company" ? "company" : "school");
+  const [orgType, setOrgType] = useState(["company", "pppk"].includes(new URLSearchParams(window.location.search).get("type")) ? new URLSearchParams(window.location.search).get("type") : "school");
   const [plan, setPlan] = useState(new URLSearchParams(window.location.search).get("plan") || "trial");
   const [busy, setBusy] = useState(false);
   const [agree, setAgree] = useState(false);
@@ -26,8 +26,8 @@ export default function RegisterTrial() {
         school_name: form.school_name, admin_name: form.admin_name, email: form.email, password: form.password,
         student_count: orgType === "school" && form.student_count ? Number(form.student_count) : null,
         school_type: form.school_type, majors, org_type: orgType,
-        plan: orgType === "company" ? plan : "sekolah",
-        employee_count: orgType === "company" && form.student_count ? Number(form.student_count) : null,
+        plan: orgType === "company" ? plan : orgType === "pppk" ? "pppk" : "sekolah",
+        employee_count: orgType !== "school" && form.student_count ? Number(form.student_count) : null,
       });
       setDone(true);
     } catch (err) { setError(errMsg(err)); } finally { setBusy(false); }
@@ -63,8 +63,8 @@ export default function RegisterTrial() {
             <h2 className="text-white text-2xl font-bold text-center">{orgType === "company" ? t("register_page_title_company") : t("register_page_title")}</h2>
             <p className="text-slate-400 text-sm text-center mt-2">{t("register_subtitle")}</p>
             <form onSubmit={submit} className="mt-6 space-y-4" data-testid="register-form">
-              <div data-testid="register-org-type" className="grid grid-cols-2 gap-2">
-                {[["school", "org_school"], ["company", "org_company"]].map(([v, k]) => (
+              <div data-testid="register-org-type" className="grid grid-cols-3 gap-2">
+                {[["school", "org_school"], ["company", "org_company"], ["pppk", "org_pppk"]].map(([v, k]) => (
                   <button type="button" key={v} data-testid={`register-org-${v}`} onClick={() => setOrgType(v)}
                     className={`py-2.5 rounded-xl text-sm font-bold border transition-colors ${orgType === v ? "bg-teal-600 border-teal-500 text-white" : "bg-white/5 border-white/10 text-slate-300 hover:border-teal-500/50"}`}>
                     {t(k)}
@@ -81,11 +81,11 @@ export default function RegisterTrial() {
                   ))}
                 </div>
               )}
-              <F k="school_name" label={orgType === "company" ? t("company_name") : t("school_name")} testid="register-school-name" />
+              <F k="school_name" label={orgType === "company" ? t("company_name") : orgType === "pppk" ? t("org_name_instansi") : t("school_name")} testid="register-school-name" />
               <F k="admin_name" label={t("admin_name")} testid="register-admin-name" />
               <F k="email" label={t("email")} type="email" testid="register-email" />
               <F k="password" label={t("password")} type="password" testid="register-password" />
-              <F k="student_count" label={orgType === "company" ? t("employee_count") : t("student_count")} type="number" testid="register-student-count" req={false} />
+              <F k="student_count" label={orgType === "school" ? t("student_count") : t("employee_count")} type="number" testid="register-student-count" req={false} />
               {orgType === "school" && (<>
               <div>
                 <label className="text-xs font-semibold text-slate-400 uppercase tracking-wide">{t("school_type")}</label>
