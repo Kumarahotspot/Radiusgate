@@ -365,6 +365,19 @@ export default function SettingsPage() {
                 } catch (err) { toast.error(errMsg(err)); }
               }} />
           </label>
+          {school?.logo_path && (
+            <button type="button" data-testid="org-logo-delete-btn"
+              onClick={async () => {
+                try {
+                  await api.delete("/admin/school/logo");
+                  setSchool({ ...school, logo_path: null });
+                  toast.success(t("updated_ok"));
+                } catch (err) { toast.error(errMsg(err)); }
+              }}
+              className="px-4 py-2 rounded-xl text-xs font-bold text-red-600 bg-red-50 hover:bg-red-100 transition-colors">
+              {t("delete_logo")}
+            </button>
+          )}
           <p className="text-[11px] text-slate-400 max-w-xs">{t("upload_logo_hint")}</p>
         </div>
         <div className="flex flex-wrap items-center gap-3 mt-3">

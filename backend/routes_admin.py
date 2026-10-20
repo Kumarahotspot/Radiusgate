@@ -924,6 +924,12 @@ async def upload_school_logo(file: UploadFile = File(...), user: dict = Depends(
     return {"path": res["path"]}
 
 
+@router.delete("/admin/school/logo")
+async def delete_school_logo(user: dict = Depends(admin_dep)):
+    await db.schools.update_one({"id": user["school_id"]}, {"$set": {"logo_path": None}})
+    return {"ok": True}
+
+
 @router.get("/admin/school/logo/file/{path:path}")
 async def school_logo_file(path: str):
     if not path.startswith("radiusgate/logo/"):

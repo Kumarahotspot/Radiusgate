@@ -495,3 +495,9 @@
 - routes_admin/billing/parent/spp/teacher: semua pemanggil fetch logo tenant (run_in_threadpool) dan meneruskan; proyeksi query school ditambah `logo_path`.
 - CATATAN INSIDEN: reset logo uji pada tenant demo PPPK kemungkinan menghapus upload logo Kota Depok milik user (balapan waktu — user upload saat agen membersihkan data uji). logo_path kini null; user diminta upload ulang.
 - Terverifikasi: semua file backend kompil OK; laporan umum & poster kiosk PPPK 200 dengan fallback logo RadiusGate; kop logo tenant sudah terbukti pada uji sebelumnya (weekly + daftar hadir).
+
+## 2026-10-20 — Logo Kota Depok dipulihkan + tombol "Hapus Logo" resmi
+- User mengunggah ulang logo Kota Depok (terlampir di chat); agen memulihkannya ke tenant demo PPPK via API upload (logo_path = radiusgate/logo/bc129870....jpeg).
+- Backend: endpoint baru `DELETE /admin/school/logo` (set logo_path null).
+- Frontend SettingsPage.jsx: tombol "Hapus Logo" (`org-logo-delete-btn`, merah, hanya tampil bila ada logo) di samping tombol Unggah Logo; pratinjau logo aktif sudah ada sebelumnya. i18n baru: delete_logo (ID/EN).
+- Terverifikasi: PDF mingguan PPPK 200 dengan logo Kota Depok tertanam (44,5KB vs 2,3KB tanpa logo) + render PNG kop berlogo; DELETE → logo_path null → re-upload pulih; screenshot Pengaturan menampilkan logo di header portal + kartu Tipe Organisasi + tombol Hapus Logo; mobile 390 aman.
